@@ -6,7 +6,33 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e4140c9-f378-4e37-a285-2ea0bb2c5762" name="Default Changelist" comment="" />
+    <list default="true" id="4e4140c9-f378-4e37-a285-2ea0bb2c5762" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCache.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCacheFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/PortalHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/ViewHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/TeleportListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalSide.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructure.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructureFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisAlignedRect.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Line.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Plane.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/ViewCone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/AxisAlignedRect.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/BlockCache.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PlayerMoveListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/PlayerMoveListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalDetector.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalStructure.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalViewHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/ViewCone.java" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,9 +41,13 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Enum" />
         <option value="Class" />
       </list>
     </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MavenImportPreferences">
     <option name="importingSettings">
@@ -28,6 +58,9 @@
     </option>
   </component>
   <component name="ProjectId" id="1Zd5DqM1quyb9S4s9hwyMHoi2nN" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -35,11 +68,17 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$USER_HOME$/Local Server/plugins" />
     <property name="project.structure.last.edited" value="Artifacts" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="configurable.group.appearance" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="me.gorgeousone.netherview" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration name="NetherView build" type="MavenRunConfiguration" factoryName="Maven">
@@ -95,10 +134,14 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="765" y="235" key="#com.intellij.ide.util.MemberChooser" timestamp="1585163420477">
+    <state x="765" y="235" key="#com.intellij.ide.util.MemberChooser" timestamp="1585177071509">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="765" y="235" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1585163420477" />
+    <state x="765" y="235" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1585177071509" />
+    <state x="438" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1585175523982">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="438" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1585175523982" />
     <state x="740" y="261" key="FileChooserDialogImpl" timestamp="1585160765477">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -107,9 +150,9 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="440" y="94" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1585160769484" />
-    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1585163892528">
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1585175871317">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1585163892528" />
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1585175871317" />
   </component>
 </project>

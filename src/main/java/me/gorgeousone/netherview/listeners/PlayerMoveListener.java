@@ -1,5 +1,8 @@
-package me.gorgeousone.netherview;
+package me.gorgeousone.netherview.listeners;
 
+import me.gorgeousone.netherview.portal.PortalStructure;
+import me.gorgeousone.netherview.handlers.PortalHandler;
+import me.gorgeousone.netherview.handlers.ViewHandler;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,10 +13,10 @@ import org.bukkit.util.Vector;
 public class PlayerMoveListener implements Listener {
 	
 	private PortalHandler portalHandler;
-	private PortalViewHandler viewHandler;
+	private ViewHandler viewHandler;
 	
-	public PlayerMoveListener(PortalHandler portalHandler, PortalViewHandler viewHandler) {
-	
+	public PlayerMoveListener(PortalHandler portalHandler, ViewHandler viewHandler) {
+		
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;
 		
@@ -28,14 +31,14 @@ public class PlayerMoveListener implements Listener {
 		
 		PortalStructure portal = portalHandler.nearestPortal(playerLoc);
 		
-		if(portal == null)
+		if (portal == null)
 			return;
 		
 		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
 		
-		double viewDistance = 50;
+		double viewDistanceSquared = 50 * 50;
 		
-		if (portalDistance.lengthSquared() > viewDistance*viewDistance)
+		if (portalDistance.lengthSquared() > viewDistanceSquared)
 			return;
 		
 		viewHandler.displayPortal(player, portal);
