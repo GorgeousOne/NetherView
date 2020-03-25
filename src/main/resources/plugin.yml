@@ -1,0 +1,4 @@
+name: NetherView
+version: ${project.version}
+main: me.gorgeousone.netherview.Main
+api-version: 1.13
