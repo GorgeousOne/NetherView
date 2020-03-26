@@ -1,46 +1,38 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.portal.PortalSide;
 import me.gorgeousone.netherview.portal.PortalStructure;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PortalHandler {
 	
-	private Set<PortalStructure> runningPortals;
+	private Map<PortalStructure, PortalStructure> runningPortals;
 	
 	public PortalHandler() {
-		this.runningPortals = new HashSet<>();
+		this.runningPortals = new HashMap<>();
 	}
 	
-	public void addPortal(PortalStructure portal) {
-		runningPortals.add(portal);
+	public void addPortals(PortalStructure portal, PortalStructure destination) {
+		
+		Bukkit.broadcastMessage(ChatColor.GRAY + "connected portals " +
+		                        portal.getWorld().getEnvironment().name().toLowerCase() + " " + portal.getLocation().toVector().toString() + " and " +
+		                        destination.getWorld().getEnvironment().name().toLowerCase() + " " + destination.getLocation().toVector().toString());
+		
+		runningPortals.put(portal, destination);
 	}
 	
-	public PortalStructure getRegisteredPortalByBlock(Block portalBlock) {
-		
-		if (portalBlock.getType() != Material.NETHER_PORTAL)
-			return null;
-		
-		for (PortalStructure portal : runningPortals) {
-			if (portal.containsBlock(portalBlock))
-				return portal;
-		}
-		
-		return null;
-	}
-	
-	public boolean isPartOfPortal(Block portalBlock) {
+	public boolean containsPortalWithBlock(Block portalBlock) {
 		
 		if (portalBlock.getType() != Material.NETHER_PORTAL)
 			return false;
 		
-		for (PortalStructure portal : runningPortals) {
+		for (PortalStructure portal : runningPortals.keySet()) {
 			if (portal.containsBlock(portalBlock))
 				return true;
 		}
@@ -50,10 +42,23 @@ public class PortalHandler {
 	
 	public PortalStructure nearestPortal(Location playerLoc) {
 		
-		return null;
+		PortalStructure nearestPortal = null;
+		double minDist = -1;
+		
+		for(PortalStructure portal : runningPortals.keySet()) {
+			
+			double dist = portal.getLocation().distanceSquared(playerLoc);
+			
+			if(nearestPortal == null || dist < minDist) {
+				nearestPortal = portal;
+				minDist = dist;
+			}
+		}
+		
+		return nearestPortal;
 	}
 	
-	public BlockCache getCachedBlocks(PortalStructure portal, PortalSide sideToDisplay) {
-		return null;
+	public PortalStructure getLinkedNetherPortal(PortalStructure portal) {
+		return runningPortals.get(portal);
 	}
 }

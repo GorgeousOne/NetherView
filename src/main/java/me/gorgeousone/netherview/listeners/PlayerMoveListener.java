@@ -4,13 +4,17 @@ import me.gorgeousone.netherview.portal.PortalStructure;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.PortalStructureFactory;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.util.Vector;
 
 public class PlayerMoveListener implements Listener {
 	
@@ -26,6 +30,9 @@ public class PlayerMoveListener implements Listener {
 //	@EventHandler
 //	public void onPlayerMove(PlayerMoveEvent event) {
 //
+//		if (event.getTo().getWorld().getEnvironment() != World.Environment.NORMAL)
+//			return;
+//
 //		Player player = event.getPlayer();
 //		Location playerLoc = player.getEyeLocation();
 //
@@ -35,7 +42,6 @@ public class PlayerMoveListener implements Listener {
 //			return;
 //
 //		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
-//
 //		double viewDistanceSquared = 50 * 50;
 //
 //		if (portalDistance.lengthSquared() > viewDistanceSquared)
@@ -44,19 +50,19 @@ public class PlayerMoveListener implements Listener {
 //		viewHandler.displayPortal(player, portal);
 //	}
 	
-	@EventHandler
-	public void onPlayerEnterPortal(EntityPortalEnterEvent event) {
-		
-		if(event.getEntityType() != EntityType.PLAYER)
-			return;
-		
-		Player player = (Player) event.getEntity();
-		Block sourceBlock = event.getLocation().getBlock();
-		
-		PortalStructure portal = PortalStructureFactory.locatePortalStructure(sourceBlock);
-		
-		for(Block block : portal.getPortalBlocks()) {
-			player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
-		}
-	}
+//	@EventHandler
+//	public void onPlayerEnterPortal(EntityPortalEnterEvent event) {
+//
+//		if(event.getEntityType() != EntityType.PLAYER)
+//			return;
+//
+//		Player player = (Player) event.getEntity();
+//		Block sourceBlock = event.getLocation().getBlock();
+//
+//		PortalStructure portal = PortalStructureFactory.locatePortalStructure(sourceBlock);
+//
+//		for(Block block : portal.getPortalBlocks()) {
+//			player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
+//		}
+//	}
 }

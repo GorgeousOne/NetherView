@@ -1,4 +1,10 @@
 name: NetherView
 version: 1.0
-main: me.gorgeousone.netherview.Main
 api-version: 1.13
+
+main: me.gorgeousone.netherview.Main
+
+commands:
+  viewportal:
+    usage: /<command>
+

@@ -13,11 +13,11 @@ public class BlockCacheFactory {
 		if (x2 <= x1 || y2 <= y1 || z2 <= z1)
 			throw new IllegalArgumentException("Cannot create a BlockCache of such a small area");
 		
-		BlockState[][][] blocks = new BlockState[x2 - x1 - 1][y2 - y1 - 1][z2 - z1 - 1];
+		BlockState[][][] blocks = new BlockState[x2 - x1 + 1][y2 - y1 + 1][z2 - z1 + 1];
 		
-		for(int x = x1; x < x2; x++) {
-			for(int y = x1; y < x2; y++) {
-				for(int z = x1; z < x2; z++) {
+		for(int x = x1; x <= x2; x++) {
+			for(int y = y1; y <= y2; y++) {
+				for(int z = z1; z <= z2; z++) {
 					
 					Block block = new Location(world, x, y, z).getBlock();
 					blocks[x-x1][y-y1][z-z1] = block.getState();

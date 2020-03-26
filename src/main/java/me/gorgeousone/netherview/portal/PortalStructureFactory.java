@@ -17,7 +17,7 @@ public class PortalStructureFactory {
 	public static PortalStructure locatePortalStructure(Block sourceBlock) {
 		
 		if (sourceBlock.getType() != Material.NETHER_PORTAL)
-			throw new IllegalArgumentException("Passed block is not part of a nether portal.");
+			throw new IllegalArgumentException("Passed block is not part of a nether portal: world: " + sourceBlock.getWorld().getEnvironment().name().toLowerCase() + " x: " + sourceBlock.getX() + " y: " + sourceBlock.getY() + " z: " + sourceBlock.getZ());
 		
 		PortalRectangle portalRect = locatePortalRect(sourceBlock);
 		World world = sourceBlock.getWorld();

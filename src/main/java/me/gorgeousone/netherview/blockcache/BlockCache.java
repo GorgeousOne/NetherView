@@ -3,20 +3,30 @@ package me.gorgeousone.netherview.blockcache;
 import org.bukkit.block.BlockState;
 import org.bukkit.util.Vector;
 
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class BlockCache {
 	
-	private BlockState[][][] blocks;
+	private BlockState[][][] blockGrid;
+	private Set<BlockState> blocks;
+	
 	private Vector min;
 	private Vector max;
 	
-	public BlockCache(BlockState[][][] blocks, Vector offset) {
-		this.blocks = blocks;
+	public BlockCache(BlockState[][][] blockGrid, Vector offset) {
+		
+		this.blockGrid = blockGrid;
 		this.min = offset.clone();
-		this.max = offset.clone().add(new Vector(blocks.length, blocks[0].length, blocks[0][0].length));
+		this.max = offset.clone().add(new Vector(blockGrid.length, blockGrid[0].length, blockGrid[0][0].length));
+		
+		blocks = new HashSet<>();
+		
+		for(BlockState[][] subArray: blockGrid) {
+			for(BlockState[] subSubArray : subArray)
+				Collections.addAll(blocks, subSubArray);
+		}
 	}
 	
 	public Vector getMin() {
@@ -27,8 +37,12 @@ public class BlockCache {
 		return max.clone();
 	}
 	
+	public Set<BlockState> getBlocks() {
+		return new HashSet<>(blocks);
+	}
+	
 	public BlockState getBlockAt(Vector loc) {
-		return blocks[loc.getBlockX()][loc.getBlockY()][loc.getBlockZ()];
+		return blockGrid[loc.getBlockX()][loc.getBlockY()][loc.getBlockZ()];
 	}
 	
 	public boolean containsLoc(Vector loc) {

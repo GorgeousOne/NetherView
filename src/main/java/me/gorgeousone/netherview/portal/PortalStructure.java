@@ -25,6 +25,10 @@ public class PortalStructure {
 		this.portalBlocks = portalBlocks;
 	}
 	
+	public World getWorld() {
+		return world;
+	}
+	
 	public Location getLocation() {
 		return portalRect.getSomewhatOfACenter().toLocation(world);
 	}

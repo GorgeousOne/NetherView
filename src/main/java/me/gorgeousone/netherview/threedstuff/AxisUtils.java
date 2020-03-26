@@ -12,10 +12,8 @@ public class AxisUtils {
 				return new Vector(0, 0, 1);
 			case Y:
 				return new Vector(0, 1, 0);
-			case Z:
-				return new Vector(1, 0, 0);
 			default:
-				return null;
+				return new Vector(1, 0, 0);
 		}
 	}
 }

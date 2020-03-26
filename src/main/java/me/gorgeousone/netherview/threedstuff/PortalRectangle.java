@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.threedstuff;
 
 import org.bukkit.Axis;
-import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 public class PortalRectangle {
