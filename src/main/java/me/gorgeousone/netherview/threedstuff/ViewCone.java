@@ -5,9 +5,9 @@ import org.bukkit.util.Vector;
 public class ViewCone {
 	
 	private Vector viewPoint;
-	private AxisAlignedRect nearPlane;
+	private PortalRectangle nearPlane;
 	
-	public ViewCone(Vector viewPoint, AxisAlignedRect nearPlane) {
+	public ViewCone(Vector viewPoint, PortalRectangle nearPlane) {
 		this.viewPoint = viewPoint;
 		this.nearPlane = nearPlane;
 	}

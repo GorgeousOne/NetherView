@@ -1,8 +1,9 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
+import me.gorgeousone.netherview.threedstuff.PortalRectangle;
 import org.bukkit.Axis;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 
 import java.util.HashSet;
@@ -10,21 +11,26 @@ import java.util.Set;
 
 public class PortalStructure {
 	
+	private World world;
 	private Axis axis;
+	private PortalRectangle portalRect;
 	private Set<Block> portalBlocks;
-	private Set<Block> frameBlocks;
 	
-	public PortalStructure() {
-		this.portalBlocks = new HashSet<>();
-		this.frameBlocks = new HashSet<>();
+	public PortalStructure(World world,
+	                       PortalRectangle portalRect,
+	                       Set<Block> portalBlocks) {
+		this.world = world;
+		this.axis = portalRect.getAxis();
+		this.portalRect = portalRect;
+		this.portalBlocks = portalBlocks;
 	}
 	
 	public Location getLocation() {
-		return null;
+		return portalRect.getSomewhatOfACenter().toLocation(world);
 	}
 	
-	public AxisAlignedRect getPortalRect() {
-		return null;
+	public PortalRectangle getPortalRect() {
+		return portalRect;
 	}
 	
 	public boolean containsBlock(Block portalBlock) {
@@ -33,5 +39,9 @@ public class PortalStructure {
 	
 	public Axis getAxis() {
 		return axis;
+	}
+	
+	public Set<Block> getPortalBlocks() {
+		return new HashSet<>(portalBlocks);
 	}
 }

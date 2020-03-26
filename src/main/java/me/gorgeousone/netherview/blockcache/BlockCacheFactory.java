@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview.blockcache;
 
-import me.gorgeousone.netherview.blockcache.BlockCache;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;

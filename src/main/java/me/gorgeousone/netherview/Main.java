@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview;
 
+import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
@@ -21,5 +22,6 @@ public final class Main extends JavaPlugin {
 		
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(null), this);
+		manager.registerEvents(new PlayerMoveListener(null, null), this);
 	}
 }

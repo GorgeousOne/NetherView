@@ -3,12 +3,14 @@ package me.gorgeousone.netherview.listeners;
 import me.gorgeousone.netherview.portal.PortalStructure;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import org.bukkit.Location;
+import me.gorgeousone.netherview.portal.PortalStructureFactory;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.util.Vector;
+import org.bukkit.event.entity.EntityPortalEnterEvent;
 
 public class PlayerMoveListener implements Listener {
 	
@@ -19,28 +21,42 @@ public class PlayerMoveListener implements Listener {
 		
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;
-		
-		
 	}
 	
+//	@EventHandler
+//	public void onPlayerMove(PlayerMoveEvent event) {
+//
+//		Player player = event.getPlayer();
+//		Location playerLoc = player.getEyeLocation();
+//
+//		PortalStructure portal = portalHandler.nearestPortal(playerLoc);
+//
+//		if (portal == null)
+//			return;
+//
+//		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
+//
+//		double viewDistanceSquared = 50 * 50;
+//
+//		if (portalDistance.lengthSquared() > viewDistanceSquared)
+//			return;
+//
+//		viewHandler.displayPortal(player, portal);
+//	}
+	
 	@EventHandler
-	public void onPlayerMove(PlayerMoveEvent event) {
+	public void onPlayerEnterPortal(EntityPortalEnterEvent event) {
 		
-		Player player = event.getPlayer();
-		Location playerLoc = player.getEyeLocation();
-		
-		PortalStructure portal = portalHandler.nearestPortal(playerLoc);
-		
-		if (portal == null)
+		if(event.getEntityType() != EntityType.PLAYER)
 			return;
 		
-		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
+		Player player = (Player) event.getEntity();
+		Block sourceBlock = event.getLocation().getBlock();
 		
-		double viewDistanceSquared = 50 * 50;
+		PortalStructure portal = PortalStructureFactory.locatePortalStructure(sourceBlock);
 		
-		if (portalDistance.lengthSquared() > viewDistanceSquared)
-			return;
-		
-		viewHandler.displayPortal(player, portal);
+		for(Block block : portal.getPortalBlocks()) {
+			player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
+		}
 	}
 }

@@ -5,7 +5,7 @@ import me.gorgeousone.netherview.portal.PortalSide;
 import me.gorgeousone.netherview.portal.PortalStructure;
 import me.gorgeousone.netherview.threedstuff.AxisUtils;
 import me.gorgeousone.netherview.threedstuff.ViewCone;
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
+import me.gorgeousone.netherview.threedstuff.PortalRectangle;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
@@ -25,9 +25,9 @@ public class ViewHandler {
 	public void displayPortal(Player player, PortalStructure portal) {
 		
 		Location playerEyeLoc = player.getEyeLocation();
-		AxisAlignedRect nearPlane = portal.getPortalRect();
+		PortalRectangle nearPlane = portal.getPortalRect();
 		
-		Vector portalFacing = AxisUtils.getAsVector(portal.getAxis());
+		Vector portalFacing = AxisUtils.getAxisPlaneNormal(portal.getAxis());
 		boolean playerIsRelativelyNegativeToPortal = isPlayerRelativelyNegativeToPortal(playerEyeLoc, portal.getLocation(), portalFacing);
 		
 		if(playerIsRelativelyNegativeToPortal)
@@ -56,10 +56,8 @@ public class ViewHandler {
 			for (int y = min.getBlockY() + 1; y < max.getY(); y++) {
 				for (int z = min.getBlockZ() + 1; z < max.getZ(); z++) {
 					
-					Vector blockCorner = new Vector(x, y, z);
-					
-					if (viewCone.contains(blockCorner))
-						blocksInCone.addAll(netherCache.getBlocksAtCorner(blockCorner));
+					if (viewCone.contains(new Vector(x, y, z)))
+						blocksInCone.addAll(netherCache.getBlocksAtCorner(x, y, z));
 				}
 			}
 		}
@@ -68,7 +66,13 @@ public class ViewHandler {
 	}
 	
 	private void renderNetherBLocks(Player player, Set<BlockState> blocks) {
-		for (BlockState block : blocks)
-			player.sendBlockChange(block.getLocation(), block.getBlockData());
+		
+		for (BlockState block : blocks) {
+			
+			Location shiftedWorldLoc = block.getLocation();
+			shiftedWorldLoc.setWorld(player.getWorld());
+			
+			player.sendBlockChange(shiftedWorldLoc, block.getBlockData());
+		}
 	}
 }

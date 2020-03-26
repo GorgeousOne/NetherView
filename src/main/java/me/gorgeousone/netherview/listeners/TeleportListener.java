@@ -31,7 +31,7 @@ public class TeleportListener implements Listener {
 		if (!portalHandler.isPartOfPortal(from.getBlock())) {
 			
 			try {
-				portalHandler.addPortal(PortalStructureFactory.findPortalStructure(portalBlock));
+				portalHandler.addPortal(PortalStructureFactory.locatePortalStructure(portalBlock));
 				
 			} catch (Exception e) {
 				e.printStackTrace();

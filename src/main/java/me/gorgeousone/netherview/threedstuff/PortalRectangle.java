@@ -1,20 +1,48 @@
 package me.gorgeousone.netherview.threedstuff;
 
 import org.bukkit.Axis;
+import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
-public class AxisAlignedRect {
+public class PortalRectangle {
 	
 	private Axis axis;
 	private Vector min;
 	private Vector max;
 	private Plane plane;
 	
-	public AxisAlignedRect(Axis axis, Vector min, Vector max) {
+	public PortalRectangle(Axis axis, Vector min, Vector max) {
 		this.axis = axis;
 		this.min = min;
 		this.max = max;
-		this.plane = new Plane(min, AxisUtils.getAsVector(axis));
+		this.plane = new Plane(min, AxisUtils.getAxisPlaneNormal(axis));
+	}
+	
+	public Axis getAxis() {
+		return axis;
+	}
+	
+	public Vector getMin() {
+		return min.clone();
+	}
+	
+	public Vector getMax() {
+		return max.clone();
+	}
+	
+	public int width() {
+		if (axis == Axis.X)
+			return max.getBlockX() - min.getBlockX();
+		else
+			return max.getBlockZ() - min.getBlockZ();
+	}
+	
+	public int height() {
+		return max.getBlockY() - min.getBlockY();
+	}
+	
+	public Vector getSomewhatOfACenter() {
+		return min.clone().add(max.clone().subtract(min).multiply(0.5));
 	}
 	
 	public void translate(Vector delta) {
