@@ -13,7 +13,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.Vector;
 
 public final class Main extends JavaPlugin {
 	
@@ -49,7 +48,10 @@ public final class Main extends JavaPlugin {
 		
 		String cmdName = command.getName();
 		
-		if("viewportal".equals(cmdName)) {
+		if ("worldid".equals(cmdName)) {
+			Bukkit.broadcastMessage(((Player) sender).getWorld().getUID().toString());
+			
+		} else if ("viewportal".equals(cmdName)) {
 			displayNearestPortal((Player) sender);
 			return true;
 		}
@@ -61,7 +63,7 @@ public final class Main extends JavaPlugin {
 		
 		Location playerLoc = player.getEyeLocation();
 		
-		if(playerLoc.getWorld().getEnvironment() != World.Environment.NORMAL)
+		if (playerLoc.getWorld().getEnvironment() != World.Environment.NORMAL)
 			return;
 		
 		PortalStructure portal = portalHandler.nearestPortal(playerLoc);
@@ -69,11 +71,11 @@ public final class Main extends JavaPlugin {
 		if (portal == null)
 			return;
 		
-//		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
-//		double viewDistanceSquared = 50 * 50;
-//
-//		if (portalDistance.lengthSquared() > viewDistanceSquared)
-//			return;
+		//		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
+		//		double viewDistanceSquared = 50 * 50;
+		//
+		//		if (portalDistance.lengthSquared() > viewDistanceSquared)
+		//			return;
 		
 		viewHandler.displayPortal(player, portal);
 	}

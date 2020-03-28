@@ -2,12 +2,15 @@ package me.gorgeousone.netherview.threedstuff;
 
 import org.bukkit.util.Vector;
 
-public class Line {
+/**
+ * An euclidean line where only points between the start and the end of it can be accessed.
+ */
+public class DefinedLine {
 	
 	private Vector origin;
 	private Vector direction;
 	
-	public Line(Vector start, Vector end) {
+	public DefinedLine(Vector start, Vector end) {
 		
 		this.origin = start.clone();
 		this.direction = end.clone().subtract(start);
@@ -22,6 +25,6 @@ public class Line {
 	}
 	
 	public Vector getPoint(double d) {
-		return getOrigin().add(getDirection().multiply(d));
+		return d < 0 || d > 1 ? null : getOrigin().add(getDirection().multiply(d));
 	}
 }

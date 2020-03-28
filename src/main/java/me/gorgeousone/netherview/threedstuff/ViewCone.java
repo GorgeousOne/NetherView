@@ -5,18 +5,18 @@ import org.bukkit.util.Vector;
 public class ViewCone {
 	
 	private Vector viewPoint;
-	private PortalRectangle nearPlane;
+	private Rectangle nearPlane;
 	
-	public ViewCone(Vector viewPoint, PortalRectangle nearPlane) {
+	public ViewCone(Vector viewPoint, Rectangle nearPlane) {
 		this.viewPoint = viewPoint;
 		this.nearPlane = nearPlane;
 	}
 	
 	public boolean contains(Vector point) {
-	
-		Line viewRay = new Line(viewPoint, point);
-		Vector pointInNearPlane = nearPlane.getPlane().getIntersection(viewRay);
 		
-		return nearPlane.rectContains(pointInNearPlane);
+		DefinedLine lineOfView = new DefinedLine(viewPoint, point);
+		Vector pointInNearPlane = nearPlane.getPlane().getIntersection(lineOfView);
+		
+		return pointInNearPlane != null && nearPlane.contains(pointInNearPlane);
 	}
 }

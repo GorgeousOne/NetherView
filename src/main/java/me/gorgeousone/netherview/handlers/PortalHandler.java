@@ -18,13 +18,13 @@ public class PortalHandler {
 		this.runningPortals = new HashMap<>();
 	}
 	
-	public void addPortals(PortalStructure portal, PortalStructure destination) {
+	public void linkPortals(PortalStructure overworldPortal, PortalStructure netherPortal) {
 		
 		Bukkit.broadcastMessage(ChatColor.GRAY + "connected portals " +
-		                        portal.getWorld().getEnvironment().name().toLowerCase() + " " + portal.getLocation().toVector().toString() + " and " +
-		                        destination.getWorld().getEnvironment().name().toLowerCase() + " " + destination.getLocation().toVector().toString());
+		                        overworldPortal.getWorld().getEnvironment().name().toLowerCase() + " " + overworldPortal.getLocation().toVector().toString() + " and " +
+		                        netherPortal.getWorld().getEnvironment().name().toLowerCase() + " " + netherPortal.getLocation().toVector().toString());
 		
-		runningPortals.put(portal, destination);
+		runningPortals.put(overworldPortal, netherPortal);
 	}
 	
 	public boolean containsPortalWithBlock(Block portalBlock) {
@@ -45,11 +45,11 @@ public class PortalHandler {
 		PortalStructure nearestPortal = null;
 		double minDist = -1;
 		
-		for(PortalStructure portal : runningPortals.keySet()) {
+		for (PortalStructure portal : runningPortals.keySet()) {
 			
 			double dist = portal.getLocation().distanceSquared(playerLoc);
 			
-			if(nearestPortal == null || dist < minDist) {
+			if (nearestPortal == null || dist < minDist) {
 				nearestPortal = portal;
 				minDist = dist;
 			}

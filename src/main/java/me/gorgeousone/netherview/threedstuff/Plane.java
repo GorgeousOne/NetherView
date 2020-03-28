@@ -11,7 +11,7 @@ public class Plane {
 		this.origin = origin.clone();
 		this.normal = normal.clone().normalize();
 		
-		if(normal.equals(new Vector(0, 0, 0)))
+		if (normal.equals(new Vector(0, 0, 0)))
 			throw new IllegalArgumentException("normal cannot be 0");
 	}
 	
@@ -25,11 +25,14 @@ public class Plane {
 	
 	public boolean contains(Vector point) {
 		
+		if (point == null)
+			return false;
+		
 		Vector subtract = getOrigin().subtract(point);
 		return Math.abs(getNormal().dot(subtract)) < 0.0001;
 	}
 	
-	public Vector getIntersection(Line l) {
+	public Vector getIntersection(DefinedLine l) {
 		
 		double d = getOrigin().subtract(l.getOrigin()).dot(getNormal()) / l.getDirection().dot(getNormal());
 		Vector intersection = l.getPoint(d);
