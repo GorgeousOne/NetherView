@@ -31,19 +31,16 @@ public class PortalStructureFactory {
 		Axis portalAxis = portalData.getAxis();
 		
 		Vector location = new Vector(sourceBlock.getX(), getPortalExtent(sourceBlock, BlockFace.DOWN).getY(), sourceBlock.getZ());
-		Vector max = new Vector(sourceBlock.getX(), getPortalExtent(sourceBlock, BlockFace.UP).getY(), sourceBlock.getZ());
 		
-		int height = getPortalExtent(sourceBlock, BlockFace.UP).getY() - location.getBlockY();
-		int width = 0;
+		int height = getPortalExtent(sourceBlock, BlockFace.UP).getY() + 1 - location.getBlockY();
+		int width;
 		
 		if (portalAxis == Axis.X) {
 			location.setX(getPortalExtent(sourceBlock, BlockFace.WEST).getX());
-			max.setX(getPortalExtent(sourceBlock, BlockFace.EAST).getX());
-			width = getPortalExtent(sourceBlock, BlockFace.EAST).getX() - location.getBlockX();
+			width = getPortalExtent(sourceBlock, BlockFace.EAST).getX() + 1 - location.getBlockX();
 		} else {
 			location.setZ(getPortalExtent(sourceBlock, BlockFace.NORTH).getZ());
-			max.setZ(getPortalExtent(sourceBlock, BlockFace.SOUTH).getZ());
-			width = getPortalExtent(sourceBlock, BlockFace.SOUTH).getZ() - location.getBlockZ();
+			width = getPortalExtent(sourceBlock, BlockFace.SOUTH).getZ() + 1 - location.getBlockZ();
 		}
 		
 		return new Rectangle(portalAxis, location, width, height);
@@ -73,11 +70,11 @@ public class PortalStructureFactory {
 		BlockFace horizontalFace = portalRect.getAxis() == Axis.X ? BlockFace.EAST : BlockFace.SOUTH;
 		Block iter = portalRect.getMin().toLocation(world).getBlock();
 		
-		for (int k = 0; k <= portalRect.height(); k++) {
+		for (int k = 0; k < portalRect.height(); k++) {
 			
 			Block iter2 = iter;
 			
-			for (int i = 0; i <= portalRect.width(); i++) {
+			for (int i = 0; i < portalRect.width(); i++) {
 				
 				portalBlocks.add(iter2);
 				iter2 = iter2.getRelative(horizontalFace);

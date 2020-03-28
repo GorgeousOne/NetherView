@@ -8,10 +8,11 @@ public class Plane {
 	private Vector normal;
 	
 	public Plane(Vector origin, Vector normal) {
+		
 		this.origin = origin.clone();
 		this.normal = normal.clone().normalize();
 		
-		if (normal.equals(new Vector(0, 0, 0)))
+		if (normal.lengthSquared() == 0)
 			throw new IllegalArgumentException("normal cannot be 0");
 	}
 	

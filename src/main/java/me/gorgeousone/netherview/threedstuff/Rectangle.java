@@ -68,6 +68,7 @@ public class Rectangle {
 		Vector max = getMax();
 		
 		double pointY = pointInPlane.getY();
+		
 		if (pointY < min.getY() || pointY > max.getY())
 			return false;
 		
@@ -77,7 +78,7 @@ public class Rectangle {
 				return pointX >= min.getX() && pointX <= max.getX();
 			case Z:
 				double pointZ = pointInPlane.getZ();
-				return pointZ >= min.getX() && pointZ <= max.getX();
+				return pointZ >= min.getZ() && pointZ <= max.getZ();
 			default:
 				return false;
 		}

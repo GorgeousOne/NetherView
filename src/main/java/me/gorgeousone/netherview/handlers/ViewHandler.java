@@ -36,7 +36,7 @@ public class ViewHandler {
 			return;
 		
 		if (!netherViews.containsKey(portal))
-			netherViews.put(portal, BlockCacheFactory.createBlockCache(portal, portalHandler.getLinkedNetherPortal(portal)));
+			netherViews.put(portal, BlockCacheFactory.createBlockCache(portal, portalHandler.getLinkedNetherPortal(portal), 8));
 		
 		Location playerEyeLoc = player.getEyeLocation();
 		Rectangle nearPlane = portal.getPortalRect();
@@ -53,6 +53,10 @@ public class ViewHandler {
 		BlockCache netherBlockCache = getCachedBlocks(portal, portalSideToDisplay);
 		Set<BlockCopy> visibleBlocks = detectBlocksInView(playerViewCone, netherBlockCache);
 		renderNetherBLocks(player, portal, visibleBlocks);
+		
+		System.out.println("point " + playerEyeLoc.toVector().toString());
+		System.out.println("plane " + nearPlane.getMin().toString() + " - " + nearPlane.getMax().toString());
+		System.out.println("axis " + nearPlane.getAxis().name() + " wdith " + nearPlane.width() + " height " + nearPlane.height());
 	}
 	
 	private BlockCache getCachedBlocks(PortalStructure portal, PortalSide portalSideToDisplay) {
@@ -70,11 +74,11 @@ public class ViewHandler {
 		Vector min = netherCache.getCopyMin();
 		Vector max = netherCache.getCopyMax();
 		
-		for (int x = min.getBlockX() + 1; x < max.getX(); x++) {
-			for (int y = min.getBlockY() + 1; y < max.getY(); y++) {
-				for (int z = min.getBlockZ() + 1; z < max.getZ(); z++) {
+		for (int x = min.getBlockX(); x < max.getX(); x++) {
+			for (int y = min.getBlockY(); y < max.getY(); y++) {
+				for (int z = min.getBlockZ(); z < max.getZ(); z++) {
 
-//					if (viewCone.contains(new Vector(x, y, z)))
+					if (viewCone.contains(new Vector(x, y, z)))
 						blocksInCone.addAll(netherCache.getCopiesAround(x, y, z));
 				}
 			}
@@ -90,9 +94,7 @@ public class ViewHandler {
 		for (Block block : portal.getPortalBlocks())
 			player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
 		
-		for (BlockCopy copy : visibleBlocks) {
+		for (BlockCopy copy : visibleBlocks)
 			player.sendBlockChange(copy.getPosition().toLocation(player.getWorld()), copy.getBlockData());
-			System.out.println(copy.getPosition().toString());
-		}
 	}
 }

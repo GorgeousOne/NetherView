@@ -1,46 +1,11 @@
 package threedtests;
 
-import me.gorgeousone.netherview.threedstuff.Rectangle;
 import me.gorgeousone.netherview.threedstuff.Transform;
-import me.gorgeousone.netherview.threedstuff.ViewCone;
-import org.bukkit.Axis;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ThreeDTests {
-
-	@Test
-	public void pointInRect() {
-		
-		Rectangle rect = new Rectangle(Axis.X, new Vector(), 5, 10);
-		
-		Vector containedPoint = new Vector(2, 7, 0);
-		Vector notContainedPoint = new Vector( -2, 7, 0);
-		
-		Assertions.assertTrue(rect.contains(containedPoint));
-		Assertions.assertFalse(rect.contains(notContainedPoint));
-	}
-	
-	@Test
-	public void pointInCone() {
-
-		Rectangle nearPlane = new Rectangle(Axis.X, new Vector(), 5, 10);
-		Vector viewPoint = new Vector(2.5, 5, -2.5);
-		ViewCone cone = new ViewCone(viewPoint, nearPlane);
-		
-		Vector containedPoint = new Vector(2.5, 5, 1);
-		Vector notContainedPoint = new Vector(-10, 5, 1);
-		Vector pointBeyondNearPlane = new Vector(2.5, 5, -1);
-		Vector almostContainedPoint = new Vector(-2.5001, 5, 2.5);
-		Vector almostNotContainedPoint = new Vector(-2.4999, 5, 2.5);
-		
-		Assertions.assertTrue(cone.contains(containedPoint));
-		Assertions.assertFalse(cone.contains(notContainedPoint));
-		Assertions.assertFalse(cone.contains(pointBeyondNearPlane));
-		Assertions.assertFalse(cone.contains(almostContainedPoint));
-		Assertions.assertTrue(cone.contains(almostNotContainedPoint));
-	}
+public class TransformationTests {
 	
 	@Test
 	public void translatePoint() {
