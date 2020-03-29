@@ -1,7 +1,7 @@
 package threedtests;
 
+import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.threedstuff.Transform;
-import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -11,10 +11,10 @@ public class TransformationTests {
 	public void translatePoint() {
 		
 		Transform transform = new Transform();
-		transform.setTranslation(new Vector(100, 0, 100));
+		transform.setTranslation(new BlockVec(100, 0, 100));
 		
-		Vector point = new Vector(10, 20, 30);
-		Vector transformedPoint = transform.getTransformed(point);
+		BlockVec point = new BlockVec(10, 20, 30);
+		BlockVec transformedPoint = transform.getTransformed(point);
 		
 		Assertions.assertEquals(110, transformedPoint.getX());
 		Assertions.assertEquals(20, transformedPoint.getY());
@@ -27,8 +27,8 @@ public class TransformationTests {
 		Transform transform = new Transform();
 		transform.setRotY90DegLeft();
 		
-		Vector point = new Vector(20, 0, 50);
-		Vector transformedPoint = transform.getTransformed(point);
+		BlockVec point = new BlockVec(20, 0, 50);
+		BlockVec transformedPoint = transform.getTransformed(point);
 		
 		Assertions.assertEquals(50, transformedPoint.getX());
 		Assertions.assertEquals(0, transformedPoint.getY());
@@ -40,10 +40,10 @@ public class TransformationTests {
 		
 		Transform transform = new Transform();
 		transform.setRotY90DegLeft();
-		transform.setRotCenter(new Vector(50, 0, 20));
+		transform.setRotCenter(new BlockVec(50, 0, 20));
 		
-		Vector point = new Vector(0, 0, 0);
-		Vector transformedPoint = transform.getTransformed(point);
+		BlockVec point = new BlockVec(0, 0, 0);
+		BlockVec transformedPoint = transform.getTransformed(point);
 		
 		Assertions.assertEquals(30, transformedPoint.getX());
 		Assertions.assertEquals(0, transformedPoint.getY());
@@ -54,12 +54,12 @@ public class TransformationTests {
 	public void forthBackTransform() {
 		
 		Transform transform = new Transform();
-		transform.setTranslation(new Vector(100, 0, 100));
+		transform.setTranslation(new BlockVec(100, 0, 100));
 		transform.setRotY90DegLeft();
 		
-		Vector point = new Vector(50 ,0, 0);
+		BlockVec point = new BlockVec(50 ,0, 0);
 		
-		Vector transformedPoint = transform.getTransformed(point);
+		BlockVec transformedPoint = transform.getTransformed(point);
 		transform.invert();
 		transformedPoint = transform.getTransformed(transformedPoint);
 		

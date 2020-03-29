@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.threedstuff.Rectangle;
+import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -19,13 +19,13 @@ public class PortalStructureFactory {
 		if (sourceBlock.getType() != Material.NETHER_PORTAL)
 			throw new IllegalArgumentException("Passed block is not part of a nether portal: world: " + sourceBlock.getWorld().getEnvironment().name().toLowerCase() + " x: " + sourceBlock.getX() + " y: " + sourceBlock.getY() + " z: " + sourceBlock.getZ());
 		
-		Rectangle portalRect = locatePortalRect(sourceBlock);
+		AxisAlignedRect portalRect = locatePortalRect(sourceBlock);
 		World world = sourceBlock.getWorld();
 		
 		return new PortalStructure(world, portalRect, getPortalBlocks(world, portalRect));
 	}
 	
-	private static Rectangle locatePortalRect(Block sourceBlock) {
+	private static AxisAlignedRect locatePortalRect(Block sourceBlock) {
 		
 		Orientable portalData = (Orientable) sourceBlock.getBlockData();
 		Axis portalAxis = portalData.getAxis();
@@ -43,7 +43,7 @@ public class PortalStructureFactory {
 			width = getPortalExtent(sourceBlock, BlockFace.SOUTH).getZ() + 1 - location.getBlockZ();
 		}
 		
-		return new Rectangle(portalAxis, location, width, height);
+		return new AxisAlignedRect(portalAxis, location, width, height);
 	}
 	
 	private static Block getPortalExtent(Block sourceBlock, BlockFace facing) {
@@ -63,7 +63,7 @@ public class PortalStructureFactory {
 		throw new IllegalArgumentException("Portal appears to be bigger than vanilla allows.");
 	}
 	
-	private static Set<Block> getPortalBlocks(World world, Rectangle portalRect) {
+	private static Set<Block> getPortalBlocks(World world, AxisAlignedRect portalRect) {
 		
 		Set<Block> portalBlocks = new HashSet<>();
 		

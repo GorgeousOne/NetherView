@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.threedstuff.Rectangle;
+import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -13,11 +13,11 @@ public class PortalStructure {
 	
 	private World world;
 	private Axis axis;
-	private Rectangle portalRect;
+	private AxisAlignedRect portalRect;
 	private Set<Block> portalBlocks;
 	
 	public PortalStructure(World world,
-	                       Rectangle portalRect,
+	                       AxisAlignedRect portalRect,
 	                       Set<Block> portalBlocks) {
 		this.world = world;
 		this.axis = portalRect.getAxis();
@@ -33,7 +33,7 @@ public class PortalStructure {
 		return portalRect.getSomewhatOfACenter().toLocation(world);
 	}
 	
-	public Rectangle getPortalRect() {
+	public AxisAlignedRect getPortalRect() {
 		return portalRect.clone();
 	}
 	

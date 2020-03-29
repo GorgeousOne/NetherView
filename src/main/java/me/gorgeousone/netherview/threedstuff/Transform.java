@@ -1,30 +1,30 @@
 package me.gorgeousone.netherview.threedstuff;
 
-import org.bukkit.util.Vector;
+import me.gorgeousone.netherview.blockcache.BlockVec;
 
 public class Transform {
 	
-	private Vector translation;
-	private Vector rotCenter;
+	private BlockVec translation;
+	private BlockVec rotCenter;
 	private int[][] rotationY;
 	
 	public Transform() {
-		translation = new Vector();
-		rotCenter = new Vector();
+		translation = new BlockVec();
+		rotCenter = new BlockVec();
 		rotationY = new int[][]{{1, 0}, {0, 1}};
 	}
 	
-	protected Transform(Vector translation, Vector rotCenter, int[][] rotationY) {
+	protected Transform(BlockVec translation, BlockVec rotCenter, int[][] rotationY) {
 		this.translation = translation;
 		this.rotCenter = rotCenter;
 		this.rotationY = rotationY;
 	}
 	
-	public void setTranslation(Vector delta) {
+	public void setTranslation(BlockVec delta) {
 		this.translation = delta;
 	}
 	
-	public void setRotCenter(Vector rotCenter) {
+	public void setRotCenter(BlockVec rotCenter) {
 		this.rotCenter = rotCenter;
 	}
 	
@@ -42,9 +42,9 @@ public class Transform {
 		rotationY[1][1] = 0;
 	}
 	
-	public Vector getTransformed(Vector point) {
+	public BlockVec getTransformed(BlockVec point) {
 		
-		Vector transformed = point.clone();
+		BlockVec transformed = point.clone();
 		
 		transformed.subtract(rotCenter);
 		rotate(transformed);
@@ -52,10 +52,10 @@ public class Transform {
 		return transformed.add(rotCenter).add(translation);
 	}
 	
-	public Vector rotate(Vector relativePoint) {
+	public BlockVec rotate(BlockVec relativePoint) {
 		
-		double transX = relativePoint.getX();
-		double transZ = relativePoint.getZ();
+		int transX = relativePoint.getX();
+		int transZ = relativePoint.getZ();
 		
 		relativePoint.setX(rotationY[0][0] * transX + rotationY[0][1] * transZ);
 		relativePoint.setZ(rotationY[1][0] * transX + rotationY[1][1] * transZ);

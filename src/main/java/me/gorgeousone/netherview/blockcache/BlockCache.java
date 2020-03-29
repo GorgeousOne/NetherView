@@ -2,7 +2,6 @@ package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.threedstuff.Transform;
 import org.bukkit.block.Block;
-import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,11 +11,11 @@ public class BlockCache {
 	private Block[][][] sourceBlocks;
 	private BlockCopy[][][] blockCopies;
 	
-	private Vector min;
-	private Vector max;
+	private BlockVec min;
+	private BlockVec max;
 	private Transform blockTransform;
 	
-	public BlockCache(Block[][][] sourceBlocks, Vector offset, Transform blockTransform) {
+	public BlockCache(Block[][][] sourceBlocks, BlockVec offset, Transform blockTransform) {
 		
 		this.sourceBlocks = sourceBlocks;
 		this.blockTransform = blockTransform;
@@ -25,98 +24,101 @@ public class BlockCache {
 		createBlockCopies();
 	}
 	
-	private Vector sourceCacheSize() {
-		return new Vector(sourceBlocks.length, sourceBlocks[0].length, sourceBlocks[0][0].length);
+	private BlockVec sourceCacheSize() {
+		return new BlockVec(sourceBlocks.length, sourceBlocks[0].length, sourceBlocks[0][0].length);
 	}
 	
-	public Vector getCopyMin() {
+	public BlockVec getCopyMin() {
 		return min.clone();
 	}
 	
-	public Vector getCopyMax() {
+	public BlockVec getCopyMax() {
 		return max.clone();
 	}
 	
-	public BlockCopy getCopyAt(Vector loc) {
+	public BlockCopy getCopyAt(BlockVec loc) {
 		return blockCopies
-				[loc.getBlockX() - min.getBlockX()]
-				[loc.getBlockY() - min.getBlockY()]
-				[loc.getBlockZ() - min.getBlockZ()];
+				[loc.getX() - min.getX()]
+				[loc.getY() - min.getY()]
+				[loc.getZ() - min.getZ()];
 	}
 	
-	public boolean copiesContain(Vector loc) {
-		return loc.getBlockX() >= min.getX() && loc.getBlockX() < max.getX() &&
-		       loc.getBlockY() >= min.getY() && loc.getBlockY() < max.getY() &&
-		       loc.getBlockZ() >= min.getZ() && loc.getBlockZ() < max.getZ();
+	public boolean copiesContain(BlockVec loc) {
+		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
+		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
+		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
 	public Set<BlockCopy> getCopiesAround(int x, int y, int z) {
 		
 		Set<BlockCopy> blocksAroundCorner = new HashSet<>();
 		
-		for (Vector loc : getAllCornerLocs(x, y, z)) {
-			if (copiesContain(loc))
-				blocksAroundCorner.add(getCopyAt(loc));
+		for (BlockVec position : getAllCornerLocs(x, y, z)) {
+			if (!copiesContain(position))
+				continue;
+			
+			BlockCopy copy = getCopyAt(position);
+			
+			if(copy != null)
+				blocksAroundCorner.add(copy);
 		}
 		
 		return blocksAroundCorner;
 	}
 	
-	private Set<Vector> getAllCornerLocs(int x, int y, int z) {
+	private Set<BlockVec> getAllCornerLocs(int x, int y, int z) {
 		
-		Set<Vector> locsAroundCorner = new HashSet<>();
+		Set<BlockVec> locsAroundCorner = new HashSet<>();
 		
-		locsAroundCorner.add(new Vector(x, y, z));
-		locsAroundCorner.add(new Vector(x - 1, y, z));
-		locsAroundCorner.add(new Vector(x, y, z - 1));
-		locsAroundCorner.add(new Vector(x - 1, y, z - 1));
-		locsAroundCorner.add(new Vector(x, y - 1, z));
-		locsAroundCorner.add(new Vector(x - 1, y - 1, z));
-		locsAroundCorner.add(new Vector(x, y - 1, z - 1));
-		locsAroundCorner.add(new Vector(x - 1, y - 1, z - 1));
+		locsAroundCorner.add(new BlockVec(x, y, z));
+		locsAroundCorner.add(new BlockVec(x - 1, y, z));
+		locsAroundCorner.add(new BlockVec(x, y, z - 1));
+		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
+		locsAroundCorner.add(new BlockVec(x, y - 1, z));
+		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z));
+		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
+		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z - 1));
 		
 		return locsAroundCorner;
 	}
 	
-	private void createTransformedBounds(Vector offset) {
+	private void createTransformedBounds(BlockVec offset) {
 		
-		Vector sourceSize = sourceCacheSize();
+		BlockVec sourceSize = sourceCacheSize();
 		
-		Vector transformedMin = blockTransform.getTransformed(offset);
-		Vector transformedMax = transformedMin.clone().add(blockTransform.rotate(sourceSize));
+		BlockVec transformedMin = blockTransform.getTransformed(offset);
+		BlockVec transformedMax = transformedMin.clone().add(blockTransform.rotate(sourceSize));
 		
-		min = new Vector(Math.min(transformedMin.getBlockX(), transformedMax.getBlockX()),
-		                 Math.min(transformedMin.getBlockY(), transformedMax.getBlockY()),
-		                 Math.min(transformedMin.getBlockZ(), transformedMax.getBlockZ()));
-		
-		max = new Vector(Math.max(transformedMin.getBlockX(), transformedMax.getBlockX()),
-		                 Math.max(transformedMin.getBlockY(), transformedMax.getBlockY()),
-		                 Math.max(transformedMin.getBlockZ(), transformedMax.getBlockZ()));
+		min = BlockVec.getMinimum(transformedMin, transformedMax);
+		max = BlockVec.getMaximum(transformedMin, transformedMax);
 	}
 	
 	private void createBlockCopies() {
 		
-		Vector sourceSize = sourceCacheSize();
-		Vector copySize = blockTransform.rotate(sourceSize.clone());
+		BlockVec sourceSize = sourceCacheSize();
+		BlockVec copySize = blockTransform.rotate(sourceSize.clone());
 		
 		blockCopies = new BlockCopy
-				[copySize.getBlockX()]
-				[copySize.getBlockY()]
-				[copySize.getBlockZ()];
+				[copySize.getX()]
+				[copySize.getY()]
+				[copySize.getZ()];
 		
 		for (int x = 0; x < sourceSize.getX(); x++){
 			for (int y = 0; y < sourceSize.getY(); y++) {
 				for (int z = 0; z < sourceSize.getZ(); z++) {
 				
 					Block block = sourceBlocks[x][y][z];
-					Vector copyPos = blockTransform.getTransformed(block.getLocation().toVector());
+					
+					if(block == null)
+						continue;
+					
+					BlockVec copyPos = blockTransform.getTransformed(new BlockVec(block));
 					BlockCopy blockCopy = new BlockCopy(copyPos, block.getBlockData());
+					BlockVec copyIndex = blockTransform.rotate(new BlockVec(x, y, z));
 					
-					Vector copyIndex = blockTransform.rotate(new Vector(x, y, z));
-					
-					blockCopies[copyIndex.getBlockX()]
-							[copyIndex.getBlockY()]
-							[copyIndex.getBlockZ()] = blockCopy;
+					blockCopies[copyIndex.getX()]
+							[copyIndex.getY()]
+							[copyIndex.getZ()] = blockCopy;
 				}
 			}
 		}

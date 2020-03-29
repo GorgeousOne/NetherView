@@ -3,14 +3,18 @@ package me.gorgeousone.netherview.threedstuff;
 import org.bukkit.Axis;
 import org.bukkit.util.Vector;
 
-public class Rectangle {
+public class AxisAlignedRect {
 	
 	private Axis axis;
 	private Vector pos;
 	private Vector size;
 	private Plane plane;
 	
-	public Rectangle(Axis axis, Vector pos, int width, int height) {
+	public AxisAlignedRect(Axis axis, Vector pos, double width, double height) {
+		
+		if(axis == Axis.Y)
+			throw new IllegalArgumentException("Why would you want to use Axis.Y for a rectangle?");
+		
 		this.axis = axis;
 		this.pos = pos;
 		this.plane = new Plane(pos, AxisUtils.getAxisPlaneNormal(axis));
@@ -30,18 +34,18 @@ public class Rectangle {
 		return pos.clone().add(size);
 	}
 	
-	public int width() {
+	public double width() {
 		if (axis == Axis.X)
 			return size.getBlockX();
 		else
 			return size.getBlockZ();
 	}
 	
-	public int height() {
+	public double height() {
 		return size.getBlockY();
 	}
 	
-	public void setSize(int width, int height) {
+	public void setSize(double width, double height) {
 		size = new Vector(0, height, 0);
 		
 		if (axis == Axis.X)
@@ -85,7 +89,7 @@ public class Rectangle {
 	}
 	
 	@Override
-	public Rectangle clone() {
-		return new Rectangle(axis, pos, width(), height());
+	public AxisAlignedRect clone() {
+		return new AxisAlignedRect(getAxis(), getMin(), width(), height());
 	}
 }

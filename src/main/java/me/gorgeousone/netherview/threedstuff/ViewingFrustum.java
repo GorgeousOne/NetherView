@@ -2,12 +2,12 @@ package me.gorgeousone.netherview.threedstuff;
 
 import org.bukkit.util.Vector;
 
-public class ViewCone {
+public class ViewingFrustum {
 	
 	private Vector viewPoint;
-	private Rectangle nearPlane;
+	private AxisAlignedRect nearPlane;
 	
-	public ViewCone(Vector viewPoint, Rectangle nearPlane) {
+	public ViewingFrustum(Vector viewPoint, AxisAlignedRect nearPlane) {
 		this.viewPoint = viewPoint;
 		this.nearPlane = nearPlane;
 	}
