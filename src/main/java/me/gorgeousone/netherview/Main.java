@@ -71,12 +71,6 @@ public final class Main extends JavaPlugin {
 		if (portal == null)
 			return;
 		
-		//		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
-		//		double viewDistanceSquared = 50 * 50;
-		//
-		//		if (portalDistance.lengthSquared() > viewDistanceSquared)
-		//			return;
-		
 		viewingHandler.displayPortal(player, portal);
 	}
 }

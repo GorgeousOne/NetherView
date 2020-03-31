@@ -51,20 +51,4 @@ public class PlayerMoveListener implements Listener {
 
 		viewingHandler.displayPortal(player, portal);
 	}
-	
-//		@EventHandler
-//		public void onPlayerEnterPortal(EntityPortalEnterEvent event) {
-//
-//			if(event.getEntityType() != EntityType.PLAYER)
-//				return;
-//
-//			Player player = (Player) event.getEntity();
-//			Block sourceBlock = event.getLocation().getBlock();
-//
-//			PortalStructure portal = PortalStructureFactory.locatePortalStructure(sourceBlock);
-//
-//			for(Block block : portal.getPortalBlocks()) {
-//				player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
-//			}
-//		}
 }

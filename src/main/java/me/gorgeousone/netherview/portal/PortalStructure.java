@@ -12,17 +12,18 @@ import java.util.Set;
 public class PortalStructure {
 	
 	private World world;
-	private Axis axis;
 	private AxisAlignedRect portalRect;
 	private Set<Block> portalBlocks;
+	private Set<Block> frameBlocks;
 	
 	public PortalStructure(World world,
 	                       AxisAlignedRect portalRect,
-	                       Set<Block> portalBlocks) {
+	                       Set<Block> portalBlocks,
+	                       Set<Block> frameBlocks) {
 		this.world = world;
-		this.axis = portalRect.getAxis();
 		this.portalRect = portalRect;
 		this.portalBlocks = portalBlocks;
+		this.frameBlocks = frameBlocks;
 	}
 	
 	public World getWorld() {
@@ -30,7 +31,7 @@ public class PortalStructure {
 	}
 	
 	public Location getLocation() {
-		return portalRect.getSomewhatOfACenter().toLocation(world);
+		return portalRect.getMin().toLocation(world);
 	}
 	
 	public AxisAlignedRect getPortalRect() {
@@ -42,10 +43,14 @@ public class PortalStructure {
 	}
 	
 	public Axis getAxis() {
-		return axis;
+		return portalRect.getAxis();
 	}
 	
 	public Set<Block> getPortalBlocks() {
 		return new HashSet<>(portalBlocks);
+	}
+	
+	public Set<Block> getFrameBlocks() {
+		return frameBlocks;
 	}
 }

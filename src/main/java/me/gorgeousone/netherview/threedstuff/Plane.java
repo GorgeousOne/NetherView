@@ -33,11 +33,15 @@ public class Plane {
 		return Math.abs(getNormal().dot(subtract)) < 0.0001;
 	}
 	
-	public Vector getIntersection(DefinedLine l) {
+	public Vector getIntersection(Line line) {
 		
-		double d = getOrigin().subtract(l.getOrigin()).dot(getNormal()) / l.getDirection().dot(getNormal());
-		Vector intersection = l.getPoint(d);
+		double d = getOrigin().subtract(line.getOrigin()).dot(getNormal()) / line.getDirection().dot(getNormal());
+		Vector intersection = line.getPoint(d);
 		
 		return contains(intersection) ? intersection : null;
+	}
+	
+	public void translate(Vector delta) {
+		origin.add(delta);
 	}
 }

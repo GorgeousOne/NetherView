@@ -7,31 +7,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4e4140c9-f378-4e37-a285-2ea0bb2c5762" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCache.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCacheFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/PortalHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/ViewHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/TeleportListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalSide.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructure.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructureFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisAlignedRect.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisUtils.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Line.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Plane.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/ViewCone.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/ViewingFrustumFactory.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/AxisAlignedRect.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/BlockCache.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PlayerMoveListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/PlayerMoveListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalDetector.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalHandler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalStructure.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/PortalViewHandler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/ViewCone.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/Utils.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCache.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCache.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCacheFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCacheFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCopy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCopy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockVec.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockVec.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/PortalHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/PortalHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/ViewingHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/ViewingHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/PlayerMoveListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/PlayerMoveListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/TeleportListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/TeleportListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructure.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructureFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructureFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisAlignedRect.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisAlignedRect.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/DefinedLine.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/DefinedLine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Plane.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Plane.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Transform.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Transform.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/threedtests/TransformationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/threedtests/TransformationTests.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,11 +72,78 @@
     <property name="settings.editor.selected.configurable" value="configurable.group.appearance" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="me.gorgeousone.netherview.threedstuff" />
+    </key>
     <key name="CreateClassDialog.RecentsKey">
       <recent name="me.gorgeousone.netherview" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="JUnit.TransformationTests.translatePoint">
+    <configuration name="TransformationTests.forthBackTransform" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="NetherView" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="threedtests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="threedtests" />
+      <option name="MAIN_CLASS_NAME" value="threedtests.TransformationTests" />
+      <option name="METHOD_NAME" value="forthBackTransform" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TransformationTests.rotatePointAroundPoint" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="NetherView" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="threedtests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="threedtests" />
+      <option name="MAIN_CLASS_NAME" value="threedtests.TransformationTests" />
+      <option name="METHOD_NAME" value="rotatePointAroundPoint" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TransformationTests.rotatePointAroundPoint2" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="NetherView" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="threedtests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="threedtests" />
+      <option name="MAIN_CLASS_NAME" value="threedtests.TransformationTests" />
+      <option name="METHOD_NAME" value="rotatePointAroundPoint2" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TransformationTests.translatePoint" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="NetherView" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="threedtests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="threedtests" />
+      <option name="MAIN_CLASS_NAME" value="threedtests.TransformationTests" />
+      <option name="METHOD_NAME" value="translatePoint" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="NetherView build" type="MavenRunConfiguration" factoryName="Maven">
       <MavenSettings>
         <option name="myGeneralSettings" />
@@ -107,6 +170,14 @@
       </MavenSettings>
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.TransformationTests.translatePoint" />
+        <item itemvalue="JUnit.TransformationTests.rotatePointAroundPoint" />
+        <item itemvalue="JUnit.TransformationTests.forthBackTransform" />
+        <item itemvalue="JUnit.TransformationTests.rotatePointAroundPoint2" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="ServiceViewManager">
     <option name="viewStates">
@@ -134,10 +205,10 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="765" y="235" key="#com.intellij.ide.util.MemberChooser" timestamp="1585177071509">
+    <state x="765" y="235" key="#com.intellij.ide.util.MemberChooser" timestamp="1585685334258">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="765" y="235" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1585177071509" />
+    <state x="765" y="235" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1585685334258" />
     <state x="438" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1585175523982">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -146,13 +217,37 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="261" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1585160765477" />
+    <state width="1877" height="274" key="GridCell.Tab.0.bottom" timestamp="1585687906608">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="274" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1585687906608" />
+    <state width="1877" height="274" key="GridCell.Tab.0.center" timestamp="1585687906608">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="274" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1585687906608" />
+    <state width="1877" height="274" key="GridCell.Tab.0.left" timestamp="1585687906608">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="274" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1585687906608" />
+    <state width="1877" height="274" key="GridCell.Tab.0.right" timestamp="1585687906608">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="274" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1585687906608" />
     <state x="440" y="94" key="SettingsEditor" timestamp="1585160769484">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="440" y="94" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1585160769484" />
-    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1585175871317">
+    <state x="656" y="257" width="607" height="526" key="find.popup" timestamp="1585611929312">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1585175871317" />
+    <state x="656" y="257" width="607" height="526" key="find.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1585611929312" />
+    <state x="616" y="240" key="run.anything.popup" timestamp="1585609510448">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="616" y="240" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1585609510448" />
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1585689493273">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1585689493273" />
   </component>
 </project>

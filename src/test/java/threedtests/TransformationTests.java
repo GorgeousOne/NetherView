@@ -51,11 +51,26 @@ public class TransformationTests {
 	}
 	
 	@Test
+	public void rotatePointAroundPoint2() {
+		
+		Transform transform = new Transform();
+		transform.setRotY180Deg();
+		transform.setRotCenter(new BlockVec(50, 0, 20));
+		
+		BlockVec point = new BlockVec(0, 0, 0);
+		BlockVec transformedPoint = transform.getTransformed(point);
+		
+		Assertions.assertEquals(100, transformedPoint.getX());
+		Assertions.assertEquals(0, transformedPoint.getY());
+		Assertions.assertEquals(40, transformedPoint.getZ());
+	}
+	
+	@Test
 	public void forthBackTransform() {
 		
 		Transform transform = new Transform();
 		transform.setTranslation(new BlockVec(100, 0, 100));
-		transform.setRotY90DegLeft();
+		transform.setRotY180Deg();
 		
 		BlockVec point = new BlockVec(50 ,0, 0);
 		

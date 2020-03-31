@@ -53,10 +53,6 @@ public class BlockVec {
 		this.y = y;
 	}
 	
-	public Location toLocation(World world) {
-		return new Location(world, x, y, z);
-	}
-	
 	public BlockVec add(BlockVec other) {
 		return add(other.x, other.y, other.z);
 	}
@@ -81,16 +77,12 @@ public class BlockVec {
 		z *= multiplier;
 	}
 	
-	public static BlockVec getMinimum(BlockVec v1, BlockVec v2) { 
-		return new BlockVec(Math.min(v1.x, v2.x), 
-		                    Math.min(v1.y, v2.y), 
-		                    Math.min(v1.z, v2.z));
+	public Vector toVector() {
+		return new Vector(x, y, z);
 	}
 	
-	public static BlockVec getMaximum(BlockVec v1, BlockVec v2) {
-		return new BlockVec(Math.max(v1.x, v2.x),
-		                    Math.max(v1.y, v2.y),
-		                    Math.max(v1.z, v2.z));
+	public Location toLocation(World world) {
+		return new Location(world, x, y, z);
 	}
 	
 	@Override

@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview.blockcache;
 
-import me.gorgeousone.netherview.threedstuff.Transform;
 import org.bukkit.block.Block;
 
 import java.util.HashSet;
@@ -13,15 +12,15 @@ public class BlockCache {
 	
 	private BlockVec min;
 	private BlockVec max;
-	private Transform blockTransform;
 	
-	public BlockCache(Block[][][] sourceBlocks, BlockVec offset, Transform blockTransform) {
+	public BlockCache(Block[][][] sourceBlocks, BlockVec offset) {
 		
 		this.sourceBlocks = sourceBlocks;
-		this.blockTransform = blockTransform;
+		this.min = offset.clone();
+		this.max = offset.clone().add(sourceCacheSize());
 		
-		createTransformedBounds(offset);
 		createBlockCopies();
+		
 	}
 	
 	private BlockVec sourceCacheSize() {
@@ -49,11 +48,12 @@ public class BlockCache {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
-	public Set<BlockCopy> getCopiesAround(int x, int y, int z) {
+	public Set<BlockCopy> getCopiesAround(BlockVec blockCorner) {
 		
 		Set<BlockCopy> blocksAroundCorner = new HashSet<>();
 		
-		for (BlockVec position : getAllCornerLocs(x, y, z)) {
+		for (BlockVec position : getAllCornerLocs(blockCorner)) {
+			
 			if (!copiesContain(position))
 				continue;
 			
@@ -66,59 +66,43 @@ public class BlockCache {
 		return blocksAroundCorner;
 	}
 	
-	private Set<BlockVec> getAllCornerLocs(int x, int y, int z) {
+	private Set<BlockVec> getAllCornerLocs(BlockVec blockCorner) {
 		
 		Set<BlockVec> locsAroundCorner = new HashSet<>();
 		
+		int x = blockCorner.getX();
+		int y = blockCorner.getY();
+		int z = blockCorner.getZ();
+		
 		locsAroundCorner.add(new BlockVec(x, y, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y, z));
-		locsAroundCorner.add(new BlockVec(x, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x, y - 1, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z));
-		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
-		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z - 1));
+//		locsAroundCorner.add(new BlockVec(x - 1, y, z));
+//		locsAroundCorner.add(new BlockVec(x, y, z - 1));
+//		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
+//		locsAroundCorner.add(new BlockVec(x, y - 1, z));
+//		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z));
+//		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
+//		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z - 1));
 		
 		return locsAroundCorner;
-	}
-	
-	private void createTransformedBounds(BlockVec offset) {
-		
-		BlockVec sourceSize = sourceCacheSize();
-		
-		BlockVec transformedMin = blockTransform.getTransformed(offset);
-		BlockVec transformedMax = transformedMin.clone().add(blockTransform.rotate(sourceSize));
-		
-		min = BlockVec.getMinimum(transformedMin, transformedMax);
-		max = BlockVec.getMaximum(transformedMin, transformedMax);
 	}
 	
 	private void createBlockCopies() {
 		
 		BlockVec sourceSize = sourceCacheSize();
-		BlockVec copySize = blockTransform.rotate(sourceSize.clone());
 		
 		blockCopies = new BlockCopy
-				[copySize.getX()]
-				[copySize.getY()]
-				[copySize.getZ()];
+				[sourceSize.getX()]
+				[sourceSize.getY()]
+				[sourceSize.getZ()];
 		
 		for (int x = 0; x < sourceSize.getX(); x++){
 			for (int y = 0; y < sourceSize.getY(); y++) {
 				for (int z = 0; z < sourceSize.getZ(); z++) {
-				
-					Block block = sourceBlocks[x][y][z];
 					
-					if(block == null)
-						continue;
+					Block source = sourceBlocks[x][y][z];
 					
-					BlockVec copyPos = blockTransform.getTransformed(new BlockVec(block));
-					BlockCopy blockCopy = new BlockCopy(copyPos, block.getBlockData());
-					BlockVec copyIndex = blockTransform.rotate(new BlockVec(x, y, z));
-					
-					blockCopies[copyIndex.getX()]
-							[copyIndex.getY()]
-							[copyIndex.getZ()] = blockCopy;
+					if(source != null)
+						blockCopies[x][y][z] = new BlockCopy(source);
 				}
 			}
 		}

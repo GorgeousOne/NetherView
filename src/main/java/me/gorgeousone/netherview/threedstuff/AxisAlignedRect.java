@@ -60,6 +60,7 @@ public class AxisAlignedRect {
 	
 	public void translate(Vector delta) {
 		pos.add(delta);
+		plane.translate(delta);
 	}
 	
 	public Plane getPlane() {

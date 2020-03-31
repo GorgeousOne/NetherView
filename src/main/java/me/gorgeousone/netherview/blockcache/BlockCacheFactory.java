@@ -1,11 +1,9 @@
 package me.gorgeousone.netherview.blockcache;
 
-import me.gorgeousone.netherview.Utils;
 import me.gorgeousone.netherview.portal.PortalStructure;
 import me.gorgeousone.netherview.threedstuff.AxisUtils;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.Transform;
-import org.bukkit.Axis;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -14,33 +12,35 @@ import org.bukkit.util.Vector;
 
 public class BlockCacheFactory {
 	
-	public static BlockCache createBlockCache(PortalStructure overworldPortal, PortalStructure netherPortal, int viewDist) {
+	public static BlockCache createBlockCache(PortalStructure netherPortal, int viewDist) {
 		
-		AxisAlignedRect overworldRect = overworldPortal.getPortalRect();
 		AxisAlignedRect viewRect = netherPortal.getPortalRect();
-		viewRect.setSize(overworldRect.width(), overworldRect.height());
+		Bukkit.broadcastMessage("Nether portal is aligned " + viewRect.getAxis().name());
 		
-		Vector portalFacing = AxisUtils.getAxisPlaneNormal(overworldRect.getAxis());
+		Vector portalFacing = AxisUtils.getAxisPlaneNormal(netherPortal.getAxis());
 		Vector widthFacing = portalFacing.getCrossProduct(new Vector(0, 1, 0));
 		
 		Vector min = viewRect.getMin();
 		Vector max = viewRect.getMax();
 		
-		Vector cacheMin = min.clone();
-		cacheMin.subtract(new Vector(0, viewDist - 1, 0));
-		cacheMin.subtract(widthFacing.clone().multiply(viewDist - 1));
-		cacheMin.add(portalFacing);
+		Vector cacheCorner1 = min.clone();
+		cacheCorner1.subtract(new Vector(0, viewDist - 1, 0));
+		cacheCorner1.subtract(widthFacing.clone().multiply(viewDist - 1));
+		cacheCorner1.add(portalFacing);
 		
-		Vector cacheMax = max.clone();
-		cacheMax.add(new Vector(0, viewDist - 1, 0));
-		cacheMax.add(widthFacing.clone().multiply(viewDist - 1));
-		cacheMax.add(portalFacing.clone().multiply(viewDist));
+		Vector cacheCorner2 = max.clone();
+		cacheCorner2.add(new Vector(0, viewDist - 1, 0));
+		cacheCorner2.add(widthFacing.clone().multiply(viewDist - 1));
+		cacheCorner2.add(portalFacing.clone().multiply(viewDist));
+		
+		Vector cacheMin = Vector.getMinimum(cacheCorner1, cacheCorner2);
+		Vector cacheMax = Vector.getMaximum(cacheCorner1, cacheCorner2);
 		
 		Block[][][] netherBlocks = copyBlocksInBounds(
 				cacheMin.getBlockX(), cacheMin.getBlockY(), cacheMin.getBlockZ(),
 				cacheMax.getBlockX(), cacheMax.getBlockY(), cacheMax.getBlockZ(), netherPortal.getWorld());
 		
-		return new BlockCache(netherBlocks, new BlockVec(cacheMin), createPortalLinkTransform(overworldPortal, netherPortal));
+		return new BlockCache(netherBlocks, new BlockVec(cacheMin));
 	}
 	
 	private static Block[][][] copyBlocksInBounds(int x1, int y1, int z1, int x2, int y2, int z2, World world) {
@@ -65,26 +65,26 @@ public class BlockCacheFactory {
 		return blocks;
 	}
 	
-	private static Transform createPortalLinkTransform(PortalStructure overworldPortal, PortalStructure netherPortal) {
-		
-		Transform transform = new Transform();
-		transform.setTranslation(new BlockVec(overworldPortal.getPortalRect().getMin().subtract(netherPortal.getPortalRect().getMin())));
-		
-		if (netherPortal.getAxis() != overworldPortal.getAxis()) {
-			transform.setRotCenter(new BlockVec(netherPortal.getPortalRect().getMin()));
-			
-			if (netherPortal.getAxis() == Axis.X)
-				transform.setRotY90DegLeft();
-			else
-				transform.setRotY90DegRight();
-		}
-		
-		return transform;
-	}
+//	private static Transform createPortalLinkTransform(PortalStructure overworldPortal, PortalStructure netherPortal) {
+//
+//		Transform transform = new Transform();
+//		transform.setTranslation(new BlockVec(overworldPortal.getPortalRect().getMin().subtract(netherPortal.getPortalRect().getMin())));
+//
+//		if (netherPortal.getAxis() != overworldPortal.getAxis()) {
+//			transform.setRotCenter(new BlockVec(netherPortal.getPortalRect().getMin()));
+//
+//			if (netherPortal.getAxis() == Axis.X)
+//				transform.setRotY90DegLeft();
+//			else
+//				transform.setRotY90DegRight();
+//		}
+//
+//		return transform;
+//	}
 	
 	private static boolean isVisible(Block block) {
 		
-		for(BlockFace face : Utils.getAxesFaces()) {
+		for(BlockFace face : AxisUtils.getAxesFaces()) {
 			if(!block.getRelative(face).getType().isOccluding())
 				return true;
 		}

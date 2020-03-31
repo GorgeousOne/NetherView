@@ -42,6 +42,13 @@ public class Transform {
 		rotationY[1][1] = 0;
 	}
 	
+	public void setRotY180Deg() {
+		rotationY[0][0] = -1;
+		rotationY[0][1] = 0;
+		rotationY[1][0] = 0;
+		rotationY[1][1] = -1;
+	}
+	
 	public BlockVec getTransformed(BlockVec point) {
 		
 		BlockVec transformed = point.clone();

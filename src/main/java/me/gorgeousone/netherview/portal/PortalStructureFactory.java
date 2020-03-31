@@ -16,13 +16,10 @@ public class PortalStructureFactory {
 	
 	public static PortalStructure locatePortalStructure(Block sourceBlock) {
 		
-		if (sourceBlock.getType() != Material.NETHER_PORTAL)
-			throw new IllegalArgumentException("Passed block is not part of a nether portal: world: " + sourceBlock.getWorld().getEnvironment().name().toLowerCase() + " x: " + sourceBlock.getX() + " y: " + sourceBlock.getY() + " z: " + sourceBlock.getZ());
-		
 		AxisAlignedRect portalRect = locatePortalRect(sourceBlock);
 		World world = sourceBlock.getWorld();
 		
-		return new PortalStructure(world, portalRect, getPortalBlocks(world, portalRect));
+		return new PortalStructure(world, portalRect, getPortalBlocks(world, portalRect), getFrameBlocks(world, portalRect));
 	}
 	
 	private static AxisAlignedRect locatePortalRect(Block sourceBlock) {
@@ -60,7 +57,7 @@ public class PortalStructureFactory {
 			blockIterator = nextBlock;
 		}
 		
-		throw new IllegalArgumentException("Portal appears to be bigger than vanilla allows.");
+		throw new IllegalArgumentException("Portal appears to be bigger than possible in vanilla.");
 	}
 	
 	private static Set<Block> getPortalBlocks(World world, AxisAlignedRect portalRect) {
@@ -84,5 +81,31 @@ public class PortalStructureFactory {
 		}
 		
 		return portalBlocks;
+	}
+	
+	private static Set<Block> getFrameBlocks(World world, AxisAlignedRect portalRect) {
+		
+		Set<Block> frameBlocks = new HashSet<>();
+		
+		BlockFace horizontalFace = portalRect.getAxis() == Axis.X ? BlockFace.EAST : BlockFace.SOUTH;
+		Block iter = portalRect.getMin().toLocation(world).getBlock();
+		iter = iter.getRelative(BlockFace.DOWN).getRelative(horizontalFace.getOppositeFace());
+		
+		for (int k = -1; k <= portalRect.height(); k++) {
+			
+			Block iter2 = iter;
+			
+			for (int i = -1; i <= portalRect.width(); i++) {
+				
+				if(iter2.getType() == Material.OBSIDIAN)
+					frameBlocks.add(iter2);
+				
+				iter2 = iter2.getRelative(horizontalFace);
+			}
+			
+			iter = iter.getRelative(BlockFace.UP);
+		}
+		
+		return frameBlocks;
 	}
 }
