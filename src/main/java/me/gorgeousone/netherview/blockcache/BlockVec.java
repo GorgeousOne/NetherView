@@ -77,6 +77,20 @@ public class BlockVec {
 		z *= multiplier;
 	}
 	
+	public static BlockVec getMinimum(BlockVec v1, BlockVec v2) {
+		return new BlockVec(
+				Math.min(v1.x, v2.x),
+				Math.min(v1.y, v2.y),
+				Math.min(v1.z, v2.z));
+	}
+	
+	public static BlockVec getMaximum(BlockVec v1, BlockVec v2) {
+		return new BlockVec(
+				Math.max(v1.x, v2.x),
+				Math.max(v1.y, v2.y),
+				Math.max(v1.z, v2.z));
+	}
+	
 	public Vector toVector() {
 		return new Vector(x, y, z);
 	}

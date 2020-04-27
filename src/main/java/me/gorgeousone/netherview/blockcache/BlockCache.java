@@ -85,13 +85,14 @@ public class BlockCache {
 		int z = blockCorner.getZ();
 		
 		locsAroundCorner.add(new BlockVec(x, y, z));
-		locsAroundCorner.add(new BlockVec(x + 1, y, z));
-		locsAroundCorner.add(new BlockVec(x, y, z + 1));
-		locsAroundCorner.add(new BlockVec(x + 1, y, z + 1));
-		locsAroundCorner.add(new BlockVec(x, y -1, z));
-		locsAroundCorner.add(new BlockVec(x + 1, y -1, z));
-		locsAroundCorner.add(new BlockVec(x, y -1, z + 1));
-		locsAroundCorner.add(new BlockVec(x + 1, y -1, z - 1));
+		locsAroundCorner.add(new BlockVec(x, y - 1, z));
+		locsAroundCorner.add(new BlockVec(x, y, z - 1));
+		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
+		
+		locsAroundCorner.add(new BlockVec(x - 1, y, z));
+		locsAroundCorner.add(new BlockVec(x - 1, y -1, z));
+		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
+		locsAroundCorner.add(new BlockVec(x - 1, y -1, z - 1));
 		
 		return locsAroundCorner;
 	}

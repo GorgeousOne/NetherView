@@ -4,7 +4,6 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.AxisUtils;
 import org.bukkit.Axis;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -15,7 +14,46 @@ import org.bukkit.util.Vector;
 
 public class BlockCacheFactory {
 	
-	Material mat;
+	public static BlockCache getTransformed(BlockCache cache, Transform transform) {
+		
+		BlockVec min = cache.getMin();
+		BlockVec max = cache.getMax();
+		
+		BlockVec corner1 = transform.getTransformedVec(min);
+		BlockVec corner2 = transform.getTransformedVec(max);
+		
+		BlockVec newMin = BlockVec.getMinimum(corner1, corner2);
+		BlockVec newMax = BlockVec.getMaximum(corner1, corner2);
+		
+		int x1 = newMin.getX();
+		int y1 = newMin.getY();
+		int z1 = newMin.getZ();
+		int x2 = newMax.getX();
+		int y2 = newMax.getY();
+		int z2 = newMax.getZ();
+		
+		BlockCopy[][][] newBlockCopies = new BlockCopy[x2 - x1 + 1][y2 - y1 + 1][z2 - z1 + 1];
+		
+		for(int x = min.getX(); x < max.getX(); x++) {
+			for (int y = min.getY(); y < max.getY(); y++) {
+				for (int z = min.getZ(); z < max.getZ(); z++) {
+					
+					BlockVec blockPos = new BlockVec(x, y, z);
+					BlockCopy blockCopy = cache.getCopyAt(blockPos);
+					
+					if(blockCopy == null)
+						continue;
+					
+					BlockVec newBlockPos = transform.getTransformedVec(blockPos);
+					newBlockCopies[newBlockPos.getX() - x1]
+							[newBlockPos.getY() - y1]
+							[newBlockPos.getZ() - z1] = blockCopy.clone().setPosition(newBlockPos);
+				}
+			}
+		}
+		
+		return new BlockCache(newMin, newBlockCopies);
+	}
 	
 	public static BlockCache createBlockCache(Portal portal, int viewDist) {
 		
@@ -69,14 +107,13 @@ public class BlockCacheFactory {
 				for (int z = z1; z <= z2; z++) {
 					
 					Block block = new Location(world, x, y, z).getBlock();
-					boolean isCacheBorder = isCacheBorder(x, y, z, x1, y1, z1, x2, y2, z2, cacheFacing);
 					
-					if(!isCacheBorder && !isVisible(block))
+					if(!isVisible(block))
 						continue;
 					
 					BlockCopy copy = new BlockCopy(block);
 					
-					if(isCacheBorder)
+					if(isCacheBorder(x, y, z, x1, y1, z1, x2, y2, z2, cacheFacing))
 						copy.setData(borderMaterial);
 					
 					copiedBlocks[x - x1][y - y1][z - z1] = copy;
