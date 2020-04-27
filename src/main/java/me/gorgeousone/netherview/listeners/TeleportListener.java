@@ -1,8 +1,8 @@
 package me.gorgeousone.netherview.listeners;
 
+import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.threedstuff.AxisUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -37,12 +37,29 @@ public class TeleportListener implements Listener {
 		    !isTpBetweenNetherAndNormal(from, to))
 			return;
 		
-		Block sourceBlock = findPortalBlock(from);
+		Block portalBlock = getNearbyPortalBlock(from);
 		
-		if (sourceBlock != null && !portalHandler.containsPortalWithBlock(sourceBlock)) {
+		if (portalBlock == null)
+			return;
+		
+		Portal portal = portalHandler.getPortalByBlock(portalBlock);
+		
+		if(portal == null) {
+			Player player = event.getPlayer();
+			player.sendMessage(ChatColor.GRAY + "Found a portal");
 			
-			event.getPlayer().sendMessage(ChatColor.GRAY + "Locating fresh portals...");
-			addPortals(sourceBlock, to.getBlock(), event.getPlayer());
+			portal = portalHandler.addPortal(portalBlock);
+			event.setCancelled(true);
+		}
+		
+		if (portalHandler.getPortalLink(portal) == null) {
+		
+			Portal counterPortal = portalHandler.getPortalByBlock(to.getBlock());
+			
+			if(counterPortal == null)
+				counterPortal = portalHandler.addPortal(to.getBlock());
+			
+			portalHandler.linkPortal(portal, counterPortal);
 			event.setCancelled(true);
 		}
 	}
@@ -52,11 +69,15 @@ public class TeleportListener implements Listener {
 		World.Environment fromWorldType = from.getWorld().getEnvironment();
 		World.Environment toWorldType = to.getWorld().getEnvironment();
 		
-		return fromWorldType == World.Environment.NORMAL && toWorldType == World.Environment.NETHER; // ||
-//		       fromWorldType == World.Environment.NETHER && toWorldType == World.Environment.NORMAL;
+		return fromWorldType == World.Environment.NORMAL && toWorldType == World.Environment.NETHER ||
+		       fromWorldType == World.Environment.NETHER && toWorldType == World.Environment.NORMAL;
 	}
 	
-	private Block findPortalBlock(Location location) {
+	/**
+	 * 	Finds the portal block a player might have touched at the location or the blocks next to it.
+	 * 	(players in creative mode teleport to the nether before directly touching any portal block)
+	 */
+	private Block getNearbyPortalBlock(Location location) {
 		
 		Block sourceBlock = location.getBlock();
 		
@@ -73,19 +94,4 @@ public class TeleportListener implements Listener {
 		return null;
 	}
 	
-	private void addPortals(Block from, Block to, Player player) {
-		
-		try {
-			Portal overworldPortal = PortalLocator.locatePortalStructure(from);
-			Portal netherPortal = PortalLocator.locatePortalStructure(to);
-			
-			for(Block block : overworldPortal.getPortalBlocks()) {
-				player.sendMessage("DEBUG portal blocks displayed as air");
-				player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
-			}
-			
-			portalHandler.linkPortals(overworldPortal, netherPortal);
-			
-		} catch (Exception ignored) {}
-	}
 }

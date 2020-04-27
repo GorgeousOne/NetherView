@@ -6,22 +6,7 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4e4140c9-f378-4e37-a285-2ea0bb2c5762" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCache.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCache.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCacheFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/blockcache/BlockCacheFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/PortalHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/PortalHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/ViewingHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/handlers/ViewingHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/PlayerMoveListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/PlayerMoveListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/TeleportListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/listeners/TeleportListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructure.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/Portal.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalStructureFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/portal/PortalLocator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisAlignedRect.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/AxisAlignedRect.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Transform.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/Transform.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/ViewingFrustumFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/me/gorgeousone/netherview/threedstuff/ViewingFrustumFactory.java" afterDir="false" />
-    </list>
+    <list default="true" id="4e4140c9-f378-4e37-a285-2ea0bb2c5762" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -62,7 +47,7 @@
     <property name="GenerateAntBuildDialog.outputFileNameProperty" value="netherview" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src" />
     <property name="project.structure.last.edited" value="Artifacts" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.2" />

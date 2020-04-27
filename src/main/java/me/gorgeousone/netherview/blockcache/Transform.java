@@ -1,27 +1,29 @@
-package me.gorgeousone.netherview.threedstuff;
-
-import me.gorgeousone.netherview.blockcache.BlockVec;
+package me.gorgeousone.netherview.blockcache;
 
 public class Transform {
 	
 	private BlockVec translation;
 	private BlockVec rotCenter;
-	private int[][] rotationY;
+	private int[][] rotYMatrix;
 	
 	public Transform() {
 		translation = new BlockVec();
 		rotCenter = new BlockVec();
-		rotationY = new int[][]{{1, 0}, {0, 1}};
+		rotYMatrix = new int[][]{{1, 0}, {0, 1}};
 	}
 	
 	protected Transform(BlockVec translation, BlockVec rotCenter, int[][] rotationY) {
 		this.translation = translation;
 		this.rotCenter = rotCenter;
-		this.rotationY = rotationY;
+		this.rotYMatrix = rotationY;
 	}
 	
 	public void setTranslation(BlockVec delta) {
 		this.translation = delta;
+	}
+	
+	public void translate(BlockVec delta) {
+		this.translation.add(delta);
 	}
 	
 	public void setRotCenter(BlockVec rotCenter) {
@@ -29,43 +31,43 @@ public class Transform {
 	}
 	
 	public void setRotY90DegRight() {
-		rotationY[0][0] = 0;
-		rotationY[0][1] = -1;
-		rotationY[1][0] = 1;
-		rotationY[1][1] = 0;
+		rotYMatrix[0][0] = 0;
+		rotYMatrix[0][1] = -1;
+		rotYMatrix[1][0] = 1;
+		rotYMatrix[1][1] = 0;
 	}
 	
 	public void setRotY90DegLeft() {
-		rotationY[0][0] = 0;
-		rotationY[0][1] = 1;
-		rotationY[1][0] = -1;
-		rotationY[1][1] = 0;
+		rotYMatrix[0][0] = 0;
+		rotYMatrix[0][1] = 1;
+		rotYMatrix[1][0] = -1;
+		rotYMatrix[1][1] = 0;
 	}
 	
 	public void setRotY180Deg() {
-		rotationY[0][0] = -1;
-		rotationY[0][1] = 0;
-		rotationY[1][0] = 0;
-		rotationY[1][1] = -1;
+		rotYMatrix[0][0] = -1;
+		rotYMatrix[0][1] = 0;
+		rotYMatrix[1][0] = 0;
+		rotYMatrix[1][1] = -1;
 	}
 	
-	public BlockVec getTransformed(BlockVec point) {
+	public BlockVec getTransformedVec(BlockVec point) {
 		
 		BlockVec transformed = point.clone();
 		
 		transformed.subtract(rotCenter);
-		rotate(transformed);
+		rotateVec(transformed);
 		
 		return transformed.add(rotCenter).add(translation);
 	}
 	
-	public BlockVec rotate(BlockVec relativePoint) {
+	private BlockVec rotateVec(BlockVec relativePoint) {
 		
 		int transX = relativePoint.getX();
 		int transZ = relativePoint.getZ();
 		
-		relativePoint.setX(rotationY[0][0] * transX + rotationY[0][1] * transZ);
-		relativePoint.setZ(rotationY[1][0] * transX + rotationY[1][1] * transZ);
+		relativePoint.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
+		relativePoint.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
 		
 		return relativePoint;
 	}
@@ -75,8 +77,8 @@ public class Transform {
 		rotCenter.add(translation);
 		translation.multiply(-1);
 		
-		rotationY[0][1] *= -1;
-		rotationY[1][0] *= -1;
+		rotYMatrix[0][1] *= -1;
+		rotYMatrix[1][0] *= -1;
 		
 		return this;
 	}
@@ -88,8 +90,8 @@ public class Transform {
 	
 	private int[][] cloneRotY() {
 		return new int[][] {
-				{rotationY[0][0], rotationY[0][1]},
-				{rotationY[1][0], rotationY[1][1]}
+				{rotYMatrix[0][0], rotYMatrix[0][1]},
+				{rotYMatrix[1][0], rotYMatrix[1][1]}
 		};
 	}
 }

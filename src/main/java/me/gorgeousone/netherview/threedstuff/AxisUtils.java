@@ -6,6 +6,9 @@ import org.bukkit.util.Vector;
 
 public class AxisUtils {
 	
+	/**
+	 * Returns the normal vector for the plane of a portal with the passed axis.
+	 */
 	public static Vector getAxisPlaneNormal(Axis axis) {
 		
 		switch (axis) {
@@ -13,8 +16,10 @@ public class AxisUtils {
 				return new Vector(0, 0, 1);
 			case Y:
 				return new Vector(0, 1, 0);
-			default:
+			case Z:
 				return new Vector(1, 0, 0);
+			default:
+				return null;
 		}
 	}
 	

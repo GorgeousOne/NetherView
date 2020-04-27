@@ -1,67 +1,89 @@
 package me.gorgeousone.netherview.handlers;
 
+import me.gorgeousone.netherview.blockcache.BlockCache;
+import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.Transform;
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.portal.PortalLink;
+import me.gorgeousone.netherview.portal.PortalLocator;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class PortalHandler {
 	
-	private Map<Portal, Portal> runningPortals;
-	private Map<Portal, Transform> linkTransforms;
+	private Set<Portal> portals;
+	private Map<Portal, PortalLink> portalLinks;
+	private Map<Portal, BlockCache> blockCaches;
 	
 	public PortalHandler() {
-		runningPortals = new HashMap<>();
-		linkTransforms = new HashMap<>();
+		portals = new HashSet<>();
+		portalLinks = new HashMap<>();
+		blockCaches = new HashMap<>();
 	}
 	
-	public void linkPortals(Portal overworldPortal, Portal netherPortal) {
+	/**
+	 * Registers new portals and links them to their counter portal
+	 */
+	public Portal addPortal(Block portalBlock) {
 		
-		Transform linTransform = new Transform();
-		
-		Vector dist = overworldPortal.getLocation().toVector().subtract(netherPortal.getLocation().toVector());
-		linTransform.setTranslation(new BlockVec(dist));
-		linTransform.setRotCenter(new BlockVec(netherPortal.getPortalRect().getMin()));
-		
-		if (overworldPortal.getAxis() == netherPortal.getAxis()) {
-			linTransform.setRotY180Deg();
-		} else {
-			if (netherPortal.getAxis() == Axis.X)
-				linTransform.setRotY90DegRight();
-			else
-				linTransform.setRotY90DegLeft();
+		try {
+			Portal portal = PortalLocator.locatePortalStructure(portalBlock);
+			portals.add(portal);
+			blockCaches.put(portal, BlockCacheFactory.createBlockCache(portal, 6));
+			Bukkit.broadcastMessage(ChatColor.GRAY + "New portal: " + portal.getWorld().getName() + " - " + portal.getPortalRect().getMin().toString());
+			return portal;
+			
+		}catch (IllegalArgumentException ignored) {
+			ignored.printStackTrace();
+			return null;
 		}
-		
-		linkTransforms.put(overworldPortal, linTransform);
-		runningPortals.put(overworldPortal, netherPortal);
+
+//		Portal startPortal = getPortalByBlock(from);
+//
+//		if(startPortal == null) {
+//			try {
+//				startPortal = PortalLocator.locatePortalStructure(from);
+//				portals.add(startPortal);
+//				blockCaches.put(startPortal, BlockCacheFactory.createBlockCache(startPortal, 6));
+//				portalLinks.put(startPortal, new PortalLink(startPortal, counterPortal));
+//				Bukkit.broadcastMessage(ChatColor.GRAY + "Link portal: " + startPortal.getWorld().getName() + " - " + startPortal.getPortalRect().getMin().toString());
+//
+//			}catch (IllegalArgumentException ignored) {
+//				ignored.printStackTrace();
+//			}
+//		}
 	}
 	
-	public boolean containsPortalWithBlock(Block portalBlock) {
+	public Portal getPortalByBlock(Block portalBlock) {
 		
 		if (portalBlock.getType() != Material.NETHER_PORTAL)
-			return false;
+			return null;
 		
-		for (Portal portal : runningPortals.keySet()) {
+		for (Portal portal : portals) {
 			if (portal.containsBlock(portalBlock))
-				return true;
+				return portal;
 		}
 		
-		return false;
+		return null;
 	}
 	
-	public Portal nearestPortal(Location playerLoc) {
+	public Portal getNearestPortal(Location playerLoc) {
 		
 		Portal nearestPortal = null;
 		double minDist = -1;
 		
-		for (Portal portal : runningPortals.keySet()) {
+		for (Portal portal : portals) {
+			
+			if(portal.getWorld() != playerLoc.getWorld())
+				continue;
 			
 			double dist = portal.getLocation().distanceSquared(playerLoc);
 			
@@ -74,11 +96,15 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
-	public Portal getLinkedNetherPortal(Portal portal) {
-		return runningPortals.get(portal);
+	public BlockCache getBlockCache(Portal portal) {
+		return blockCaches.get(portal);
 	}
 	
-	public Transform getLinkTransform(Portal portal) {
-		return linkTransforms.get(portal);
+	public PortalLink getPortalLink(Portal portal) {
+		return portalLinks.get(portal);
+	}
+	
+	public void linkPortal(Portal portal, Portal counterPortal) {
+		portalLinks.put(portal, new PortalLink(portal, counterPortal));
 	}
 }

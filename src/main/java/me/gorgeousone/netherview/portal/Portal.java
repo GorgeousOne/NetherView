@@ -38,10 +38,6 @@ public class Portal {
 		return portalRect.clone();
 	}
 	
-	public boolean containsBlock(Block portalBlock) {
-		return portalBlocks.contains(portalBlock);
-	}
-	
 	public Axis getAxis() {
 		return portalRect.getAxis();
 	}
@@ -52,6 +48,10 @@ public class Portal {
 	
 	public Set<Block> getFrameBlocks() {
 		return frameBlocks;
+	}
+	
+	public boolean containsBlock(Block portalBlock) {
+		return portalBlocks.contains(portalBlock);
 	}
 	
 	public boolean equalsInSize(Portal other) {

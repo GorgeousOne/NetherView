@@ -1,5 +1,6 @@
-package me.gorgeousone.netherview.threedstuff;
+package me.gorgeousone.netherview.viewfrustum;
 
+import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import org.bukkit.util.Vector;
 
 public class ViewingFrustum {
@@ -10,6 +11,10 @@ public class ViewingFrustum {
 	public ViewingFrustum(Vector viewPoint, AxisAlignedRect nearPlane) {
 		this.viewPoint = viewPoint;
 		this.nearPlane = nearPlane;
+	}
+	
+	public AxisAlignedRect getNearPlane() {
+		return nearPlane;
 	}
 	
 	public boolean contains(Vector point) {

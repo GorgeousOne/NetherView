@@ -2,6 +2,7 @@ package me.gorgeousone.netherview;
 
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
+import me.gorgeousone.netherview.listeners.MapCreator;
 import me.gorgeousone.netherview.listeners.TeleportListener;
 import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.Bukkit;
@@ -20,7 +21,7 @@ public final class Main extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
-		
+	
 		portalHandler = new PortalHandler();
 		viewingHandler = new ViewingHandler(portalHandler);
 		
@@ -36,7 +37,7 @@ public final class Main extends JavaPlugin {
 		
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(portalHandler), this);
-//		manager.registerEvents(new PlayerMoveListener(portalHandler, viewingHandler), this);
+		manager.registerEvents(new MapCreator(), this);
 	}
 	
 	@Override
@@ -47,10 +48,7 @@ public final class Main extends JavaPlugin {
 		
 		String cmdName = command.getName();
 		
-		if ("worldid".equals(cmdName)) {
-			Bukkit.broadcastMessage(((Player) sender).getWorld().getUID().toString());
-			
-		} else if ("viewportal".equals(cmdName)) {
+		if ("viewportal".equals(cmdName)) {
 			displayNearestPortal((Player) sender);
 			return true;
 		}
@@ -62,10 +60,7 @@ public final class Main extends JavaPlugin {
 		
 		Location playerLoc = player.getEyeLocation();
 		
-		if (playerLoc.getWorld().getEnvironment() != World.Environment.NORMAL)
-			return;
-		
-		Portal portal = portalHandler.nearestPortal(playerLoc);
+		Portal portal = portalHandler.getNearestPortal(playerLoc);
 		
 		if (portal != null)
 			viewingHandler.displayPortal(player, portal);

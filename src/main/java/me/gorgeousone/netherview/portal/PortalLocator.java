@@ -2,6 +2,7 @@ package me.gorgeousone.netherview.portal;
 
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import org.bukkit.Axis;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -14,41 +15,53 @@ import java.util.Set;
 
 public class PortalLocator {
 	
-	public static Portal locatePortalStructure(Block innerPortalBlock) {
+	public static Portal locatePortalStructure(Block portalBlock) {
 		
-		World world = innerPortalBlock.getWorld();
-		AxisAlignedRect portalRect = locatePortalRect(innerPortalBlock);
+		World world = portalBlock.getWorld();
+		AxisAlignedRect portalRect = getPortalRect(portalBlock);
 		
 		return new Portal(
 				world,
 				portalRect,
 				getInnerPortalBlocks(world, portalRect),
-				getFrameBlocks(world, portalRect));
+				getPortalFrameBlocks(world, portalRect));
 	}
 	
-	//returns a rectangle the size of the inner portal blocks combined
-	private static AxisAlignedRect locatePortalRect(Block sourceBlock) {
+	/**
+	 * Returns a rectangle with the size and location of the rectangle the inner portal blocks form.
+	 */
+	private static AxisAlignedRect getPortalRect(Block portalBlock) {
 		
-		Orientable portalData = (Orientable) sourceBlock.getBlockData();
+		Orientable portalData = (Orientable) portalBlock.getBlockData();
 		Axis portalAxis = portalData.getAxis();
 		
-		Vector location = new Vector(sourceBlock.getX(), getPortalExtent(sourceBlock, BlockFace.DOWN).getY(), sourceBlock.getZ());
+		Vector position = new Vector(
+				portalBlock.getX(),
+				getPortalExtent(portalBlock, BlockFace.DOWN).getY(),
+				portalBlock.getZ());
 		
-		int height = getPortalExtent(sourceBlock, BlockFace.UP).getY() + 1 - location.getBlockY();
+		int height = getPortalExtent(portalBlock, BlockFace.UP).getY() + 1 - position.getBlockY();
 		int width;
 		
 		if (portalAxis == Axis.X) {
-			location.setX(getPortalExtent(sourceBlock, BlockFace.WEST).getX());
-			width = getPortalExtent(sourceBlock, BlockFace.EAST).getX() + 1 - location.getBlockX();
+			position.setX(getPortalExtent(portalBlock, BlockFace.WEST).getX());
+			width = getPortalExtent(portalBlock, BlockFace.EAST).getX() - position.getBlockX() + 1;
+		
 		} else {
-			location.setZ(getPortalExtent(sourceBlock, BlockFace.NORTH).getZ());
-			width = getPortalExtent(sourceBlock, BlockFace.SOUTH).getZ() + 1 - location.getBlockZ();
+			position.setZ(getPortalExtent(portalBlock, BlockFace.NORTH).getZ());
+			width = getPortalExtent(portalBlock, BlockFace.SOUTH).getZ() - position.getBlockZ() + 1;
 		}
 		
-		return new AxisAlignedRect(portalAxis, location, width, height);
+		//translate the portalRect towards the middle of the block;
+		AxisAlignedRect portalRect = new AxisAlignedRect(portalAxis, position, width, height);
+		portalRect.translate(portalRect.getPlane().getNormal().multiply(0.5));
+		
+		return portalRect;
 	}
 	
-	//returns the last block of the portal inner into a certain direction
+	/**
+	 * Returns the last block of the portal inner into a certain direction.
+	 */
 	private static Block getPortalExtent(Block sourceBlock, BlockFace facing) {
 		
 		Block blockIterator = sourceBlock;
@@ -66,6 +79,9 @@ public class PortalLocator {
 		throw new IllegalArgumentException("Portal appears to be bigger than possible in vanilla.");
 	}
 	
+	/**
+	 * Returns a set of blocks of all inner blocks of a portal according to the passed rectangle.
+	 */
 	private static Set<Block> getInnerPortalBlocks(World world, AxisAlignedRect portalRect) {
 		
 		Set<Block> portalBlocks = new HashSet<>();
@@ -88,8 +104,10 @@ public class PortalLocator {
 		return portalBlocks;
 	}
 	
-	//returns a set of blocks where obsidian blocks need to be placed
-	private static Set<Block> getFrameBlocks(World world, AxisAlignedRect portalRect) {
+	/**
+	 * Returns a set of blocks where obsidian blocks need to be placed.
+	 */
+	private static Set<Block> getPortalFrameBlocks(World world, AxisAlignedRect portalRect) {
 		
 		Set<Block> frameBlocks = new HashSet<>();
 		
