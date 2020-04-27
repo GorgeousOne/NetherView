@@ -83,6 +83,13 @@ public class Transform {
 	
 	@Override
 	public Transform clone() {
-		return new Transform(translation.clone(), rotCenter.clone(), rotationY.clone());
+		return new Transform(translation.clone(), rotCenter.clone(), cloneRotY());
+	}
+	
+	private int[][] cloneRotY() {
+		return new int[][] {
+				{rotationY[0][0], rotationY[0][1]},
+				{rotationY[1][0], rotationY[1][1]}
+		};
 	}
 }

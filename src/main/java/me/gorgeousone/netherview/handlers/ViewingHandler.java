@@ -5,7 +5,7 @@ import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.portal.PortalSide;
-import me.gorgeousone.netherview.portal.PortalStructure;
+import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisUtils;
 import me.gorgeousone.netherview.threedstuff.Transform;
 import me.gorgeousone.netherview.threedstuff.ViewingFrustum;
@@ -13,13 +13,11 @@ import me.gorgeousone.netherview.threedstuff.ViewingFrustumFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import javax.sound.sampled.Port;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,7 +29,7 @@ public class ViewingHandler {
 	
 	private PortalHandler portalHandler;
 	
-	private Map<PortalStructure, BlockCache> netherCaches;
+	private Map<Portal, BlockCache> netherCaches;
 	private Map<UUID, Set<BlockCopy>> playerViews;
 	
 	public ViewingHandler(PortalHandler portalHandler) {
@@ -52,33 +50,33 @@ public class ViewingHandler {
 		return playerViews.get(uuid);
 	}
 	
-	public void displayPortal(Player player, PortalStructure portal) {
+	public void displayPortal(Player player, Portal portal) {
 		
 		if (portal.getWorld().getEnvironment() != World.Environment.NORMAL)
 			return;
 		
-		PortalStructure netherPortal = portalHandler.getLinkedNetherPortal(portal);
+		Portal netherPortal = portalHandler.getLinkedNetherPortal(portal);
 		
-		if (!netherCaches.containsKey(netherPortal))
-			netherCaches.put(netherPortal, BlockCacheFactory.createBlockCache(portalHandler.getLinkedNetherPortal(portal), 10));
+//		if (!netherCaches.containsKey(netherPortal))
+//			netherCaches.put(netherPortal, BlockCacheFactory.createBlockCache(portalHandler.getLinkedNetherPortal(portal), 10));
 		
 		Location playerEyeLoc = player.getEyeLocation();
 		
 		boolean playerIsRelativelyNegativeToPortal = isPlayerRelativelyNegativeToPortal(playerEyeLoc, portal);
-		ViewingFrustum playerViewingFrustum = ViewingFrustumFactory.createViewingFrustum(playerEyeLoc, portal);
+		ViewingFrustum playerViewingFrustum = ViewingFrustumFactory.createViewingFrustum(playerEyeLoc.toVector(), portal);
 		
-		PortalSide portalSideToDisplay = playerIsRelativelyNegativeToPortal ? PortalSide.POSITIVE : PortalSide.NEGATIVE;
+//		PortalSide portalSideToDisplay = playerIsRelativelyNegativeToPortal ? PortalSide.POSITIVE : PortalSide.NEGATIVE;
 		
-		BlockCache netherBlockCache = getCachedBlocks(netherPortal, portalSideToDisplay);
-		Set<BlockCopy> visibleBlocks = detectBlocksInView(playerViewingFrustum, netherBlockCache, portalHandler.getLinkTransform(portal));
-		renderNetherBLocks(player, portal, visibleBlocks);
+//		BlockCache netherBlockCache = getCachedBlocks(netherPortal, portalSideToDisplay);
+//		Set<BlockCopy> visibleBlocks = detectBlocksInView(playerViewingFrustum, netherBlockCache, portalHandler.getLinkTransform(portal));
+//		renderNetherBLocks(player, portal, visibleBlocks);
 	}
 	
-	private BlockCache getCachedBlocks(PortalStructure portal, PortalSide portalSideToDisplay) {
+	private BlockCache getCachedBlocks(Portal portal, PortalSide portalSideToDisplay) {
 		return netherCaches.get(portal);
 	}
 	
-	private boolean isPlayerRelativelyNegativeToPortal(Location playerLoc, PortalStructure portal) {
+	private boolean isPlayerRelativelyNegativeToPortal(Location playerLoc, Portal portal) {
 		
 		Vector portalDist = portal.getLocation().toVector().subtract(playerLoc.toVector());
 		Vector portalFacing = AxisUtils.getAxisPlaneNormal(portal.getAxis());
@@ -94,19 +92,37 @@ public class ViewingHandler {
 		
 		BlockVec min = netherCache.getCopyMin();
 		BlockVec max = netherCache.getCopyMax();
-
+		
 		for (int x = min.getX(); x < max.getX(); x++) {
 			for (int y = min.getY(); y < max.getY(); y++) {
 				for (int z = min.getZ(); z < max.getZ(); z++) {
 					
 					BlockVec transformedCorner = transform.getTransformed(new BlockVec(x, y, z));
 					
+//					if (viewingFrustum.contains(transformedCorner.toVector())) {
+//
+//						for (BlockVec block : getBlocksAroundCorner(new BlockVec(x, y, z))) {
+//							BlockCopy copy = netherCache.getCopyAt(block);
+//
+//							if(copy == null)
+//								continue;
+//
+//							blocksInCone.add(copy.clone().setPosition(transform.getTransformed(copy.getPosition())));
+//						}
+//					}
+					
 					if (viewingFrustum.contains(transformedCorner.toVector())) {
-						
-						world.spawnParticle(Particle.DRIP_LAVA, transformedCorner.toLocation(world), 1);
-						
-						for (BlockCopy blockCopy : netherCache.getCopiesAround(new BlockVec(x, y, z)))
-							blocksInCone.add(blockCopy.clone().setPosition(transform.getTransformed(blockCopy.getPosition())));
+
+						for (BlockCopy blockCopy : netherCache.getCopiesAround(new BlockVec(x, y, z))) {
+							BlockCopy copy = blockCopy.clone();
+							copy.setPosition(transform.getTransformed(copy.getPosition()));
+							
+							blocksInCone.add(copy);
+//							if(blocksInCone.add(copy))
+//								Bukkit.broadcastMessage(copy.getPosition().toString());
+
+//							blocksInCone.add(blockCopy.clone().setPosition(transform.getTransformed(blockCopy.getPosition())));
+						}
 					}
 				}
 			}
@@ -115,8 +131,29 @@ public class ViewingHandler {
 		return blocksInCone;
 	}
 	
-	private void renderNetherBLocks(Player player, PortalStructure portal, Set<BlockCopy> visibleBlocks) {
+	private Set<BlockVec> getBlocksAroundCorner(BlockVec blockCorner) {
 		
+		Set<BlockVec> blocksAroundCorner = new HashSet<>();
+		
+		int x = blockCorner.getX();
+		int y = blockCorner.getY();
+		int z = blockCorner.getZ();
+		
+		blocksAroundCorner.add(new BlockVec(x, y, z));
+		blocksAroundCorner.add(new BlockVec(x + 1, y, z));
+		blocksAroundCorner.add(new BlockVec(x, y, z + 1));
+		blocksAroundCorner.add(new BlockVec(x + 1, y, z + 1));
+		blocksAroundCorner.add(new BlockVec(x, y -1, z));
+		blocksAroundCorner.add(new BlockVec(x + 1, y -1, z));
+		blocksAroundCorner.add(new BlockVec(x, y -1, z + 1));
+		blocksAroundCorner.add(new BlockVec(x + 1, y -1, z + 1));
+		
+		return blocksAroundCorner;
+	}
+	
+	private void renderNetherBLocks(Player player, Portal portal, Set<BlockCopy> visibleBlocks) {
+		
+		System.out.println("view " + visibleBlocks.size() + " blocks");
 		World playerWorld = player.getWorld();
 		Set<BlockCopy> viewSession = getViewSession(player);
 		

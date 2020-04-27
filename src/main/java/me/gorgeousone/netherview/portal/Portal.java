@@ -9,17 +9,17 @@ import org.bukkit.block.Block;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PortalStructure {
+public class Portal {
 	
 	private World world;
 	private AxisAlignedRect portalRect;
 	private Set<Block> portalBlocks;
 	private Set<Block> frameBlocks;
 	
-	public PortalStructure(World world,
-	                       AxisAlignedRect portalRect,
-	                       Set<Block> portalBlocks,
-	                       Set<Block> frameBlocks) {
+	public Portal(World world,
+	              AxisAlignedRect portalRect,
+	              Set<Block> portalBlocks,
+	              Set<Block> frameBlocks) {
 		this.world = world;
 		this.portalRect = portalRect;
 		this.portalBlocks = portalBlocks;
@@ -52,5 +52,13 @@ public class PortalStructure {
 	
 	public Set<Block> getFrameBlocks() {
 		return frameBlocks;
+	}
+	
+	public boolean equalsInSize(Portal other) {
+		
+		AxisAlignedRect otherRect = other.getPortalRect();
+		
+		return portalRect.width() == otherRect.width() &&
+		       portalRect.height() == otherRect.height();
 	}
 }

@@ -2,9 +2,8 @@ package me.gorgeousone.netherview;
 
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
-import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
-import me.gorgeousone.netherview.portal.PortalStructure;
+import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -37,7 +36,7 @@ public final class Main extends JavaPlugin {
 		
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(portalHandler), this);
-		manager.registerEvents(new PlayerMoveListener(portalHandler, viewingHandler), this);
+//		manager.registerEvents(new PlayerMoveListener(portalHandler, viewingHandler), this);
 	}
 	
 	@Override
@@ -66,11 +65,9 @@ public final class Main extends JavaPlugin {
 		if (playerLoc.getWorld().getEnvironment() != World.Environment.NORMAL)
 			return;
 		
-		PortalStructure portal = portalHandler.nearestPortal(playerLoc);
+		Portal portal = portalHandler.nearestPortal(playerLoc);
 		
-		if (portal == null)
-			return;
-		
-		viewingHandler.displayPortal(player, portal);
+		if (portal != null)
+			viewingHandler.displayPortal(player, portal);
 	}
 }

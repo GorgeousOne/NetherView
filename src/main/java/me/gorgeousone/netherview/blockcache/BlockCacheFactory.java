@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.blockcache;
 
-import me.gorgeousone.netherview.portal.PortalStructure;
+import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisUtils;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import org.bukkit.Bukkit;
@@ -12,23 +12,19 @@ import org.bukkit.util.Vector;
 
 public class BlockCacheFactory {
 	
-	public static BlockCache createBlockCache(PortalStructure netherPortal, int viewDist) {
+	public static BlockCache createBlockCache(Portal portal, int viewDist) {
 		
-		AxisAlignedRect viewRect = netherPortal.getPortalRect();
-		Bukkit.broadcastMessage("Nether portal is aligned " + viewRect.getAxis().name());
+		AxisAlignedRect portalRect = portal.getPortalRect();
 		
-		Vector portalFacing = AxisUtils.getAxisPlaneNormal(netherPortal.getAxis());
+		Vector portalFacing = AxisUtils.getAxisPlaneNormal(portal.getAxis());
 		Vector widthFacing = portalFacing.getCrossProduct(new Vector(0, 1, 0));
 		
-		Vector min = viewRect.getMin();
-		Vector max = viewRect.getMax();
-		
-		Vector cacheCorner1 = min.clone();
+		Vector cacheCorner1 = portalRect.getMin();
 		cacheCorner1.subtract(new Vector(0, viewDist - 1, 0));
 		cacheCorner1.subtract(widthFacing.clone().multiply(viewDist - 1));
 		cacheCorner1.add(portalFacing);
 		
-		Vector cacheCorner2 = max.clone();
+		Vector cacheCorner2 = portalRect.getMax();
 		cacheCorner2.add(new Vector(0, viewDist - 1, 0));
 		cacheCorner2.add(widthFacing.clone().multiply(viewDist - 1));
 		cacheCorner2.add(portalFacing.clone().multiply(viewDist));
@@ -38,7 +34,7 @@ public class BlockCacheFactory {
 		
 		Block[][][] netherBlocks = copyBlocksInBounds(
 				cacheMin.getBlockX(), cacheMin.getBlockY(), cacheMin.getBlockZ(),
-				cacheMax.getBlockX(), cacheMax.getBlockY(), cacheMax.getBlockZ(), netherPortal.getWorld());
+				cacheMax.getBlockX(), cacheMax.getBlockY(), cacheMax.getBlockZ(), portal.getWorld());
 		
 		return new BlockCache(netherBlocks, new BlockVec(cacheMin));
 	}

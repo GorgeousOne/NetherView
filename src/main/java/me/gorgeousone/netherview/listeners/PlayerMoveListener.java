@@ -2,7 +2,7 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
-import me.gorgeousone.netherview.portal.PortalStructure;
+import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -38,7 +38,7 @@ public class PlayerMoveListener implements Listener {
 		Player player = event.getPlayer();
 		Location playerLoc = player.getEyeLocation();
 
-		PortalStructure portal = portalHandler.nearestPortal(playerLoc);
+		Portal portal = portalHandler.nearestPortal(playerLoc);
 
 		if (portal == null)
 			return;

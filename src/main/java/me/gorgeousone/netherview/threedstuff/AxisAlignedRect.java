@@ -89,6 +89,7 @@ public class AxisAlignedRect {
 		}
 	}
 	
+	
 	@Override
 	public AxisAlignedRect clone() {
 		return new AxisAlignedRect(getAxis(), getMin(), width(), height());

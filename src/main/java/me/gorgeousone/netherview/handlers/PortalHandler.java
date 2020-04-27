@@ -1,7 +1,7 @@
 package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.blockcache.BlockVec;
-import me.gorgeousone.netherview.portal.PortalStructure;
+import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.Transform;
 import org.bukkit.Axis;
 import org.bukkit.Location;
@@ -14,15 +14,15 @@ import java.util.Map;
 
 public class PortalHandler {
 	
-	private Map<PortalStructure, PortalStructure> runningPortals;
-	private Map<PortalStructure, Transform> linkTransforms;
+	private Map<Portal, Portal> runningPortals;
+	private Map<Portal, Transform> linkTransforms;
 	
 	public PortalHandler() {
 		runningPortals = new HashMap<>();
 		linkTransforms = new HashMap<>();
 	}
 	
-	public void linkPortals(PortalStructure overworldPortal, PortalStructure netherPortal) {
+	public void linkPortals(Portal overworldPortal, Portal netherPortal) {
 		
 		Transform linTransform = new Transform();
 		
@@ -48,7 +48,7 @@ public class PortalHandler {
 		if (portalBlock.getType() != Material.NETHER_PORTAL)
 			return false;
 		
-		for (PortalStructure portal : runningPortals.keySet()) {
+		for (Portal portal : runningPortals.keySet()) {
 			if (portal.containsBlock(portalBlock))
 				return true;
 		}
@@ -56,12 +56,12 @@ public class PortalHandler {
 		return false;
 	}
 	
-	public PortalStructure nearestPortal(Location playerLoc) {
+	public Portal nearestPortal(Location playerLoc) {
 		
-		PortalStructure nearestPortal = null;
+		Portal nearestPortal = null;
 		double minDist = -1;
 		
-		for (PortalStructure portal : runningPortals.keySet()) {
+		for (Portal portal : runningPortals.keySet()) {
 			
 			double dist = portal.getLocation().distanceSquared(playerLoc);
 			
@@ -74,11 +74,11 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
-	public PortalStructure getLinkedNetherPortal(PortalStructure portal) {
+	public Portal getLinkedNetherPortal(Portal portal) {
 		return runningPortals.get(portal);
 	}
 	
-	public Transform getLinkTransform(PortalStructure portal) {
+	public Transform getLinkTransform(Portal portal) {
 		return linkTransforms.get(portal);
 	}
 }

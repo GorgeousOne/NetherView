@@ -1,22 +1,23 @@
 package me.gorgeousone.netherview.threedstuff;
 
-import me.gorgeousone.netherview.portal.PortalStructure;
+import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.Axis;
-import org.bukkit.Location;
+import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
 public class ViewingFrustumFactory {
-	
-	public static ViewingFrustum createViewingFrustum(Location playerLoc, PortalStructure portal) {
+
+	//creates a frustum representing the possibly visible frustum from the viewpoint through the given portal
+	public static ViewingFrustum createViewingFrustum(Vector viewPoint, Portal portal) {
+		
 		
 		AxisAlignedRect nearPlane = portal.getPortalRect();
 		Vector portalNormal = nearPlane.getPlane().getNormal();
-		
 		nearPlane.translate(portalNormal.clone().multiply(0.5));
 		
-		boolean isPlayerInNegative = isPlayerRelativelyNegativeToPortal(playerLoc, portal);
+		boolean isPlayerInNegative = isPlayerRelativelyNegativeToPortal(viewPoint, portal);
 		Vector generalPlayerFacing = portalNormal.clone().multiply(isPlayerInNegative ? 0.5 : -0.5);
 		
 		Vector minCorner1 = nearPlane.getMin().add(generalPlayerFacing.clone().multiply(-1));
@@ -25,17 +26,12 @@ public class ViewingFrustumFactory {
 		Vector maxCorner1 = nearPlane.getMax().add(generalPlayerFacing.clone().multiply(-1));
 		Vector maxCorner2 = nearPlane.getMax().add(generalPlayerFacing);
 		
-		Vector viewPoint = playerLoc.toVector();
-		
-		
-		
 		Vector rectMin = new Vector();
 		double rectWidth;
 		double rectHeight;
 		
 		Vector minFramingEdgeY;
 		Vector maxFramingEdgeY;
-		
 		
 		if (isPlayerInNegative) {
 			minFramingEdgeY = viewPoint.getY() > minCorner1.getY() ? minCorner1 : minCorner2;
@@ -47,7 +43,8 @@ public class ViewingFrustumFactory {
 		
 		Vector intersBottom = nearPlane.getPlane().getIntersection(new Line(viewPoint, minFramingEdgeY));
 		Vector intersTop = nearPlane.getPlane().getIntersection(new Line(viewPoint, maxFramingEdgeY));
-		World world = playerLoc.getWorld();
+		
+		World world = Bukkit.getWorld("world");
 		world.spawnParticle(Particle.DRIP_LAVA, intersBottom.toLocation(world), 0, 0, 0, 0);
 		world.spawnParticle(Particle.DRIP_LAVA, intersTop.toLocation(world), 0, 0, 0, 0);
 		
@@ -112,9 +109,9 @@ public class ViewingFrustumFactory {
 		return new ViewingFrustum(viewPoint, viewingRect);
 	}
 	
-	private static boolean isPlayerRelativelyNegativeToPortal(Location playerLoc, PortalStructure portal) {
+	private static boolean isPlayerRelativelyNegativeToPortal(Vector viewPoint, Portal portal) {
 		
-		Vector portalDist = portal.getLocation().toVector().subtract(playerLoc.toVector());
+		Vector portalDist = portal.getLocation().toVector().subtract(viewPoint);
 		Vector portalFacing = AxisUtils.getAxisPlaneNormal(portal.getAxis());
 		
 		return portalFacing.dot(portalDist) > 0;

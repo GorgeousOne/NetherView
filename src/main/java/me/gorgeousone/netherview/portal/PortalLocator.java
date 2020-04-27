@@ -12,16 +12,21 @@ import org.bukkit.util.Vector;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PortalStructureFactory {
+public class PortalLocator {
 	
-	public static PortalStructure locatePortalStructure(Block sourceBlock) {
+	public static Portal locatePortalStructure(Block innerPortalBlock) {
 		
-		AxisAlignedRect portalRect = locatePortalRect(sourceBlock);
-		World world = sourceBlock.getWorld();
+		World world = innerPortalBlock.getWorld();
+		AxisAlignedRect portalRect = locatePortalRect(innerPortalBlock);
 		
-		return new PortalStructure(world, portalRect, getPortalBlocks(world, portalRect), getFrameBlocks(world, portalRect));
+		return new Portal(
+				world,
+				portalRect,
+				getInnerPortalBlocks(world, portalRect),
+				getFrameBlocks(world, portalRect));
 	}
 	
+	//returns a rectangle the size of the inner portal blocks combined
 	private static AxisAlignedRect locatePortalRect(Block sourceBlock) {
 		
 		Orientable portalData = (Orientable) sourceBlock.getBlockData();
@@ -43,6 +48,7 @@ public class PortalStructureFactory {
 		return new AxisAlignedRect(portalAxis, location, width, height);
 	}
 	
+	//returns the last block of the portal inner into a certain direction
 	private static Block getPortalExtent(Block sourceBlock, BlockFace facing) {
 		
 		Block blockIterator = sourceBlock;
@@ -60,7 +66,7 @@ public class PortalStructureFactory {
 		throw new IllegalArgumentException("Portal appears to be bigger than possible in vanilla.");
 	}
 	
-	private static Set<Block> getPortalBlocks(World world, AxisAlignedRect portalRect) {
+	private static Set<Block> getInnerPortalBlocks(World world, AxisAlignedRect portalRect) {
 		
 		Set<Block> portalBlocks = new HashSet<>();
 		
@@ -68,7 +74,6 @@ public class PortalStructureFactory {
 		Block iter = portalRect.getMin().toLocation(world).getBlock();
 		
 		for (int k = 0; k < portalRect.height(); k++) {
-			
 			Block iter2 = iter;
 			
 			for (int i = 0; i < portalRect.width(); i++) {
@@ -83,6 +88,7 @@ public class PortalStructureFactory {
 		return portalBlocks;
 	}
 	
+	//returns a set of blocks where obsidian blocks need to be placed
 	private static Set<Block> getFrameBlocks(World world, AxisAlignedRect portalRect) {
 		
 		Set<Block> frameBlocks = new HashSet<>();
