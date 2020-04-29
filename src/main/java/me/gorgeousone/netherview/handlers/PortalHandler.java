@@ -37,7 +37,7 @@ public class PortalHandler {
 		try {
 			Portal portal = PortalLocator.locatePortalStructure(portalBlock);
 			portals.add(portal);
-			blockCaches.put(portal, BlockCacheFactory.createBlockCache(portal, 6));
+			blockCaches.put(portal, BlockCacheFactory.createBlockCache(portal, 20));
 			Bukkit.broadcastMessage(ChatColor.GRAY + "New portal: " + portal.getWorld().getName() + " - " + portal.getPortalRect().getMin().toString());
 			return portal;
 			
@@ -45,21 +45,6 @@ public class PortalHandler {
 			ignored.printStackTrace();
 			return null;
 		}
-
-//		Portal startPortal = getPortalByBlock(from);
-//
-//		if(startPortal == null) {
-//			try {
-//				startPortal = PortalLocator.locatePortalStructure(from);
-//				portals.add(startPortal);
-//				blockCaches.put(startPortal, BlockCacheFactory.createBlockCache(startPortal, 6));
-//				portalLinks.put(startPortal, new PortalLink(startPortal, counterPortal));
-//				Bukkit.broadcastMessage(ChatColor.GRAY + "Link portal: " + startPortal.getWorld().getName() + " - " + startPortal.getPortalRect().getMin().toString());
-//
-//			}catch (IllegalArgumentException ignored) {
-//				ignored.printStackTrace();
-//			}
-//		}
 	}
 	
 	public Portal getPortalByBlock(Block portalBlock) {

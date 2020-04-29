@@ -31,14 +31,14 @@ public final class Main extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
-		// Plugin shutdown logic
+		viewingHandler.reset();
 	}
 	
 	public void registerListeners() {
 		
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(portalHandler), this);
-		manager.registerEvents(new PlayerMoveListener(portalHandler, viewingHandler), this);
+		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
 		manager.registerEvents(new MapCreator(), this);
 	}
 	

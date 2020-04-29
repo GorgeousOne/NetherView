@@ -40,19 +40,21 @@ public class PortalLink {
 		linkTransform.setTranslation(new BlockVec(distance));
 		linkTransform.setRotCenter(new BlockVec(counterPortal.getPortalRect().getMin()));
 		
-		//during the rotation of blocks some weird shifts happen
-		//I did not figure out where they come from, for now the translations are the workaround
+		//during the rotation some weird shifts happen
+		//I did not figure out where they come from, for now the translations are a good workaround
 		if (portal.getAxis() == counterPortal.getAxis()) {
 			linkTransform.setRotY180Deg();
 			
+			int portalBlockWidth = (int) portal.getPortalRect().width() - 1;
+			
 			if (counterPortal.getAxis() == Axis.X)
-				linkTransform.translate(new BlockVec(2, 0, 0));
+				linkTransform.translate(new BlockVec(portalBlockWidth, 0, 0));
 			else
-				linkTransform.translate(new BlockVec(0, 0, 2));
+				linkTransform.translate(new BlockVec(0, 0, portalBlockWidth));
 			
 		}else if (counterPortal.getAxis() == Axis.X) {
 			linkTransform.setRotY90DegRight();
-			linkTransform.translate(new BlockVec(0, 0, 1));
+		    linkTransform.translate(new BlockVec(0, 0, 1));
 		
 		} else {
 			linkTransform.setRotY90DegLeft();

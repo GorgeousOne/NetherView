@@ -10,6 +10,7 @@ import me.gorgeousone.netherview.portal.PortalLink;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.viewfrustum.ViewingFrustum;
 import me.gorgeousone.netherview.viewfrustum.ViewingFrustumFactory;
+import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -18,6 +19,7 @@ import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +38,14 @@ public class ViewingHandler {
 		playerViews = new HashMap<>();
 	}
 	
+	public void reset() {
+		
+		for(Player player : Bukkit.getOnlinePlayers()) {
+			if (hasViewSession(player))
+				removeViewSession(player);
+		}
+	}
+	
 	public Set<BlockCopy> getViewSession(Player player) {
 		
 		UUID uuid = player.getUniqueId();
@@ -44,6 +54,47 @@ public class ViewingHandler {
 			playerViews.put(uuid, new HashSet<>());
 		
 		return playerViews.get(uuid);
+	}
+	
+	public boolean hasViewSession(Player player) {
+		return playerViews.containsKey(player.getUniqueId());
+	}
+	
+	public void removeViewSession(Player player) {
+		
+		for(BlockCopy copy : getViewSession(player))
+			refreshBlock(player, copy);
+		
+		playerViews.remove(player.getUniqueId());
+	}
+	
+	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
+		
+		Portal portal = portalHandler.getNearestPortal(playerEyeLoc);
+		
+		if (portal == null)
+			return;
+		
+		Vector portalDistance = portal.getLocation().subtract(playerEyeLoc).toVector();
+		double viewDistanceSquared = 20 * 20;
+		
+		if (portalDistance.lengthSquared() > viewDistanceSquared) {
+			if(hasViewSession(player))
+				removeViewSession(player);
+			return;
+		}
+		
+		if(portal.getAxis() == Axis.X) {
+			if(playerEyeLoc.getBlockZ() == portal.getLocation().getBlockZ()) {
+				removeViewSession(player);
+				return;
+			}
+		}else if(playerEyeLoc.getBlockX() == portal.getLocation().getBlockX()) {
+			removeViewSession(player);
+			return;
+		}
+
+		displayPortal(player, portal);
 	}
 	
 	public void displayPortal(Player player, Portal portal) {
@@ -74,12 +125,6 @@ public class ViewingHandler {
 			air.setData(Material.AIR.createBlockData());
 			visibleBlocks.add(air);
 		}
-//
-//		for(Block block : portal.getFrameBlocks()) {
-//			BlockCopy glass = new BlockCopy(block);
-//			glass.setData(Material.PURPLE_STAINED_GLASS.createBlockData());
-//			visibleBlocks.add(glass);
-//		}
 		
 		displayFrustum(player, playerFrustum);
 		displayBlocks(player, visibleBlocks);
@@ -118,21 +163,14 @@ public class ViewingHandler {
 		BlockVec min = transformedCache.getMin();
 		BlockVec max = transformedCache.getMax();
 		
-		for (int x = min.getX(); x < max.getX(); x++) {
-			for (int y = min.getY(); y < max.getY(); y++) {
-				for (int z = min.getZ(); z < max.getZ(); z++) {
+		for (int x = min.getX(); x <= max.getX(); x++) {
+			for (int y = min.getY(); y <= max.getY(); y++) {
+				for (int z = min.getZ(); z <= max.getZ(); z++) {
 					
 					BlockVec corner = new BlockVec(x, y, z);
 					
 					if (!frustum.contains(corner.toVector()))
 						continue;
-					
-//					player.spawnParticle(
-//							Particle.FLAME,
-//							corner.getX(),
-//							corner.getY(),
-//							corner.getZ(),
-//							0, 0, 0, 0);
 					
 					for (BlockCopy blockCopy : transformedCache.getCopiesAround(new BlockVec(x, y, z))) {
 						blocksInFrustum.add(blockCopy);
@@ -155,7 +193,6 @@ public class ViewingHandler {
 	
 	private void displayBlocks(Player player, Set<BlockCopy> blocksToDisplay) {
 		
-		World playerWorld = player.getWorld();
 		Set<BlockCopy> viewSession = getViewSession(player);
 		Iterator<BlockCopy> iterator = viewSession.iterator();
 		
@@ -168,10 +205,7 @@ public class ViewingHandler {
 			}
 		}
 		
-		for (BlockCopy copy : blocksToDisplay) {
-			if(viewSession.add(copy))
-				player.sendBlockChange(copy.getPosition().toLocation(playerWorld), copy.getBlockData());
-		}
+		blocksToDisplay.removeIf(blockCopy -> !viewSession.add(blockCopy));
 		
 		for(BlockCopy copy : blocksToDisplay) {
 			player.sendBlockChange(copy.getPosition().toLocation(player.getWorld()), copy.getBlockData());

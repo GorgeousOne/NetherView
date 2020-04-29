@@ -108,10 +108,10 @@ public class BlockVec {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof BlockVec)) return false;
-		BlockVec blockVec = (BlockVec) o;
-		return x == blockVec.x &&
-		       y == blockVec.y &&
-		       z == blockVec.z;
+		BlockVec otherVec = (BlockVec) o;
+		return x == otherVec.x &&
+		       y == otherVec.y &&
+		       z == otherVec.z;
 	}
 	
 	@Override

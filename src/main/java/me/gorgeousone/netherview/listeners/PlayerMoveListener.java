@@ -1,56 +1,73 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
-import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class PlayerMoveListener implements Listener {
 	
-	private PortalHandler portalHandler;
+	private JavaPlugin plugin;
 	private ViewingHandler viewingHandler;
 	
-	public PlayerMoveListener(PortalHandler portalHandler, ViewingHandler viewingHandler) {
-		
-		this.portalHandler = portalHandler;
+	public PlayerMoveListener(JavaPlugin plugin, ViewingHandler viewingHandler) {
+		this.plugin = plugin;
 		this.viewingHandler = viewingHandler;
 	}
 	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
 		
-		if (event.getPlayer().getGameMode() == GameMode.SPECTATOR)
-			return;
-		
-		if (event.getFrom().toVector().equals(event.getTo().toVector()))
-			return;
-		
 		Player player = event.getPlayer();
+		if (player.getGameMode() == GameMode.SPECTATOR)
+			return;
+		
+		//TODO switch to checking permitted worlds
 		World.Environment worldType = player.getWorld().getEnvironment();
 		
 		if (worldType != World.Environment.NORMAL && worldType != World.Environment.NETHER)
 			return;
 		
-		Location playerLoc = player.getEyeLocation();
+		if (!event.getFrom().toVector().equals(event.getTo().toVector())) {
+			Vector movement = event.getTo().clone().subtract(event.getFrom()).toVector();
+			viewingHandler.displayNearestPortalTo(player, player.getEyeLocation().add(movement));
+		}
+	}
+	
+	@EventHandler
+	public void onPlayerSneak(PlayerToggleSneakEvent event) {
 		
-		Portal portal = portalHandler.getNearestPortal(playerLoc);
+		Player player = event.getPlayer();
 		
-		if (portal == null)
+		if (player.getGameMode() == GameMode.SPECTATOR)
 			return;
 		
-		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
-		double viewDistanceSquared = 20 * 20;
+		World.Environment worldType = player.getWorld().getEnvironment();
 		
-		if (portalDistance.lengthSquared() > viewDistanceSquared)
-			return;
+		if (worldType == World.Environment.NORMAL || worldType == World.Environment.NETHER) {
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					viewingHandler.displayNearestPortalTo(player, player.getLocation());
+					
+				}
+			}.runTaskLater(plugin, 2);
+		}
+	}
+	
+	@EventHandler
+	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
-		viewingHandler.displayPortal(player, portal);
+		if(event.getNewGameMode() == GameMode.SPECTATOR)
+			viewingHandler.removeViewSession(event.getPlayer());
 	}
 }
