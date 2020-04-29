@@ -1,13 +1,12 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -27,17 +26,10 @@ public class TeleportListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPortalTravel(PlayerTeleportEvent event) {
 		
-		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
+		if(event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
 			return;
 		
-		Location from = event.getFrom();
-		Location to = event.getTo();
-		
-		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL ||
-		    !isTpBetweenNetherAndNormal(from, to))
-			return;
-		
-		Block portalBlock = getNearbyPortalBlock(from);
+		Block portalBlock = getNearbyPortalBlock(event.getFrom());
 		
 		if (portalBlock == null)
 			return;
@@ -53,24 +45,16 @@ public class TeleportListener implements Listener {
 		}
 		
 		if (portalHandler.getPortalLink(portal) == null) {
-		
-			Portal counterPortal = portalHandler.getPortalByBlock(to.getBlock());
+			
+			Block counterPortalBlock = getNearbyPortalBlock(event.getTo());
+			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
 			if(counterPortal == null)
-				counterPortal = portalHandler.addPortal(to.getBlock());
+				counterPortal = portalHandler.addPortal(counterPortalBlock);
 			
 			portalHandler.linkPortal(portal, counterPortal);
 			event.setCancelled(true);
 		}
-	}
-	
-	private boolean isTpBetweenNetherAndNormal(Location from, Location to) {
-		
-		World.Environment fromWorldType = from.getWorld().getEnvironment();
-		World.Environment toWorldType = to.getWorld().getEnvironment();
-		
-		return fromWorldType == World.Environment.NORMAL && toWorldType == World.Environment.NETHER ||
-		       fromWorldType == World.Environment.NETHER && toWorldType == World.Environment.NORMAL;
 	}
 	
 	/**
@@ -79,13 +63,13 @@ public class TeleportListener implements Listener {
 	 */
 	private Block getNearbyPortalBlock(Location location) {
 		
-		Block sourceBlock = location.getBlock();
+		Block block = location.getBlock();
 		
-		if(sourceBlock.getType() == Material.NETHER_PORTAL)
-			return sourceBlock;
+		if(block.getType() == Material.NETHER_PORTAL)
+			return block;
 		
 		for(BlockFace face : AxisUtils.getAxesFaces()) {
-			Block neighbor = sourceBlock.getRelative(face);
+			Block neighbor = block.getRelative(face);
 			
 			if(neighbor.getType() == Material.NETHER_PORTAL)
 				return neighbor;

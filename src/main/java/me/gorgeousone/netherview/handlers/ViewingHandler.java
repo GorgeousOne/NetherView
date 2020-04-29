@@ -84,12 +84,16 @@ public class ViewingHandler {
 			return;
 		}
 		
+		double distanceToPortalRect;
+		
 		if(portal.getAxis() == Axis.X) {
-			if(playerEyeLoc.getBlockZ() == portal.getLocation().getBlockZ()) {
-				removeViewSession(player);
-				return;
-			}
-		}else if(playerEyeLoc.getBlockX() == portal.getLocation().getBlockX()) {
+			distanceToPortalRect = portal.getPortalRect().getMin().getZ() - playerEyeLoc.getZ();
+		}else {
+			distanceToPortalRect = portal.getPortalRect().getMin().getX() - playerEyeLoc.getZ();
+		}
+		
+		//TODO find out how to stop the view from glitching sometimes
+		if(Math.abs(distanceToPortalRect) < 0.6) {
 			removeViewSession(player);
 			return;
 		}
@@ -113,11 +117,14 @@ public class ViewingHandler {
 			return;
 		}
 		
-		BlockCache cache = portalHandler.getBlockCache(link.getCounterPortal());
+		BlockCache cache = portalHandler.getBlockCache(
+				link.getCounterPortal(),
+				ViewingFrustumFactory.isPlayerBehindPortal(player, portal));
+		
 		Location playerEyeLoc = player.getEyeLocation();
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(playerEyeLoc.toVector(), portal.getPortalRect());
 		
-//		Set<BlockCopy> visibleBlocks = getAllBlocks(portal, cache, link.getTransform());
+//		Set<BlockCopy> visibleBlocks = getAllBlocks(cache, link.getTransform());
 		Set<BlockCopy> visibleBlocks = getBlocksInFrustum(player, cache, playerFrustum, link.getTransform());
 		
 		for(Block block : portal.getPortalBlocks()) {
@@ -130,7 +137,7 @@ public class ViewingHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
-	private Set<BlockCopy> getAllBlocks(Portal portal, BlockCache blocks, Transform blockTransform) {
+	private Set<BlockCopy> getAllBlocks(BlockCache blocks, Transform blockTransform) {
 
 		BlockCache transformedCache = BlockCacheFactory.getTransformed(blocks, blockTransform);
 		Set<BlockCopy> allBlocks = new HashSet<>();

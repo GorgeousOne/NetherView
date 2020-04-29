@@ -1,8 +1,10 @@
 package me.gorgeousone.netherview.viewfrustum;
 
+import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.Line;
 import org.bukkit.Axis;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public final class ViewingFrustumFactory {
@@ -97,7 +99,11 @@ public final class ViewingFrustumFactory {
 		return new ViewingFrustum(viewPoint, actualViewingRect);
 	}
 	
-	private static boolean isPlayerBehindPortal(Vector viewPoint, AxisAlignedRect portalRect) {
+	public static boolean isPlayerBehindPortal(Player player, Portal portal) {
+		return isPlayerBehindPortal(player.getEyeLocation().toVector(), portal.getPortalRect());
+	}
+	
+	public static boolean isPlayerBehindPortal(Vector viewPoint, AxisAlignedRect portalRect) {
 		
 		Vector portalPos = portalRect.getMin();
 		

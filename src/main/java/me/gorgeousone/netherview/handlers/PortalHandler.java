@@ -2,7 +2,6 @@ package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
-import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLink;
 import me.gorgeousone.netherview.portal.PortalLocator;
@@ -21,7 +20,7 @@ public class PortalHandler {
 	
 	private Set<Portal> portals;
 	private Map<Portal, PortalLink> portalLinks;
-	private Map<Portal, BlockCache> blockCaches;
+	private Map<Portal, Map.Entry<BlockCache, BlockCache>> blockCaches;
 	
 	public PortalHandler() {
 		portals = new HashSet<>();
@@ -38,7 +37,7 @@ public class PortalHandler {
 			Portal portal = PortalLocator.locatePortalStructure(portalBlock);
 			portals.add(portal);
 			blockCaches.put(portal, BlockCacheFactory.createBlockCache(portal, 20));
-			Bukkit.broadcastMessage(ChatColor.GRAY + "New portal: " + portal.getWorld().getName() + " - " + portal.getPortalRect().getMin().toString());
+			Bukkit.broadcastMessage(ChatColor.GRAY + "Portal added: " + portal.getWorld().getName() + ", " + portal.getPortalRect().getMin().toString());
 			return portal;
 			
 		}catch (IllegalArgumentException ignored) {
@@ -81,8 +80,14 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
-	public BlockCache getBlockCache(Portal portal) {
-		return blockCaches.get(portal);
+	public BlockCache getBlockCache(Portal portal, boolean isPlayerBehindPortal) {
+		
+		Map.Entry<BlockCache, BlockCache> entry = blockCaches.get(portal);
+		
+		if(entry != null)
+			return isPlayerBehindPortal ? entry.getValue() : entry.getKey();
+		
+		return null;
 	}
 	
 	public PortalLink getPortalLink(Portal portal) {
@@ -90,6 +95,7 @@ public class PortalHandler {
 	}
 	
 	public void linkPortal(Portal portal, Portal counterPortal) {
+		Bukkit.broadcastMessage(ChatColor.GRAY + "linked portal");
 		portalLinks.put(portal, new PortalLink(portal, counterPortal));
 	}
 }

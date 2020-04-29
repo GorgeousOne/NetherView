@@ -4,6 +4,8 @@ import org.bukkit.Axis;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
+import java.util.NoSuchElementException;
+
 public class AxisUtils {
 	
 	/**
@@ -14,12 +16,10 @@ public class AxisUtils {
 		switch (axis) {
 			case X:
 				return new Vector(0, 0, 1);
-			case Y:
-				return new Vector(0, 1, 0);
 			case Z:
 				return new Vector(1, 0, 0);
 			default:
-				return null;
+				throw new NoSuchElementException("Portals can only face in x or z direction.");
 		}
 	}
 	
