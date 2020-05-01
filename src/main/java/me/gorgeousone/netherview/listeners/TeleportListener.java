@@ -1,9 +1,9 @@
 package me.gorgeousone.netherview.listeners;
 
+import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,9 +17,11 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class TeleportListener implements Listener {
 	
+	private Main main;
 	private PortalHandler portalHandler;
 	
-	public TeleportListener(PortalHandler portalHandler) {
+	public TeleportListener(Main main, PortalHandler portalHandler) {
+		this.main = main;
 		this.portalHandler = portalHandler;
 	}
 	
@@ -29,7 +31,16 @@ public class TeleportListener implements Listener {
 		if(event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
 			return;
 		
-		Block portalBlock = getNearbyPortalBlock(event.getFrom());
+		if(!event.getPlayer().hasPermission(Main.LINK_PERM))
+			return;
+		
+		Location to = event.getTo();
+		Location from = event.getFrom();
+		
+		if(!main.canWorldViewOtherWorlds(from.getWorld()) || !main.canWorldBeViewed(to.getWorld()))
+			return;
+		
+		Block portalBlock = getNearbyPortalBlock(from);
 		
 		if (portalBlock == null)
 			return;
@@ -40,17 +51,17 @@ public class TeleportListener implements Listener {
 			Player player = event.getPlayer();
 			player.sendMessage(ChatColor.GRAY + "Found a portal");
 			
-			portal = portalHandler.addPortal(portalBlock);
+			portal = portalHandler.addPortalStructure(portalBlock);
 			event.setCancelled(true);
 		}
 		
 		if (portalHandler.getPortalLink(portal) == null) {
 			
-			Block counterPortalBlock = getNearbyPortalBlock(event.getTo());
+			Block counterPortalBlock = getNearbyPortalBlock(to);
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
 			if(counterPortal == null)
-				counterPortal = portalHandler.addPortal(counterPortalBlock);
+				counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
 			
 			portalHandler.linkPortal(portal, counterPortal);
 			event.setCancelled(true);

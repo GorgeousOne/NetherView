@@ -9,21 +9,23 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class PortalHandler {
 	
-	private Set<Portal> portals;
+	private Map<UUID, Set<Portal>> worldsWithPortals;
 	private Map<Portal, PortalLink> portalLinks;
 	private Map<Portal, Map.Entry<BlockCache, BlockCache>> blockCaches;
 	
 	public PortalHandler() {
-		portals = new HashSet<>();
+		worldsWithPortals = new HashMap<>();
 		portalLinks = new HashMap<>();
 		blockCaches = new HashMap<>();
 	}
@@ -31,19 +33,28 @@ public class PortalHandler {
 	/**
 	 * Registers new portals and links them to their counter portal
 	 */
-	public Portal addPortal(Block portalBlock) {
+	public Portal addPortalStructure(Block portalBlock) {
 		
-		try {
-			Portal portal = PortalLocator.locatePortalStructure(portalBlock);
-			portals.add(portal);
-			blockCaches.put(portal, BlockCacheFactory.createBlockCache(portal, 20));
-			Bukkit.broadcastMessage(ChatColor.GRAY + "Portal added: " + portal.getWorld().getName() + ", " + portal.getPortalRect().getMin().toString());
-			return portal;
-			
-		}catch (IllegalArgumentException ignored) {
-			ignored.printStackTrace();
-			return null;
-		}
+		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
+		addPortal(portal);
+		
+		blockCaches.put(portal, BlockCacheFactory.createBlockCache(portal, 20));
+		Bukkit.broadcastMessage(ChatColor.GRAY + "Portal added: " + portal.getWorld().getName() + ", " + portal.getPortalRect().getMin().toString());
+		return portal;
+	}
+	
+	private void addPortal(Portal portal) {
+		
+		UUID worldID = portal.getWorld().getUID();
+		
+		if(!worldsWithPortals.containsKey(worldID))
+			worldsWithPortals.put(worldID, new HashSet<>());
+		
+		worldsWithPortals.get(worldID).add(portal);
+	}
+	
+	public Set<Portal> getPortals(World world) {
+		return worldsWithPortals.getOrDefault(world.getUID(), new HashSet<>());
 	}
 	
 	public Portal getPortalByBlock(Block portalBlock) {
@@ -51,7 +62,7 @@ public class PortalHandler {
 		if (portalBlock.getType() != Material.NETHER_PORTAL)
 			return null;
 		
-		for (Portal portal : portals) {
+		for (Portal portal : getPortals(portalBlock.getWorld())) {
 			if (portal.containsBlock(portalBlock))
 				return portal;
 		}
@@ -64,7 +75,7 @@ public class PortalHandler {
 		Portal nearestPortal = null;
 		double minDist = -1;
 		
-		for (Portal portal : portals) {
+		for (Portal portal : getPortals(playerLoc.getWorld())) {
 			
 			if(portal.getWorld() != playerLoc.getWorld())
 				continue;
@@ -80,15 +91,15 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
-	public BlockCache getBlockCache(Portal portal, boolean isPlayerBehindPortal) {
-		
-		Map.Entry<BlockCache, BlockCache> entry = blockCaches.get(portal);
-		
-		if(entry != null)
-			return isPlayerBehindPortal ? entry.getValue() : entry.getKey();
-		
-		return null;
-	}
+//	public BlockCache getBlockCache(Portal portal, boolean isPlayerBehindPortal) {
+//
+//		Map.Entry<BlockCache, BlockCache> entry = blockCaches.get(portal);
+//
+//		if(entry != null)
+//			return isPlayerBehindPortal ? entry.getValue() : entry.getKey();
+//
+//		return null;
+//	}
 	
 	public PortalLink getPortalLink(Portal portal) {
 		return portalLinks.get(portal);
@@ -96,6 +107,6 @@ public class PortalHandler {
 	
 	public void linkPortal(Portal portal, Portal counterPortal) {
 		Bukkit.broadcastMessage(ChatColor.GRAY + "linked portal");
-		portalLinks.put(portal, new PortalLink(portal, counterPortal));
+		portalLinks.put(portal, new PortalLink(portal, counterPortal, blockCaches.get(counterPortal)));
 	}
 }

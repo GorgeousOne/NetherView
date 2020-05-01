@@ -1,5 +1,7 @@
 package me.gorgeousone.netherview.portal;
 
+import me.gorgeousone.netherview.blockcache.BlockCache;
+import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.blockcache.Transform;
 import org.bukkit.Axis;
@@ -7,18 +9,27 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
+import java.util.AbstractMap;
+import java.util.Map;
+
 public class PortalLink {
 	
 	private Portal portal;
 	private Portal counterPortal;
 	private Transform linkTransform;
+	private Map.Entry<BlockCache, BlockCache> copiedCaches;
 	
-	public PortalLink(Portal portal, Portal counterPortal) {
+	public PortalLink(Portal portal, Portal counterPortal, Map.Entry<BlockCache, BlockCache> counterCaches) {
 		
 		this.portal = portal;
 		this.counterPortal = counterPortal;
 		
 		calculateTransformBetweenPortals();
+		
+		copiedCaches = new AbstractMap.SimpleEntry<BlockCache, BlockCache>(
+				BlockCacheFactory.getTransformed(counterCaches.getKey(), linkTransform),
+				BlockCacheFactory.getTransformed(counterCaches.getValue(), linkTransform));
+		
 	}
 	
 	public Portal getCounterPortal() {
@@ -30,6 +41,10 @@ public class PortalLink {
 	 */
 	public Transform getTransform() {
 		return linkTransform;
+	}
+	
+	public BlockCache getCache(boolean isPlayerBehindPortal) {
+		return isPlayerBehindPortal ? copiedCaches.getValue() : copiedCaches.getKey();
 	}
 	
 	private void calculateTransformBetweenPortals() {

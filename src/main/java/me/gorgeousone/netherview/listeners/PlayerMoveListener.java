@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
+import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -10,17 +11,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class PlayerMoveListener implements Listener {
 	
-	private JavaPlugin plugin;
+	private Main main;
 	private ViewingHandler viewingHandler;
 	
-	public PlayerMoveListener(JavaPlugin plugin, ViewingHandler viewingHandler) {
-		this.plugin = plugin;
+	public PlayerMoveListener(Main main, ViewingHandler viewingHandler) {
+		this.main = main;
 		this.viewingHandler = viewingHandler;
 	}
 	
@@ -28,19 +28,26 @@ public class PlayerMoveListener implements Listener {
 	public void onPlayerMove(PlayerMoveEvent event) {
 		
 		Player player = event.getPlayer();
-		if (player.getGameMode() == GameMode.SPECTATOR)
+		
+		if (!player.hasPermission(Main.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR)
 			return;
 		
-		//TODO switch to checking permitted worlds
-		World.Environment worldType = player.getWorld().getEnvironment();
+		World playerWorld = player.getWorld();
 		
-		if (worldType != World.Environment.NORMAL && worldType != World.Environment.NETHER)
+		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canWorldViewOtherWorlds(playerWorld))
 			return;
 		
-		if (!event.getFrom().toVector().equals(event.getTo().toVector())) {
-			Vector movement = event.getTo().clone().subtract(event.getFrom()).toVector();
+		Location from = event.getFrom();
+		Location to = event.getTo();
+		
+		if (!from.toVector().equals(to.toVector())) {
+			Vector movement = to.clone().subtract(from).toVector();
 			viewingHandler.displayNearestPortalTo(player, player.getEyeLocation().add(movement));
 		}
+	}
+	
+	private double getRounded(double d, int digits) {
+		return (int) (d * Math.pow(10, digits)) / Math.pow(10, digits);
 	}
 	
 	@EventHandler
@@ -57,10 +64,9 @@ public class PlayerMoveListener implements Listener {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					viewingHandler.displayNearestPortalTo(player, player.getLocation());
-					
+					viewingHandler.displayNearestPortalTo(player, player.getEyeLocation());
 				}
-			}.runTaskLater(plugin, 2);
+			}.runTaskLater(main, 2);
 		}
 	}
 	
@@ -68,6 +74,6 @@ public class PlayerMoveListener implements Listener {
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
 		if(event.getNewGameMode() == GameMode.SPECTATOR)
-			viewingHandler.removeViewSession(event.getPlayer());
+			viewingHandler.hideViewSession(event.getPlayer());
 	}
 }
