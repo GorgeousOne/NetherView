@@ -30,6 +30,12 @@ public class PortalHandler {
 		blockCaches = new HashMap<>();
 	}
 	
+	public void reset() {
+		worldsWithPortals.clear();
+		portalLinks.clear();
+		blockCaches.clear();
+	}
+	
 	/**
 	 * Registers new portals and links them to their counter portal
 	 */

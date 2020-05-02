@@ -41,7 +41,7 @@ public class BlockCache {
 	
 	public BlockCopy getCopyAt(BlockVec loc) {
 		
-		if(!copiesContain(loc))
+		if(!contains(loc))
 			return null;
 		
 		BlockCopy copy =  blockCopies
@@ -52,7 +52,7 @@ public class BlockCache {
 		return copy == null ? null : copy.clone();
 	}
 	
-	public boolean copiesContain(BlockVec loc) {
+	public boolean contains(BlockVec loc) {
 		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
 		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
@@ -64,7 +64,7 @@ public class BlockCache {
 		
 		for (BlockVec position : getAllCornerLocs(blockCorner)) {
 			
-			if (!copiesContain(position))
+			if (!contains(position))
 				continue;
 			
 			BlockCopy copy = getCopyAt(position);

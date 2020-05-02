@@ -1,5 +1,14 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.threedstuff.FacingUtils;
+import org.bukkit.Axis;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.MultipleFacing;
+import org.bukkit.block.data.Orientable;
+import org.bukkit.block.data.Rotatable;
+
 public class Transform {
 	
 	private BlockVec translation;
@@ -51,9 +60,33 @@ public class Transform {
 		rotYMatrix[1][1] = -1;
 	}
 	
-	public BlockVec getTransformedVec(BlockVec point) {
+	boolean isRotY90DegRight() {
+		return rotYMatrix[0][1] == -1;
+	}
+	
+	boolean isRotY90DegLeft() {
+		return rotYMatrix[0][1] == 1;
+	}
+	
+	boolean isRotY180Deg() {
+		return rotYMatrix[0][0] == -1;
+	}
+	
+	boolean isRotY0Deg() {
+		return rotYMatrix[0][0] == 1;
+	}
+	
+	public BlockCopy transformBlockCopy(BlockCopy blockCopy) {
 		
-		BlockVec transformed = point.clone();
+		blockCopy.setPosition(transformVec(blockCopy.getPosition()));
+		blockCopy.setData(rotateBlockData(blockCopy.getBlockData()));
+		
+		return blockCopy;
+	}
+	
+	public BlockVec transformVec(BlockVec vec) {
+		
+		BlockVec transformed = vec.clone();
 		
 		transformed.subtract(rotCenter);
 		rotateVec(transformed);
@@ -61,15 +94,71 @@ public class Transform {
 		return transformed.add(rotCenter).add(translation);
 	}
 	
-	private BlockVec rotateVec(BlockVec relativePoint) {
+	private BlockVec rotateVec(BlockVec relativeVec) {
 		
-		int transX = relativePoint.getX();
-		int transZ = relativePoint.getZ();
+		int transX = relativeVec.getX();
+		int transZ = relativeVec.getZ();
 		
-		relativePoint.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
-		relativePoint.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
+		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
+		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
 		
-		return relativePoint;
+		return relativeVec;
+	}
+	
+	public BlockData rotateBlockData(BlockData data) {
+		
+		if(isRotY0Deg())
+			return data;
+		
+		int rotInQuarterTurns = getRotationInQuarterTurns();
+		
+		if(data instanceof Orientable) {
+			
+			if(isRotY180Deg())
+				return data;
+			
+			Orientable orientable = (Orientable) data;
+			
+			if(orientable.getAxis() != Axis.Y)
+				orientable.setAxis(orientable.getAxis() == Axis.X ? Axis.Z : Axis.X);
+		
+		}else if(data instanceof Directional) {
+			
+			Directional directional = (Directional) data;
+			directional.setFacing(FacingUtils.getRotatedFace(directional.getFacing(), rotInQuarterTurns));
+		
+		}else if(data instanceof Rotatable) {
+			
+			Rotatable rotatable = (Rotatable) data;
+			rotatable.setRotation(FacingUtils.getRotatedFace(rotatable.getRotation(), rotInQuarterTurns));
+		
+		}else if(data instanceof MultipleFacing) {
+			
+			MultipleFacing multiFacing = (MultipleFacing) data;
+			
+			for(BlockFace face : multiFacing.getFaces()) {
+				//e.g. vines can face the ceiling, that cant be rotated
+				if(!FacingUtils.isRotatableFace(face))
+					continue;
+				
+				multiFacing.setFace(face, false);
+				multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), true);
+			}
+		}
+		
+		return data;
+	}
+	
+	private int getRotationInQuarterTurns() {
+		
+		if(isRotY90DegLeft())
+			return -1;
+		else if(isRotY180Deg())
+			return 2;
+		else if(isRotY90DegRight())
+			return 1;
+		
+		return 0;
 	}
 	
 	public Transform invert() {

@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.portal;
 
+import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import org.bukkit.Axis;
 import org.bukkit.Location;
@@ -13,17 +14,26 @@ public class Portal {
 	
 	private World world;
 	private AxisAlignedRect portalRect;
+	
 	private Set<Block> portalBlocks;
 	private Set<Block> frameBlocks;
+
+	private BlockVec min;
+	private BlockVec max;
 	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
 	              Set<Block> portalBlocks,
-	              Set<Block> frameBlocks) {
+	              Set<Block> frameBlocks,
+	              BlockVec min,
+	              BlockVec max) {
+		
 		this.world = world;
 		this.portalRect = portalRect;
 		this.portalBlocks = portalBlocks;
 		this.frameBlocks = frameBlocks;
+		this.min = min;
+		this.max = max;
 	}
 	
 	public World getWorld() {
@@ -48,6 +58,12 @@ public class Portal {
 	
 	public Set<Block> getFrameBlocks() {
 		return frameBlocks;
+	}
+	
+	public boolean contains(BlockVec loc) {
+		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
+		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
+		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
 	public boolean containsBlock(Block portalBlock) {

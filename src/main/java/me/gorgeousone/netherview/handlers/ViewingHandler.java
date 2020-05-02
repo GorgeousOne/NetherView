@@ -44,6 +44,8 @@ public class ViewingHandler {
 			if (hasViewSession(player))
 				hideViewSession(player);
 		}
+		
+		playerViews.clear();
 	}
 	
 	public Set<BlockCopy> getViewSession(Player player) {

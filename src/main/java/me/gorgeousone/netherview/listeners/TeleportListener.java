@@ -3,7 +3,7 @@ package me.gorgeousone.netherview.listeners;
 import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.AxisUtils;
+import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -37,7 +37,7 @@ public class TeleportListener implements Listener {
 		Location to = event.getTo();
 		Location from = event.getFrom();
 		
-		if(!main.canWorldViewOtherWorlds(from.getWorld()) || !main.canWorldBeViewed(to.getWorld()))
+		if(!main.canWorldViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
 			return;
 		
 		Block portalBlock = getNearbyPortalBlock(from);
@@ -46,12 +46,18 @@ public class TeleportListener implements Listener {
 			return;
 		
 		Portal portal = portalHandler.getPortalByBlock(portalBlock);
+		Player player = event.getPlayer();
 		
 		if(portal == null) {
-			Player player = event.getPlayer();
-			player.sendMessage(ChatColor.GRAY + "Found a portal");
 			
-			portal = portalHandler.addPortalStructure(portalBlock);
+			try {
+				portal = portalHandler.addPortalStructure(portalBlock);
+			
+			}catch(Exception ex) {
+				player.sendMessage(ex.getMessage());
+				return;
+			}
+			
 			event.setCancelled(true);
 		}
 		
@@ -60,8 +66,15 @@ public class TeleportListener implements Listener {
 			Block counterPortalBlock = getNearbyPortalBlock(to);
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
-			if(counterPortal == null)
-				counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
+			if(counterPortal == null) {
+				try {
+					counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
+				
+				}catch(Exception ex) {
+					player.sendMessage(ex.getMessage());
+					return;
+				}
+			}
 			
 			portalHandler.linkPortal(portal, counterPortal);
 			event.setCancelled(true);
@@ -79,7 +92,7 @@ public class TeleportListener implements Listener {
 		if(block.getType() == Material.NETHER_PORTAL)
 			return block;
 		
-		for(BlockFace face : AxisUtils.getAxesFaces()) {
+		for(BlockFace face : FacingUtils.getAxesFaces()) {
 			Block neighbor = block.getRelative(face);
 			
 			if(neighbor.getType() == Material.NETHER_PORTAL)

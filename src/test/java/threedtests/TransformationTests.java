@@ -14,7 +14,7 @@ public class TransformationTests {
 		transform.setTranslation(new BlockVec(100, 0, 100));
 		
 		BlockVec point = new BlockVec(10, 20, 30);
-		BlockVec transformedPoint = transform.getTransformedVec(point);
+		BlockVec transformedPoint = transform.transformVec(point);
 		
 		Assertions.assertEquals(110, transformedPoint.getX());
 		Assertions.assertEquals(20, transformedPoint.getY());
@@ -28,7 +28,7 @@ public class TransformationTests {
 		transform.setRotY90DegLeft();
 		
 		BlockVec point = new BlockVec(20, 0, 50);
-		BlockVec transformedPoint = transform.getTransformedVec(point);
+		BlockVec transformedPoint = transform.transformVec(point);
 		
 		Assertions.assertEquals(50, transformedPoint.getX());
 		Assertions.assertEquals(0, transformedPoint.getY());
@@ -43,7 +43,7 @@ public class TransformationTests {
 		transform.setRotCenter(new BlockVec(50, 0, 20));
 		
 		BlockVec point = new BlockVec(0, 0, 0);
-		BlockVec transformedPoint = transform.getTransformedVec(point);
+		BlockVec transformedPoint = transform.transformVec(point);
 		
 		Assertions.assertEquals(30, transformedPoint.getX());
 		Assertions.assertEquals(0, transformedPoint.getY());
@@ -58,7 +58,7 @@ public class TransformationTests {
 		transform.setRotCenter(new BlockVec(50, 0, 20));
 		
 		BlockVec point = new BlockVec(0, 0, 0);
-		BlockVec transformedPoint = transform.getTransformedVec(point);
+		BlockVec transformedPoint = transform.transformVec(point);
 		
 		Assertions.assertEquals(100, transformedPoint.getX());
 		Assertions.assertEquals(0, transformedPoint.getY());
@@ -74,9 +74,9 @@ public class TransformationTests {
 		
 		BlockVec point = new BlockVec(50 ,0, 0);
 		
-		BlockVec transformedPoint = transform.getTransformedVec(point);
+		BlockVec transformedPoint = transform.transformVec(point.clone());
 		transform.invert();
-		transformedPoint = transform.getTransformedVec(transformedPoint);
+		transform.transformVec(transformedPoint);
 		
 		Assertions.assertEquals(point, transformedPoint);
 	}

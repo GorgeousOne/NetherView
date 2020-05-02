@@ -1,8 +1,10 @@
 package me.gorgeousone.netherview.portal;
 
+import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
+import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.Axis;
-import org.bukkit.Location;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -20,11 +22,22 @@ public class PortalLocator {
 		World world = portalBlock.getWorld();
 		AxisAlignedRect portalRect = getPortalRect(portalBlock);
 		
-		return new Portal(
-				world,
-				portalRect,
-				getInnerPortalBlocks(world, portalRect),
-				getPortalFrameBlocks(world, portalRect));
+		BlockVec portalMin = new BlockVec(portalRect.getMin());
+		BlockVec portalMax = new BlockVec(portalRect.getMax());
+		portalMax.add(new BlockVec(portalRect.getPlane().getNormal()));
+		
+		Set<Block> innerBlocks = getInnerPortalBlocks(world, portalMin, portalMax);
+		
+		Axis portalAxis = portalRect.getAxis();
+		BlockVec frameExtension = new BlockVec(FacingUtils.getAxisWidthFacing(portalAxis));
+		frameExtension.setY(1);
+		
+		portalMin.subtract(frameExtension);
+		portalMax.add(frameExtension);
+		
+		Set<Block> frameBlocks = getPortalFrameBlocks(world, portalMin, portalMax, portalAxis);
+			
+		return new Portal(world, portalRect, innerBlocks, frameBlocks, portalMin, portalMax);
 	}
 	
 	/**
@@ -76,29 +89,29 @@ public class PortalLocator {
 			blockIterator = nextBlock;
 		}
 		
-		throw new IllegalArgumentException("Portal appears to be bigger than possible in vanilla.");
+		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears to be of extraordinary size!");
 	}
 	
 	/**
 	 * Returns a set of blocks of all inner blocks of a portal according to the passed rectangle.
 	 */
-	private static Set<Block> getInnerPortalBlocks(World world, AxisAlignedRect portalRect) {
+	private static Set<Block> getInnerPortalBlocks(World world, BlockVec portalMin, BlockVec portalMax) {
 		
 		Set<Block> portalBlocks = new HashSet<>();
 		
-		BlockFace horizontalFace = portalRect.getAxis() == Axis.X ? BlockFace.EAST : BlockFace.SOUTH;
-		Block iter = portalRect.getMin().toLocation(world).getBlock();
-		
-		for (int k = 0; k < portalRect.height(); k++) {
-			Block iter2 = iter;
-			
-			for (int i = 0; i < portalRect.width(); i++) {
-				
-				portalBlocks.add(iter2);
-				iter2 = iter2.getRelative(horizontalFace);
+		for(int x = portalMin.getX(); x < portalMax.getX(); x++) {
+			for(int y = portalMin.getY(); y < portalMax.getY(); y++) {
+				for(int z = portalMin.getZ(); z < portalMax.getZ(); z++) {
+					
+					Block portalBlock = world.getBlockAt(x, y, z);
+					
+					if(portalBlock.getType() == Material.NETHER_PORTAL) {
+						portalBlocks.add(portalBlock);
+					}else {
+						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal seems to be malformed, yet intact. Mysterious...");
+					}
+				}
 			}
-			
-			iter = iter.getRelative(BlockFace.UP);
 		}
 		
 		return portalBlocks;
@@ -107,27 +120,36 @@ public class PortalLocator {
 	/**
 	 * Returns a set of blocks where obsidian blocks need to be placed.
 	 */
-	private static Set<Block> getPortalFrameBlocks(World world, AxisAlignedRect portalRect) {
+	private static Set<Block> getPortalFrameBlocks(World world, BlockVec portalMin, BlockVec portalMax, Axis portalAxis) {
 		
 		Set<Block> frameBlocks = new HashSet<>();
 		
-		BlockFace horizontalFace = portalRect.getAxis() == Axis.X ? BlockFace.EAST : BlockFace.SOUTH;
-		Block iter = portalRect.getMin().toLocation(world).getBlock();
-		iter = iter.getRelative(BlockFace.DOWN).getRelative(horizontalFace.getOppositeFace());
+		int portalMinX = portalMin.getX();
+		int portalMinY = portalMin.getY();
+		int portalMinZ = portalMin.getZ();
+		int portalMaxX = portalMax.getX();
+		int portalMaxY = portalMax.getY();
+		int portalMaxZ = portalMax.getZ();
 		
-		for (int k = -1; k <= portalRect.height(); k++) {
-			
-			Block iter2 = iter;
-			
-			for (int i = -1; i <= portalRect.width(); i++) {
-				
-				if(iter2.getType() == Material.OBSIDIAN)
-					frameBlocks.add(iter2);
-				
-				iter2 = iter2.getRelative(horizontalFace);
+		for(int x = portalMinX; x < portalMaxX; x++) {
+			for(int y = portalMinY; y < portalMaxY; y++) {
+				for(int z = portalMinZ; z < portalMaxZ; z++) {
+					
+					//only check the frame blocks that are at the border of this "flat cuboid"
+					if(y > portalMinY && y < portalMaxY-1 &&
+					   (portalAxis == Axis.X ? x > portalMinX : z > portalMinZ) &&
+					   (portalAxis == Axis.X ? x < portalMaxX-1 : z < portalMaxZ-1))
+						continue;
+					
+					Block portalBlock = world.getBlockAt(x, y, z);
+					
+					if(portalBlock.getType() == Material.OBSIDIAN) {
+						frameBlocks.add(portalBlock);
+					}else {
+						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "Something about this portal frame seems to be incomplete...");
+					}
+				}
 			}
-			
-			iter = iter.getRelative(BlockFace.UP);
 		}
 		
 		return frameBlocks;

@@ -21,7 +21,7 @@ public class AxisAlignedRect {
 		
 		this.axis = axis;
 		this.pos = pos.clone();
-		this.plane = new Plane(pos, AxisUtils.getAxisPlaneNormal(axis));
+		this.plane = new Plane(pos, FacingUtils.getAxisPlaneNormal(axis));
 		
 		setSize(width, height);
 	}
