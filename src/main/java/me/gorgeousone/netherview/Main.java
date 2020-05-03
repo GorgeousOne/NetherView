@@ -3,7 +3,6 @@ package me.gorgeousone.netherview;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
-import me.gorgeousone.netherview.listeners.MapCreator;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
 import org.bukkit.Bukkit;
@@ -32,12 +31,13 @@ public final class Main extends JavaPlugin {
 	private Set<UUID> viewableOnlyWorlds;
 	
 	private boolean hidePortalBlocks;
-	private int portalViewDist;
+	private int portalProjectionDist;
+	private int portalDisplayRangeSquared;
 	
 	@Override
 	public void onEnable() {
 	
-		portalHandler = new PortalHandler();
+		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
 		
 		loadConfig();
@@ -63,11 +63,19 @@ public final class Main extends JavaPlugin {
 		loadConfigData();
 	}
 	
+	public int getPortalProjectionDist() {
+		return portalProjectionDist;
+	}
+	
+	public int getPortalDisplayRangeSquared() {
+		return portalDisplayRangeSquared;
+	}
+	
 	public boolean hidePortalBlocks() {
 		return hidePortalBlocks;
 	}
 	
-	public boolean canWorldViewOtherWorlds(World world) {
+	public boolean canViewOtherWorlds(World world) {
 		return worldsWithProejctingPortals.contains(world.getUID());
 	}
 	
@@ -103,8 +111,10 @@ public final class Main extends JavaPlugin {
 	private void loadConfigData() {
 		
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
-		portalViewDist = getConfig().getInt("portal-view-distance-in-blocks", 8);
+		portalProjectionDist = getConfig().getInt("portal-projection-view-distance", 16);
+		portalDisplayRangeSquared = (int) Math.pow(getConfig().getInt("portal-display-range", 16), 2);
 		
+		Bukkit.broadcastMessage(portalDisplayRangeSquared + " " + portalProjectionDist);
 		worldsWithProejctingPortals = new HashSet<>();
 		viewableOnlyWorlds = new HashSet<>();
 
@@ -138,7 +148,6 @@ public final class Main extends JavaPlugin {
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
-		manager.registerEvents(new MapCreator(), this);
-		manager.registerEvents(new BlockListener(this, portalHandler), this);
+		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler), this);
 	}
 }

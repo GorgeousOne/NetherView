@@ -34,7 +34,7 @@ public class PlayerMoveListener implements Listener {
 		
 		World playerWorld = player.getWorld();
 		
-		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canWorldViewOtherWorlds(playerWorld))
+		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canViewOtherWorlds(playerWorld))
 			return;
 		
 		Location from = event.getFrom();
@@ -44,10 +44,6 @@ public class PlayerMoveListener implements Listener {
 			Vector movement = to.clone().subtract(from).toVector();
 			viewingHandler.displayNearestPortalTo(player, player.getEyeLocation().add(movement));
 		}
-	}
-	
-	private double getRounded(double d, int digits) {
-		return (int) (d * Math.pow(10, digits)) / Math.pow(10, digits);
 	}
 	
 	@EventHandler

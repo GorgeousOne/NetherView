@@ -1,5 +1,6 @@
-hide-portal-blocks: true
-portal-view-distance-in-blocks: 8
+portal-projection-view-distance: 16
+portal-display-range: 16
+hide-portal-blocks: false
 worlds-with-projecting-portals:
   - world
 viewable-worlds:

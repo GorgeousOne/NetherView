@@ -65,6 +65,7 @@ public class BlockCacheFactory {
 		//theoretically the view distance needs to be increased by 1 for the extra layer of border around the cuboid of blocks
 		//but somehow it is even 2. dont ask me
 		viewDist += 2;
+		
 		AxisAlignedRect portalRect = portal.getPortalRect();
 		Axis portalAxis = portal.getAxis();
 		
@@ -143,7 +144,7 @@ public class BlockCacheFactory {
 		
 		switch (world.getEnvironment()) {
 			case NORMAL:
-				return Material.WHITE_CONCRETE.createBlockData();
+				return Material.BLUE_ICE.createBlockData();
 			case NETHER:
 				return Material.RED_CONCRETE.createBlockData();
 			case THE_END:

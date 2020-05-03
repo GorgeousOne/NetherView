@@ -77,13 +77,14 @@ public class ViewingHandler {
 		
 		Portal portal = portalHandler.getNearestPortal(playerEyeLoc);
 		
-		if (portal == null)
+		if (portal == null) {
+			hasViewSession(player);
 			return;
+		}
 		
 		Vector portalDistance = portal.getLocation().subtract(playerEyeLoc).toVector();
-		double viewDistanceSquared = 20 * 20;
 		
-		if (portalDistance.lengthSquared() > viewDistanceSquared) {
+		if (portalDistance.lengthSquared() > main.getPortalDisplayRangeSquared()) {
 			hideViewSession(player);
 			return;
 		}
@@ -117,11 +118,6 @@ public class ViewingHandler {
 		if(link == null)
 			return;
 		
-		Portal counterPortal = link.getCounterPortal();
-		
-		if(!counterPortal.equalsInSize(portal))
-			return;
-		
 		BlockCache cache = link.getCache(ViewingFrustumFactory.isPlayerBehindPortal(player, portal));
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(playerEyeLoc.toVector(), portal.getPortalRect());
 		
@@ -140,35 +136,8 @@ public class ViewingHandler {
 			}
 		}
 		
-		if(!visibleBlocks.isEmpty()) {
-			displayBlocks(player, visibleBlocks);
-		}
+		displayBlocks(player, visibleBlocks);
 	}
-	
-//	private Set<BlockCopy> getAllBlocks(BlockCache blocks, Transform blockTransform) {
-//
-//		BlockCache transformedCache = BlockCacheFactory.getTransformed(blocks, blockTransform);
-//		Set<BlockCopy> allBlocks = new HashSet<>();
-//
-//		BlockVec min = transformedCache.getMin();
-//		BlockVec max = transformedCache.getMax();
-//
-//		for(int x = min.getX(); x < max.getX(); x++) {
-//			for(int y = min.getY(); y < max.getY(); y++) {
-//				for(int z = min.getZ(); z < max.getZ(); z++) {
-//
-//					BlockVec blockLoc = new BlockVec(x, y, z);
-//					BlockCopy block = transformedCache.getCopyAt(blockLoc);
-//
-//					if(block != null) {
-//						allBlocks.add(block);
-//					}
-//				}
-//			}
-//		}
-//
-//		return allBlocks;
-//	}
 	
 	private Set<BlockCopy> getBlocksInFrustum(BlockCache cache, ViewingFrustum frustum) {
 		
@@ -186,9 +155,7 @@ public class ViewingHandler {
 					if (!frustum.contains(corner.toVector()))
 						continue;
 					
-					for (BlockCopy blockCopy : cache.getCopiesAround(new BlockVec(x, y, z))) {
-						blocksInFrustum.add(blockCopy);
-					}
+					blocksInFrustum.addAll(cache.getCopiesAround(new BlockVec(x, y, z)));
 				}
 			}
 		}

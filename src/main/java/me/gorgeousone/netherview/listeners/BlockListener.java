@@ -2,7 +2,9 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
+import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
+import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -23,21 +25,25 @@ import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
+import java.util.HashSet;
+
 public class BlockListener implements Listener {
 	
 	private Main main;
 	private PortalHandler portalHandler;
+	private ViewingHandler viewingHandler;
 	
-	public BlockListener(Main main, PortalHandler portalHandler) {
+	public BlockListener(Main main,
+	                     PortalHandler portalHandler,
+	                     ViewingHandler viewingHandler) {
 		this.main = main;
 		this.portalHandler = portalHandler;
+		this.viewingHandler = viewingHandler;
 	}
 	
 	private void onBlockChange(Block block, BlockData newData) {
 		
 		World blockWorld = block.getWorld();
-		
-		
 		
 	}
 	
@@ -48,17 +54,17 @@ public class BlockListener implements Listener {
 		if(!main.canBeViewed(blockWorld))
 			return;
 		
-		for(Portal portal : portalHandler.getPortals(blockWorld)) {
-			
-			if(portal.getPortalBlocks().contains(block)) {
-				//TODO register portal as broken
-				return;
-			}
+		BlockVec blockLoc = new BlockVec(block);
+		
+		for(Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
+			if(portal.contains(blockLoc))
+				portalHandler.removePortal(portal);
 		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
+		removeDamagedPortals(event.getBlock());
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

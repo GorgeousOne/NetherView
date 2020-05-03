@@ -4,7 +4,6 @@ import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -37,7 +36,7 @@ public class TeleportListener implements Listener {
 		Location to = event.getTo();
 		Location from = event.getFrom();
 		
-		if(!main.canWorldViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
+		if(!main.canViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
 			return;
 		
 		Block portalBlock = getNearbyPortalBlock(from);
@@ -57,8 +56,6 @@ public class TeleportListener implements Listener {
 				player.sendMessage(ex.getMessage());
 				return;
 			}
-			
-			event.setCancelled(true);
 		}
 		
 		if (portalHandler.getPortalLink(portal) == null) {
@@ -76,8 +73,13 @@ public class TeleportListener implements Listener {
 				}
 			}
 			
-			portalHandler.linkPortal(portal, counterPortal);
-			event.setCancelled(true);
+			try {
+				portalHandler.linkPortal(portal, counterPortal);
+				event.setCancelled(true);
+				
+			}catch (IllegalStateException ex) {
+				player.sendMessage(ex.getMessage());
+			}
 		}
 	}
 	

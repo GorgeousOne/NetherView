@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
+import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.portal.Portal;
@@ -12,19 +13,23 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
+import javax.sound.sampled.Port;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public class PortalHandler {
 	
+	private Main main;
 	private Map<UUID, Set<Portal>> worldsWithPortals;
 	private Map<Portal, PortalLink> portalLinks;
 	private Map<Portal, Map.Entry<BlockCache, BlockCache>> blockCaches;
 	
-	public PortalHandler() {
+	public PortalHandler(Main main) {
+		this.main = main;
 		worldsWithPortals = new HashMap<>();
 		portalLinks = new HashMap<>();
 		blockCaches = new HashMap<>();
@@ -43,8 +48,6 @@ public class PortalHandler {
 		
 		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
 		addPortal(portal);
-		
-		blockCaches.put(portal, BlockCacheFactory.createBlockCache(portal, 20));
 		Bukkit.broadcastMessage(ChatColor.GRAY + "Portal added: " + portal.getWorld().getName() + ", " + portal.getPortalRect().getMin().toString());
 		return portal;
 	}
@@ -57,6 +60,14 @@ public class PortalHandler {
 			worldsWithPortals.put(worldID, new HashSet<>());
 		
 		worldsWithPortals.get(worldID).add(portal);
+	}
+	
+	public void removePortal(Portal portal) {
+		
+		Bukkit.broadcastMessage("removed portal at " + portal.getLocation().toVector().toString());
+		portalLinks.entrySet().removeIf(linkEntry -> linkEntry.getValue().getCounterPortal() == portal);
+		portalLinks.remove(portal);
+		getPortals(portal.getWorld()).remove(portal);
 	}
 	
 	public Set<Portal> getPortals(World world) {
@@ -97,22 +108,18 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
-//	public BlockCache getBlockCache(Portal portal, boolean isPlayerBehindPortal) {
-//
-//		Map.Entry<BlockCache, BlockCache> entry = blockCaches.get(portal);
-//
-//		if(entry != null)
-//			return isPlayerBehindPortal ? entry.getValue() : entry.getKey();
-//
-//		return null;
-//	}
-	
 	public PortalLink getPortalLink(Portal portal) {
 		return portalLinks.get(portal);
 	}
 	
 	public void linkPortal(Portal portal, Portal counterPortal) {
-		Bukkit.broadcastMessage(ChatColor.GRAY + "linked portal");
+		
+		if(!counterPortal.equalsInSize(portal))
+			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are dissimilar in size, it is difficult to get a clear view...");
+		
+		if(!blockCaches.containsKey(counterPortal))
+			blockCaches.put(counterPortal, BlockCacheFactory.createBlockCache(counterPortal, main.getPortalProjectionDist()));
+		
 		portalLinks.put(portal, new PortalLink(portal, counterPortal, blockCaches.get(counterPortal)));
 	}
 }
