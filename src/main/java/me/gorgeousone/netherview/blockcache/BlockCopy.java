@@ -21,11 +21,11 @@ public class BlockCopy {
 	}
 	
 	public BlockVec getPosition() {
-		return position;
+		return position.clone();
 	}
 	
 	public BlockData getBlockData() {
-		return blockData;
+		return blockData.clone();
 	}
 	
 	public BlockCopy setPosition(BlockVec position) {
@@ -33,9 +33,13 @@ public class BlockCopy {
 		return this;
 	}
 	
+	public void setData(BlockData blockData) {
+		this.blockData = blockData.clone();
+	}
+	
 	@Override
 	public BlockCopy clone() {
-		return new BlockCopy(position.clone(), blockData.clone());
+		return new BlockCopy(getPosition(), getBlockData());
 	}
 	
 	@Override

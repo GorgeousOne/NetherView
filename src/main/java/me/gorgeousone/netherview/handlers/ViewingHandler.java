@@ -1,18 +1,19 @@
 package me.gorgeousone.netherview.handlers;
 
+import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.blockcache.BlockVec;
-import me.gorgeousone.netherview.portal.PortalSide;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.AxisUtils;
-import me.gorgeousone.netherview.threedstuff.Transform;
-import me.gorgeousone.netherview.threedstuff.ViewingFrustum;
-import me.gorgeousone.netherview.threedstuff.ViewingFrustumFactory;
+import me.gorgeousone.netherview.portal.PortalLink;
+import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
+import me.gorgeousone.netherview.viewfrustum.ViewingFrustum;
+import me.gorgeousone.netherview.viewfrustum.ViewingFrustumFactory;
+import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -27,17 +28,24 @@ import java.util.UUID;
 
 public class ViewingHandler {
 	
+	private Main main;
 	private PortalHandler portalHandler;
-	
-	private Map<Portal, BlockCache> netherCaches;
 	private Map<UUID, Set<BlockCopy>> playerViews;
 	
-	public ViewingHandler(PortalHandler portalHandler) {
-		
+	public ViewingHandler(Main main, PortalHandler portalHandler) {
+		this.main = main;
 		this.portalHandler = portalHandler;
-	
-		netherCaches = new HashMap<>();
 		playerViews = new HashMap<>();
+	}
+	
+	public void reset() {
+		
+		for(Player player : Bukkit.getOnlinePlayers()) {
+			if (hasViewSession(player))
+				hideViewSession(player);
+		}
+		
+		playerViews.clear();
 	}
 	
 	public Set<BlockCopy> getViewSession(Player player) {
@@ -50,133 +58,171 @@ public class ViewingHandler {
 		return playerViews.get(uuid);
 	}
 	
-	public void displayPortal(Player player, Portal portal) {
+	public boolean hasViewSession(Player player) {
+		return playerViews.containsKey(player.getUniqueId());
+	}
+	
+	public void hideViewSession(Player player) {
 		
-		if (portal.getWorld().getEnvironment() != World.Environment.NORMAL)
+		if(!hasViewSession(player))
 			return;
 		
-		Portal netherPortal = portalHandler.getLinkedNetherPortal(portal);
+		for(BlockCopy copy : getViewSession(player))
+			refreshBlock(player, copy);
 		
-//		if (!netherCaches.containsKey(netherPortal))
-//			netherCaches.put(netherPortal, BlockCacheFactory.createBlockCache(portalHandler.getLinkedNetherPortal(portal), 10));
-		
-		Location playerEyeLoc = player.getEyeLocation();
-		
-		boolean playerIsRelativelyNegativeToPortal = isPlayerRelativelyNegativeToPortal(playerEyeLoc, portal);
-		ViewingFrustum playerViewingFrustum = ViewingFrustumFactory.createViewingFrustum(playerEyeLoc.toVector(), portal);
-		
-//		PortalSide portalSideToDisplay = playerIsRelativelyNegativeToPortal ? PortalSide.POSITIVE : PortalSide.NEGATIVE;
-		
-//		BlockCache netherBlockCache = getCachedBlocks(netherPortal, portalSideToDisplay);
-//		Set<BlockCopy> visibleBlocks = detectBlocksInView(playerViewingFrustum, netherBlockCache, portalHandler.getLinkTransform(portal));
-//		renderNetherBLocks(player, portal, visibleBlocks);
+		playerViews.remove(player.getUniqueId());
 	}
 	
-	private BlockCache getCachedBlocks(Portal portal, PortalSide portalSideToDisplay) {
-		return netherCaches.get(portal);
+	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
+		
+		Portal portal = portalHandler.getNearestPortal(playerEyeLoc);
+		
+		if (portal == null)
+			return;
+		
+		Vector portalDistance = portal.getLocation().subtract(playerEyeLoc).toVector();
+		double viewDistanceSquared = 20 * 20;
+		
+		if (portalDistance.lengthSquared() > viewDistanceSquared) {
+			hideViewSession(player);
+			return;
+		}
+		
+		double distanceToPortalRect;
+		AxisAlignedRect portalRect = portal.getPortalRect();
+		
+		if(portal.getAxis() == Axis.X) {
+			distanceToPortalRect = portalRect.getMin().getZ() - playerEyeLoc.getZ();
+		}else {
+			distanceToPortalRect = portalRect.getMin().getX() - playerEyeLoc.getX();
+		}
+		
+		if(Math.abs(distanceToPortalRect) > 0.5) {
+			displayPortalTo(player, playerEyeLoc, portal, true, main.hidePortalBlocks());
+			
+		//if the player is standing inside the portal, portal blocks should be displayed
+		}else if(portalRect.contains(playerEyeLoc.toVector())) {
+			hideViewSession(player);
+			
+		//if the player is standing somewhere next to the portal, portal blocks should still be hidden to avoid light flickering
+		}else {
+			displayPortalTo(player, playerEyeLoc, portal, false,  main.hidePortalBlocks());
+		}
 	}
 	
-	private boolean isPlayerRelativelyNegativeToPortal(Location playerLoc, Portal portal) {
+	public void displayPortalTo(Player player, Location playerEyeLoc, Portal portal, boolean displayFrustum, boolean hidePortalBlocks) {
 		
-		Vector portalDist = portal.getLocation().toVector().subtract(playerLoc.toVector());
-		Vector portalFacing = AxisUtils.getAxisPlaneNormal(portal.getAxis());
+		PortalLink link = portalHandler.getPortalLink(portal);
 		
-		return portalFacing.dot(portalDist) > 0;
+		if(link == null)
+			return;
+		
+		Portal counterPortal = link.getCounterPortal();
+		
+		if(!counterPortal.equalsInSize(portal))
+			return;
+		
+		BlockCache cache = link.getCache(ViewingFrustumFactory.isPlayerBehindPortal(player, portal));
+		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(playerEyeLoc.toVector(), portal.getPortalRect());
+		
+		Set<BlockCopy> visibleBlocks = new HashSet<>();
+		
+		if(displayFrustum) {
+			visibleBlocks.addAll(getBlocksInFrustum(cache, playerFrustum));
+			displayFrustum(player, playerFrustum);
+		}
+		
+		if(hidePortalBlocks) {
+			for (Block block : portal.getPortalBlocks()) {
+				BlockCopy air = new BlockCopy(block);
+				air.setData(Material.AIR.createBlockData());
+				visibleBlocks.add(air);
+			}
+		}
+		
+		if(!visibleBlocks.isEmpty()) {
+			displayBlocks(player, visibleBlocks);
+		}
 	}
 	
-	private Set<BlockCopy> detectBlocksInView(ViewingFrustum viewingFrustum, BlockCache netherCache, Transform transform) {
-		
-		World world = Bukkit.getWorld("world");
-		
-		Set<BlockCopy> blocksInCone = new HashSet<>();
-		
-		BlockVec min = netherCache.getCopyMin();
-		BlockVec max = netherCache.getCopyMax();
-		
-		for (int x = min.getX(); x < max.getX(); x++) {
-			for (int y = min.getY(); y < max.getY(); y++) {
-				for (int z = min.getZ(); z < max.getZ(); z++) {
-					
-					BlockVec transformedCorner = transform.getTransformed(new BlockVec(x, y, z));
-					
-//					if (viewingFrustum.contains(transformedCorner.toVector())) {
+//	private Set<BlockCopy> getAllBlocks(BlockCache blocks, Transform blockTransform) {
 //
-//						for (BlockVec block : getBlocksAroundCorner(new BlockVec(x, y, z))) {
-//							BlockCopy copy = netherCache.getCopyAt(block);
+//		BlockCache transformedCache = BlockCacheFactory.getTransformed(blocks, blockTransform);
+//		Set<BlockCopy> allBlocks = new HashSet<>();
 //
-//							if(copy == null)
-//								continue;
+//		BlockVec min = transformedCache.getMin();
+//		BlockVec max = transformedCache.getMax();
 //
-//							blocksInCone.add(copy.clone().setPosition(transform.getTransformed(copy.getPosition())));
-//						}
+//		for(int x = min.getX(); x < max.getX(); x++) {
+//			for(int y = min.getY(); y < max.getY(); y++) {
+//				for(int z = min.getZ(); z < max.getZ(); z++) {
+//
+//					BlockVec blockLoc = new BlockVec(x, y, z);
+//					BlockCopy block = transformedCache.getCopyAt(blockLoc);
+//
+//					if(block != null) {
+//						allBlocks.add(block);
 //					}
+//				}
+//			}
+//		}
+//
+//		return allBlocks;
+//	}
+	
+	private Set<BlockCopy> getBlocksInFrustum(BlockCache cache, ViewingFrustum frustum) {
+		
+		Set<BlockCopy> blocksInFrustum = new HashSet<>();
+		
+		BlockVec min = cache.getMin();
+		BlockVec max = cache.getMax();
+		
+		for (int x = min.getX(); x <= max.getX(); x++) {
+			for (int y = min.getY(); y <= max.getY(); y++) {
+				for (int z = min.getZ(); z <= max.getZ(); z++) {
 					
-					if (viewingFrustum.contains(transformedCorner.toVector())) {
-
-						for (BlockCopy blockCopy : netherCache.getCopiesAround(new BlockVec(x, y, z))) {
-							BlockCopy copy = blockCopy.clone();
-							copy.setPosition(transform.getTransformed(copy.getPosition()));
-							
-							blocksInCone.add(copy);
-//							if(blocksInCone.add(copy))
-//								Bukkit.broadcastMessage(copy.getPosition().toString());
-
-//							blocksInCone.add(blockCopy.clone().setPosition(transform.getTransformed(blockCopy.getPosition())));
-						}
+					BlockVec corner = new BlockVec(x, y, z);
+					
+					if (!frustum.contains(corner.toVector()))
+						continue;
+					
+					for (BlockCopy blockCopy : cache.getCopiesAround(new BlockVec(x, y, z))) {
+						blocksInFrustum.add(blockCopy);
 					}
 				}
 			}
 		}
 		
-		return blocksInCone;
+		return blocksInFrustum;
 	}
 	
-	private Set<BlockVec> getBlocksAroundCorner(BlockVec blockCorner) {
+	private void displayFrustum(Player player, ViewingFrustum frustum) {
 		
-		Set<BlockVec> blocksAroundCorner = new HashSet<>();
+		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
+		World world = player.getWorld();
 		
-		int x = blockCorner.getX();
-		int y = blockCorner.getY();
-		int z = blockCorner.getZ();
-		
-		blocksAroundCorner.add(new BlockVec(x, y, z));
-		blocksAroundCorner.add(new BlockVec(x + 1, y, z));
-		blocksAroundCorner.add(new BlockVec(x, y, z + 1));
-		blocksAroundCorner.add(new BlockVec(x + 1, y, z + 1));
-		blocksAroundCorner.add(new BlockVec(x, y -1, z));
-		blocksAroundCorner.add(new BlockVec(x + 1, y -1, z));
-		blocksAroundCorner.add(new BlockVec(x, y -1, z + 1));
-		blocksAroundCorner.add(new BlockVec(x + 1, y -1, z + 1));
-		
-		return blocksAroundCorner;
+		player.spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
+		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
 	}
 	
-	private void renderNetherBLocks(Player player, Portal portal, Set<BlockCopy> visibleBlocks) {
+	private void displayBlocks(Player player, Set<BlockCopy> blocksToDisplay) {
 		
-		System.out.println("view " + visibleBlocks.size() + " blocks");
-		World playerWorld = player.getWorld();
 		Set<BlockCopy> viewSession = getViewSession(player);
-		
-		for (Block block : portal.getPortalBlocks())
-			player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
-		
-		for (Block block : portal.getFrameBlocks())
-			player.sendBlockChange(block.getLocation(), Material.MAGENTA_STAINED_GLASS.createBlockData());
-		
 		Iterator<BlockCopy> iterator = viewSession.iterator();
-
+		
 		while (iterator.hasNext()) {
 			BlockCopy nextCopy = iterator.next();
-
-			if (!visibleBlocks.contains(nextCopy)) {
+			
+			if (!blocksToDisplay.contains(nextCopy)) {
 				refreshBlock(player, nextCopy);
 				iterator.remove();
 			}
 		}
 		
-		for (BlockCopy copy : visibleBlocks) {
-			if(viewSession.add(copy))
-				player.sendBlockChange(copy.getPosition().toLocation(playerWorld), copy.getBlockData());
+		blocksToDisplay.removeIf(blockCopy -> !viewSession.add(blockCopy));
+		
+		for(BlockCopy copy : blocksToDisplay) {
+			player.sendBlockChange(copy.getPosition().toLocation(player.getWorld()), copy.getBlockData());
 		}
 	}
 	

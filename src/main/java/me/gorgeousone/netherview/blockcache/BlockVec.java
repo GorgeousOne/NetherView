@@ -77,6 +77,20 @@ public class BlockVec {
 		z *= multiplier;
 	}
 	
+	public static BlockVec getMinimum(BlockVec v1, BlockVec v2) {
+		return new BlockVec(
+				Math.min(v1.x, v2.x),
+				Math.min(v1.y, v2.y),
+				Math.min(v1.z, v2.z));
+	}
+	
+	public static BlockVec getMaximum(BlockVec v1, BlockVec v2) {
+		return new BlockVec(
+				Math.max(v1.x, v2.x),
+				Math.max(v1.y, v2.y),
+				Math.max(v1.z, v2.z));
+	}
+	
 	public Vector toVector() {
 		return new Vector(x, y, z);
 	}
@@ -94,10 +108,10 @@ public class BlockVec {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof BlockVec)) return false;
-		BlockVec blockVec = (BlockVec) o;
-		return x == blockVec.x &&
-		       y == blockVec.y &&
-		       z == blockVec.z;
+		BlockVec otherVec = (BlockVec) o;
+		return x == otherVec.x &&
+		       y == otherVec.y &&
+		       z == otherVec.z;
 	}
 	
 	@Override

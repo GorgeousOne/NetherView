@@ -2,9 +2,6 @@ package me.gorgeousone.netherview.threedstuff;
 
 import org.bukkit.util.Vector;
 
-/**
- * An euclidean line where only points between the start and the end of it can be accessed.
- */
 public class Line {
 	
 	private Vector origin;

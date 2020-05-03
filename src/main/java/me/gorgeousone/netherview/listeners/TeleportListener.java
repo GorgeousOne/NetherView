@@ -1,13 +1,12 @@
 package me.gorgeousone.netherview.listeners;
 
+import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.portal.PortalLocator;
-import me.gorgeousone.netherview.threedstuff.AxisUtils;
+import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -18,53 +17,83 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class TeleportListener implements Listener {
 	
+	private Main main;
 	private PortalHandler portalHandler;
 	
-	public TeleportListener(PortalHandler portalHandler) {
+	public TeleportListener(Main main, PortalHandler portalHandler) {
+		this.main = main;
 		this.portalHandler = portalHandler;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPortalTravel(PlayerTeleportEvent event) {
 		
-		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
+		if(event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
 			return;
 		
-		Location from = event.getFrom();
+		if(!event.getPlayer().hasPermission(Main.LINK_PERM))
+			return;
+		
 		Location to = event.getTo();
+		Location from = event.getFrom();
 		
-		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL ||
-		    !isTpBetweenNetherAndNormal(from, to))
+		if(!main.canWorldViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
 			return;
 		
-		Block sourceBlock = findPortalBlock(from);
+		Block portalBlock = getNearbyPortalBlock(from);
 		
-		if (sourceBlock != null && !portalHandler.containsPortalWithBlock(sourceBlock)) {
+		if (portalBlock == null)
+			return;
+		
+		Portal portal = portalHandler.getPortalByBlock(portalBlock);
+		Player player = event.getPlayer();
+		
+		if(portal == null) {
 			
-			event.getPlayer().sendMessage(ChatColor.GRAY + "Locating fresh portals...");
-			addPortals(sourceBlock, to.getBlock(), event.getPlayer());
+			try {
+				portal = portalHandler.addPortalStructure(portalBlock);
+			
+			}catch(Exception ex) {
+				player.sendMessage(ex.getMessage());
+				return;
+			}
+			
+			event.setCancelled(true);
+		}
+		
+		if (portalHandler.getPortalLink(portal) == null) {
+			
+			Block counterPortalBlock = getNearbyPortalBlock(to);
+			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
+			
+			if(counterPortal == null) {
+				try {
+					counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
+				
+				}catch(Exception ex) {
+					player.sendMessage(ex.getMessage());
+					return;
+				}
+			}
+			
+			portalHandler.linkPortal(portal, counterPortal);
 			event.setCancelled(true);
 		}
 	}
 	
-	private boolean isTpBetweenNetherAndNormal(Location from, Location to) {
+	/**
+	 * 	Finds the portal block a player might have touched at the location or the blocks next to it.
+	 * 	(players in creative mode teleport to the nether before directly touching any portal block)
+	 */
+	private Block getNearbyPortalBlock(Location location) {
 		
-		World.Environment fromWorldType = from.getWorld().getEnvironment();
-		World.Environment toWorldType = to.getWorld().getEnvironment();
+		Block block = location.getBlock();
 		
-		return fromWorldType == World.Environment.NORMAL && toWorldType == World.Environment.NETHER; // ||
-//		       fromWorldType == World.Environment.NETHER && toWorldType == World.Environment.NORMAL;
-	}
-	
-	private Block findPortalBlock(Location location) {
+		if(block.getType() == Material.NETHER_PORTAL)
+			return block;
 		
-		Block sourceBlock = location.getBlock();
-		
-		if(sourceBlock.getType() == Material.NETHER_PORTAL)
-			return sourceBlock;
-		
-		for(BlockFace face : AxisUtils.getAxesFaces()) {
-			Block neighbor = sourceBlock.getRelative(face);
+		for(BlockFace face : FacingUtils.getAxesFaces()) {
+			Block neighbor = block.getRelative(face);
 			
 			if(neighbor.getType() == Material.NETHER_PORTAL)
 				return neighbor;
@@ -73,19 +102,4 @@ public class TeleportListener implements Listener {
 		return null;
 	}
 	
-	private void addPortals(Block from, Block to, Player player) {
-		
-		try {
-			Portal overworldPortal = PortalLocator.locatePortalStructure(from);
-			Portal netherPortal = PortalLocator.locatePortalStructure(to);
-			
-			for(Block block : overworldPortal.getPortalBlocks()) {
-				player.sendMessage("DEBUG portal blocks displayed as air");
-				player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
-			}
-			
-			portalHandler.linkPortals(overworldPortal, netherPortal);
-			
-		} catch (Exception ignored) {}
-	}
 }

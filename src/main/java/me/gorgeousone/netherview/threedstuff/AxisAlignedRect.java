@@ -3,11 +3,15 @@ package me.gorgeousone.netherview.threedstuff;
 import org.bukkit.Axis;
 import org.bukkit.util.Vector;
 
+/**
+ * A rectangle used to describe the size of a nether portal (the part without the frame) or used as near plane in a viewing frustum.
+ */
 public class AxisAlignedRect {
 	
 	private Axis axis;
 	private Vector pos;
-	private Vector size;
+	private double width;
+	private double height;
 	private Plane plane;
 	
 	public AxisAlignedRect(Axis axis, Vector pos, double width, double height) {
@@ -16,8 +20,8 @@ public class AxisAlignedRect {
 			throw new IllegalArgumentException("Why would you want to use Axis.Y for a rectangle?");
 		
 		this.axis = axis;
-		this.pos = pos;
-		this.plane = new Plane(pos, AxisUtils.getAxisPlaneNormal(axis));
+		this.pos = pos.clone();
+		this.plane = new Plane(pos, FacingUtils.getAxisPlaneNormal(axis));
 		
 		setSize(width, height);
 	}
@@ -31,36 +35,29 @@ public class AxisAlignedRect {
 	}
 	
 	public Vector getMax() {
-		return pos.clone().add(size);
+		return pos.clone().add(new Vector(
+				axis == Axis.X ? width : 0,
+				height,
+				axis == Axis.Z ? width : 0));
 	}
 	
 	public double width() {
-		if (axis == Axis.X)
-			return size.getBlockX();
-		else
-			return size.getBlockZ();
+		return width;
 	}
 	
 	public double height() {
-		return size.getBlockY();
+		return height;
 	}
 	
 	public void setSize(double width, double height) {
-		size = new Vector(0, height, 0);
-		
-		if (axis == Axis.X)
-			size.setX(width);
-		else
-			size.setZ(width);
+		this.width = width;
+		this.height = height;
 	}
 	
-	public Vector getSomewhatOfACenter() {
-		return pos.clone().add(size.clone().multiply(0.5));
-	}
-	
-	public void translate(Vector delta) {
+	public AxisAlignedRect translate(Vector delta) {
 		pos.add(delta);
 		plane.translate(delta);
+		return this;
 	}
 	
 	public Plane getPlane() {
@@ -77,18 +74,15 @@ public class AxisAlignedRect {
 		if (pointY < min.getY() || pointY > max.getY())
 			return false;
 		
-		switch (axis) {
-			case X:
-				double pointX = pointInPlane.getX();
-				return pointX >= min.getX() && pointX <= max.getX();
-			case Z:
-				double pointZ = pointInPlane.getZ();
-				return pointZ >= min.getZ() && pointZ <= max.getZ();
-			default:
-				return false;
+		if(axis == Axis.X) {
+			double pointX = pointInPlane.getX();
+			return pointX >= min.getX() && pointX <= max.getX();
+			
+		}else {
+			double pointZ = pointInPlane.getZ();
+			return pointZ >= min.getZ() && pointZ <= max.getZ();
 		}
 	}
-	
 	
 	@Override
 	public AxisAlignedRect clone() {

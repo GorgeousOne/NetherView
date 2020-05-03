@@ -1,11 +1,12 @@
-package me.gorgeousone.netherview.threedstuff;
+package me.gorgeousone.netherview.viewfrustum;
 
+import me.gorgeousone.netherview.threedstuff.Line;
 import org.bukkit.util.Vector;
 
 /**
  * An euclidean line where only points between the start and the end of it can be accessed.
  */
-public class DefinedLine extends Line{
+public class DefinedLine extends Line {
 	
 	public DefinedLine(Vector start, Vector end) {
 		super(start, end);

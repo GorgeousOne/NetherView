@@ -1,54 +1,79 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.handlers.PortalHandler;
+import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
-import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class PlayerMoveListener implements Listener {
 	
-	private PortalHandler portalHandler;
+	private Main main;
 	private ViewingHandler viewingHandler;
 	
-	public PlayerMoveListener(PortalHandler portalHandler, ViewingHandler viewingHandler) {
-		
-		this.portalHandler = portalHandler;
+	public PlayerMoveListener(Main main, ViewingHandler viewingHandler) {
+		this.main = main;
 		this.viewingHandler = viewingHandler;
 	}
 	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
-
-		if (event.getPlayer().getGameMode() == GameMode.SPECTATOR)
-			return;
-		
-		if (event.getTo().getWorld().getEnvironment() != World.Environment.NORMAL)
-			return;
-		
-		if (event.getFrom().toVector().equals(event.getTo().toVector()))
-			return;
 		
 		Player player = event.getPlayer();
-		Location playerLoc = player.getEyeLocation();
-
-		Portal portal = portalHandler.nearestPortal(playerLoc);
-
-		if (portal == null)
+		
+		if (!player.hasPermission(Main.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR)
 			return;
-
-		Vector portalDistance = portal.getLocation().subtract(playerLoc).toVector();
-		double viewDistanceSquared = 20 * 20;
-
-		if (portalDistance.lengthSquared() > viewDistanceSquared)
+		
+		World playerWorld = player.getWorld();
+		
+		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canWorldViewOtherWorlds(playerWorld))
 			return;
-
-		viewingHandler.displayPortal(player, portal);
+		
+		Location from = event.getFrom();
+		Location to = event.getTo();
+		
+		if (!from.toVector().equals(to.toVector())) {
+			Vector movement = to.clone().subtract(from).toVector();
+			viewingHandler.displayNearestPortalTo(player, player.getEyeLocation().add(movement));
+		}
+	}
+	
+	private double getRounded(double d, int digits) {
+		return (int) (d * Math.pow(10, digits)) / Math.pow(10, digits);
+	}
+	
+	@EventHandler
+	public void onPlayerSneak(PlayerToggleSneakEvent event) {
+		
+		Player player = event.getPlayer();
+		
+		if (player.getGameMode() == GameMode.SPECTATOR)
+			return;
+		
+		World.Environment worldType = player.getWorld().getEnvironment();
+		
+		if (worldType == World.Environment.NORMAL || worldType == World.Environment.NETHER) {
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					viewingHandler.displayNearestPortalTo(player, player.getEyeLocation());
+				}
+			}.runTaskLater(main, 2);
+		}
+	}
+	
+	@EventHandler
+	public void onGameModeChange(PlayerGameModeChangeEvent event) {
+		
+		if(event.getNewGameMode() == GameMode.SPECTATOR)
+			viewingHandler.hideViewSession(event.getPlayer());
 	}
 }

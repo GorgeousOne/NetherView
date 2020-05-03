@@ -5,8 +5,13 @@ api-version: 1.13
 main: me.gorgeousone.netherview.Main
 
 commands:
-  viewportal:
-    usage: /<command>
-  worldid:
-    usage: /<command>
+  nvreload:
+    description: /<command>
 
+permissions:
+  netherview.viewportals:
+    default: op
+  netherview.linkportals:
+    default: op
+  netherview.reload:
+    default: op
