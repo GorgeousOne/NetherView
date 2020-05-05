@@ -28,67 +28,67 @@ public final class ViewingFrustumFactory {
 	}
 	
 	public static ViewingFrustum createFrustum2(Vector viewPoint, AxisAlignedRect portalRect) {
-
+		
 		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);
-
+		
 		Vector portalNormal = portalRect.getPlane().getNormal();
 		Vector playerFacingToPortal = portalNormal.clone().multiply(isPlayerBehindPortal ? 1 : -1);
-
+		
 		//aka near plane of the viewing frustum. the maximum rectangle the player can possibly see
 		AxisAlignedRect maxViewingRect = portalRect.clone().translate(playerFacingToPortal.clone().multiply(0.5));
 		
 		Vector viewingRectMin = maxViewingRect.getMin();
 		Vector viewingRectMax = maxViewingRect.getMax();
-
+		
 		//if needed the viewing rect bounds are contracted with ray casting
 		//here for the height...
-		if(viewPoint.getY() < viewingRectMin.getY()) {
+		if (viewPoint.getY() < viewingRectMin.getY()) {
 			
 			Vector closeRectMin = viewingRectMin.clone().subtract(playerFacingToPortal);
 			Vector newRectMin = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMin));
 			viewingRectMin.setY(newRectMin.getY());
 			
-		}else if(viewPoint.getY() > viewingRectMax.getY()) {
+		} else if (viewPoint.getY() > viewingRectMax.getY()) {
 			
 			Vector closeRectMax = viewingRectMax.clone().subtract(playerFacingToPortal);
 			Vector newRectMax = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMax));
 			viewingRectMax.setY(newRectMax.getY());
 		}
-
+		
 		Axis portalAxis = portalRect.getAxis();
 		
 		//... also for the width
-		if(portalAxis == Axis.X) {
-
-			if(viewPoint.getX() < viewingRectMin.getX()) {
+		if (portalAxis == Axis.X) {
+			
+			if (viewPoint.getX() < viewingRectMin.getX()) {
 				
 				Vector closeRectMin = viewingRectMin.clone().subtract(playerFacingToPortal);
 				Vector newRectMin = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMin));
 				viewingRectMin.setX(newRectMin.getX());
 				
-			}else if(viewPoint.getX() > viewingRectMax.getX()) {
+			} else if (viewPoint.getX() > viewingRectMax.getX()) {
 				
 				Vector closeRectMax = viewingRectMax.clone().subtract(playerFacingToPortal);
 				Vector newRectMax = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMax));
 				viewingRectMax.setX(newRectMax.getX());
 			}
-
-		}else {
-
-			if(viewPoint.getZ() < viewingRectMin.getZ()) {
+			
+		} else {
+			
+			if (viewPoint.getZ() < viewingRectMin.getZ()) {
 				
 				Vector closeRectMin = viewingRectMin.clone().subtract(playerFacingToPortal);
 				Vector newRectMin = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMin));
 				viewingRectMin.setZ(newRectMin.getZ());
 				
-			}else if(viewPoint.getZ() > viewingRectMax.getZ()) {
+			} else if (viewPoint.getZ() > viewingRectMax.getZ()) {
 				
 				Vector closeRectMax = viewingRectMax.clone().subtract(playerFacingToPortal);
 				Vector newRectMax = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMax));
 				viewingRectMax.setZ(newRectMax.getZ());
 			}
 		}
-
+		
 		Vector viewingRectSize = viewingRectMax.clone().subtract(viewingRectMin);
 		double rectWidth = portalAxis == Axis.X ? viewingRectSize.getX() : viewingRectSize.getZ();
 		double rectHeight = viewingRectSize.getY();

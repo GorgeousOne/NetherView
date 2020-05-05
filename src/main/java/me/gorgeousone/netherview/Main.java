@@ -36,7 +36,7 @@ public final class Main extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
-	
+		
 		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
 		
@@ -85,8 +85,8 @@ public final class Main extends JavaPlugin {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-		if("nvreload".equals(command.getName())) {
+		
+		if ("nvreload".equals(command.getName())) {
 			
 			if (sender.hasPermission(RELOAD_PERM)) {
 				reload();
@@ -117,27 +117,27 @@ public final class Main extends JavaPlugin {
 		Bukkit.broadcastMessage(portalDisplayRangeSquared + " " + portalProjectionDist);
 		worldsWithProejctingPortals = new HashSet<>();
 		viewableOnlyWorlds = new HashSet<>();
-
+		
 		List<String> worldNames = getConfig().getStringList("worlds-with-projecting-portals");
 		
-		for(String worldName : worldNames) {
+		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
 			
-			if(world == null) {
+			if (world == null) {
 				getLogger().info("Could not find world " + worldName + ".");
-			}else {
+			} else {
 				worldsWithProejctingPortals.add(world.getUID());
 			}
 		}
 		
 		worldNames = getConfig().getStringList("viewable-worlds");
 		
-		for(String worldName : worldNames) {
+		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
 			
-			if(world == null) {
+			if (world == null) {
 				getLogger().info("Could not find world " + worldName + ".");
-			}else {
+			} else {
 				viewableOnlyWorlds.add(world.getUID());
 			}
 		}

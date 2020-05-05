@@ -5,8 +5,6 @@ import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.blockcache.Transform;
 import org.bukkit.Axis;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 import java.util.AbstractMap;
@@ -26,10 +24,15 @@ public class PortalLink {
 		
 		calculateTransformBetweenPortals();
 		
-		copiedCaches = new AbstractMap.SimpleEntry<BlockCache, BlockCache>(
-				BlockCacheFactory.getTransformed(counterCaches.getKey(), linkTransform),
-				BlockCacheFactory.getTransformed(counterCaches.getValue(), linkTransform));
-		
+//		if(linkTransform.isRotY0Deg()) {
+//			copiedCaches = new AbstractMap.SimpleEntry<>(
+//					BlockCacheFactory.getTransformed(counterCaches.getValue(), linkTransform),
+//					BlockCacheFactory.getTransformed(counterCaches.getKey(), linkTransform));
+//		}else {
+			copiedCaches = new AbstractMap.SimpleEntry<>(
+					BlockCacheFactory.getTransformed(counterCaches.getKey(), linkTransform),
+					BlockCacheFactory.getTransformed(counterCaches.getValue(), linkTransform));
+//		}
 	}
 	
 	public Portal getCounterPortal() {
@@ -58,6 +61,7 @@ public class PortalLink {
 		//during the rotation some weird shifts happen
 		//I did not figure out where they come from, for now the translations are a good workaround
 		if (portal.getAxis() == counterPortal.getAxis()) {
+			
 			linkTransform.setRotY180Deg();
 			
 			int portalBlockWidth = (int) portal.getPortalRect().width() - 1;
@@ -67,10 +71,10 @@ public class PortalLink {
 			else
 				linkTransform.translate(new BlockVec(0, 0, portalBlockWidth));
 			
-		}else if (counterPortal.getAxis() == Axis.X) {
+		} else if (counterPortal.getAxis() == Axis.X) {
 			linkTransform.setRotY90DegRight();
-		    linkTransform.translate(new BlockVec(0, 0, 1));
-		
+			linkTransform.translate(new BlockVec(0, 0, 1));
+			
 		} else {
 			linkTransform.setRotY90DegLeft();
 			linkTransform.translate(new BlockVec(1, 0, 0));

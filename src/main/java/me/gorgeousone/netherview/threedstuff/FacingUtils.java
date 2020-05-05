@@ -1,14 +1,12 @@
 package me.gorgeousone.netherview.threedstuff;
 
 import org.bukkit.Axis;
-import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public class FacingUtils {
 	
@@ -39,7 +37,7 @@ public class FacingUtils {
 	
 	public static BlockFace getRotatedFace(BlockFace face, int quarterTurns) {
 		
-		if(!rotationFaces.contains(face))
+		if (!rotationFaces.contains(face))
 			return null;
 		
 		int positiveTurns = (quarterTurns % 4 + 4);
@@ -75,7 +73,7 @@ public class FacingUtils {
 	}
 	
 	public static BlockFace[] getAxesFaces() {
-		return new BlockFace[] {
+		return new BlockFace[]{
 				BlockFace.UP,
 				BlockFace.DOWN,
 				BlockFace.WEST,

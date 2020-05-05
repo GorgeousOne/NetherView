@@ -31,6 +31,12 @@ public class BlockCache {
 		return max.clone();
 	}
 	
+	public boolean contains(BlockVec loc) {
+		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
+		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
+		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
+	}
+	
 	public void updateCopy(Block block) {
 		
 		blockCopies
@@ -41,21 +47,15 @@ public class BlockCache {
 	
 	public BlockCopy getCopyAt(BlockVec loc) {
 		
-		if(!contains(loc))
+		if (!contains(loc))
 			return null;
 		
-		BlockCopy copy =  blockCopies
+		BlockCopy copy = blockCopies
 				[loc.getX() - min.getX()]
 				[loc.getY() - min.getY()]
 				[loc.getZ() - min.getZ()];
 		
 		return copy == null ? null : copy.clone();
-	}
-	
-	public boolean contains(BlockVec loc) {
-		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
-		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
-		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
 	public Set<BlockCopy> getCopiesAround(BlockVec blockCorner) {
@@ -69,7 +69,7 @@ public class BlockCache {
 			
 			BlockCopy copy = getCopyAt(position);
 			
-			if(copy != null)
+			if (copy != null)
 				blocksAroundCorner.add(copy.clone());
 		}
 		
@@ -90,9 +90,9 @@ public class BlockCache {
 		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
 		
 		locsAroundCorner.add(new BlockVec(x - 1, y, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y -1, z));
+		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z));
 		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x - 1, y -1, z - 1));
+		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z - 1));
 		
 		return locsAroundCorner;
 	}

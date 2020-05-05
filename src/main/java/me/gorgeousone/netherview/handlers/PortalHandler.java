@@ -13,10 +13,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-import javax.sound.sampled.Port;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -56,7 +54,7 @@ public class PortalHandler {
 		
 		UUID worldID = portal.getWorld().getUID();
 		
-		if(!worldsWithPortals.containsKey(worldID))
+		if (!worldsWithPortals.containsKey(worldID))
 			worldsWithPortals.put(worldID, new HashSet<>());
 		
 		worldsWithPortals.get(worldID).add(portal);
@@ -94,7 +92,7 @@ public class PortalHandler {
 		
 		for (Portal portal : getPortals(playerLoc.getWorld())) {
 			
-			if(portal.getWorld() != playerLoc.getWorld())
+			if (portal.getWorld() != playerLoc.getWorld())
 				continue;
 			
 			double dist = portal.getLocation().distanceSquared(playerLoc);
@@ -114,10 +112,10 @@ public class PortalHandler {
 	
 	public void linkPortal(Portal portal, Portal counterPortal) {
 		
-		if(!counterPortal.equalsInSize(portal))
+		if (!counterPortal.equalsInSize(portal))
 			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are dissimilar in size, it is difficult to get a clear view...");
 		
-		if(!blockCaches.containsKey(counterPortal))
+		if (!blockCaches.containsKey(counterPortal))
 			blockCaches.put(counterPortal, BlockCacheFactory.createBlockCache(counterPortal, main.getPortalProjectionDist()));
 		
 		portalLinks.put(portal, new PortalLink(portal, counterPortal, blockCaches.get(counterPortal)));

@@ -6,7 +6,7 @@ import org.bukkit.block.data.BlockData;
 import java.util.Objects;
 
 public class BlockCopy {
-
+	
 	private BlockVec position;
 	private BlockData blockData;
 	

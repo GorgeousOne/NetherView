@@ -6,7 +6,6 @@ import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -24,6 +23,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashSet;
 
@@ -45,21 +45,41 @@ public class BlockListener implements Listener {
 		
 		World blockWorld = block.getWorld();
 		
+		if (!main.canBeViewed(blockWorld))
+			return;
+		
 	}
 	
 	private void removeDamagedPortals(Block block) {
 		
 		World blockWorld = block.getWorld();
 		
-		if(!main.canBeViewed(blockWorld))
+		if (!main.canBeViewed(blockWorld))
 			return;
 		
 		BlockVec blockLoc = new BlockVec(block);
 		
-		for(Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
-			if(portal.contains(blockLoc))
+		for (Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
+			if (portal.contains(blockLoc))
 				portalHandler.removePortal(portal);
 		}
+	}
+	
+	private void updateBlockCaches(Block block) {
+		
+		BlockVec vec = new BlockVec(block);
+		for(BlockCache cache : portalHandler.getSourceCaches()) {
+			
+			if(cache.contains(vec)) {
+				cache.updateCopy(block);
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onInteract(PlayerInteractEvent event) {
+	
+	
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -69,7 +89,7 @@ public class BlockListener implements Listener {
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
-//		event.get
+		//		event.get
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

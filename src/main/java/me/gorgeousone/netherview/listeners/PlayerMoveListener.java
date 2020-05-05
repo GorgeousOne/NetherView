@@ -69,7 +69,7 @@ public class PlayerMoveListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
-		if(event.getNewGameMode() == GameMode.SPECTATOR)
+		if (event.getNewGameMode() == GameMode.SPECTATOR)
 			viewingHandler.hideViewSession(event.getPlayer());
 	}
 }

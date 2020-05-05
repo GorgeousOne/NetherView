@@ -60,19 +60,19 @@ public class Transform {
 		rotYMatrix[1][1] = -1;
 	}
 	
-	boolean isRotY90DegRight() {
+	public boolean isRotY90DegRight() {
 		return rotYMatrix[0][1] == -1;
 	}
 	
-	boolean isRotY90DegLeft() {
+	public boolean isRotY90DegLeft() {
 		return rotYMatrix[0][1] == 1;
 	}
 	
-	boolean isRotY180Deg() {
+	public boolean isRotY180Deg() {
 		return rotYMatrix[0][0] == -1;
 	}
 	
-	boolean isRotY0Deg() {
+	public boolean isRotY0Deg() {
 		return rotYMatrix[0][0] == 1;
 	}
 	
@@ -107,38 +107,38 @@ public class Transform {
 	
 	public BlockData rotateBlockData(BlockData data) {
 		
-		if(isRotY0Deg())
+		if (isRotY0Deg())
 			return data;
 		
 		int rotInQuarterTurns = getRotationInQuarterTurns();
 		
-		if(data instanceof Orientable) {
+		if (data instanceof Orientable) {
 			
-			if(isRotY180Deg())
+			if (isRotY180Deg())
 				return data;
 			
 			Orientable orientable = (Orientable) data;
 			
-			if(orientable.getAxis() != Axis.Y)
+			if (orientable.getAxis() != Axis.Y)
 				orientable.setAxis(orientable.getAxis() == Axis.X ? Axis.Z : Axis.X);
-		
-		}else if(data instanceof Directional) {
+			
+		} else if (data instanceof Directional) {
 			
 			Directional directional = (Directional) data;
 			directional.setFacing(FacingUtils.getRotatedFace(directional.getFacing(), rotInQuarterTurns));
-		
-		}else if(data instanceof Rotatable) {
+			
+		} else if (data instanceof Rotatable) {
 			
 			Rotatable rotatable = (Rotatable) data;
 			rotatable.setRotation(FacingUtils.getRotatedFace(rotatable.getRotation(), rotInQuarterTurns));
-		
-		}else if(data instanceof MultipleFacing) {
+			
+		} else if (data instanceof MultipleFacing) {
 			
 			MultipleFacing multiFacing = (MultipleFacing) data;
 			
-			for(BlockFace face : multiFacing.getFaces()) {
+			for (BlockFace face : multiFacing.getFaces()) {
 				//e.g. vines can face the ceiling, that cant be rotated
-				if(!FacingUtils.isRotatableFace(face))
+				if (!FacingUtils.isRotatableFace(face))
 					continue;
 				
 				multiFacing.setFace(face, false);
@@ -151,11 +151,11 @@ public class Transform {
 	
 	private int getRotationInQuarterTurns() {
 		
-		if(isRotY90DegLeft())
+		if (isRotY90DegLeft())
 			return -1;
-		else if(isRotY180Deg())
+		else if (isRotY180Deg())
 			return 2;
-		else if(isRotY90DegRight())
+		else if (isRotY90DegRight())
 			return 1;
 		
 		return 0;
@@ -178,7 +178,7 @@ public class Transform {
 	}
 	
 	private int[][] cloneRotY() {
-		return new int[][] {
+		return new int[][]{
 				{rotYMatrix[0][0], rotYMatrix[0][1]},
 				{rotYMatrix[1][0], rotYMatrix[1][1]}
 		};

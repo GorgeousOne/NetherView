@@ -17,7 +17,7 @@ public class Portal {
 	
 	private Set<Block> portalBlocks;
 	private Set<Block> frameBlocks;
-
+	
 	private BlockVec min;
 	private BlockVec max;
 	
@@ -44,12 +44,12 @@ public class Portal {
 		return portalRect.getMin().toLocation(world);
 	}
 	
-	public AxisAlignedRect getPortalRect() {
-		return portalRect.clone();
-	}
-	
 	public Axis getAxis() {
 		return portalRect.getAxis();
+	}
+	
+	public AxisAlignedRect getPortalRect() {
+		return portalRect.clone();
 	}
 	
 	public Set<Block> getPortalBlocks() {

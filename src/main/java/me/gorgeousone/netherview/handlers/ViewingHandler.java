@@ -40,7 +40,7 @@ public class ViewingHandler {
 	
 	public void reset() {
 		
-		for(Player player : Bukkit.getOnlinePlayers()) {
+		for (Player player : Bukkit.getOnlinePlayers()) {
 			if (hasViewSession(player))
 				hideViewSession(player);
 		}
@@ -52,7 +52,7 @@ public class ViewingHandler {
 		
 		UUID uuid = player.getUniqueId();
 		
-		if(!playerViews.containsKey(uuid))
+		if (!playerViews.containsKey(uuid))
 			playerViews.put(uuid, new HashSet<>());
 		
 		return playerViews.get(uuid);
@@ -64,10 +64,10 @@ public class ViewingHandler {
 	
 	public void hideViewSession(Player player) {
 		
-		if(!hasViewSession(player))
+		if (!hasViewSession(player))
 			return;
 		
-		for(BlockCopy copy : getViewSession(player))
+		for (BlockCopy copy : getViewSession(player))
 			refreshBlock(player, copy);
 		
 		playerViews.remove(player.getUniqueId());
@@ -92,30 +92,34 @@ public class ViewingHandler {
 		double distanceToPortalRect;
 		AxisAlignedRect portalRect = portal.getPortalRect();
 		
-		if(portal.getAxis() == Axis.X) {
+		if (portal.getAxis() == Axis.X) {
 			distanceToPortalRect = portalRect.getMin().getZ() - playerEyeLoc.getZ();
-		}else {
+		} else {
 			distanceToPortalRect = portalRect.getMin().getX() - playerEyeLoc.getX();
 		}
 		
-		if(Math.abs(distanceToPortalRect) > 0.5) {
+		if (Math.abs(distanceToPortalRect) > 0.5) {
 			displayPortalTo(player, playerEyeLoc, portal, true, main.hidePortalBlocks());
 			
-		//if the player is standing inside the portal, portal blocks should be displayed
-		}else if(portalRect.contains(playerEyeLoc.toVector())) {
+			//if the player is standing inside the portal, portal blocks should be displayed
+		} else if (portalRect.contains(playerEyeLoc.toVector())) {
 			hideViewSession(player);
 			
-		//if the player is standing somewhere next to the portal, portal blocks should still be hidden to avoid light flickering
-		}else {
-			displayPortalTo(player, playerEyeLoc, portal, false,  main.hidePortalBlocks());
+			//if the player is standing somewhere next to the portal, portal blocks should still be hidden to avoid light flickering
+		} else {
+			displayPortalTo(player, playerEyeLoc, portal, false, main.hidePortalBlocks());
 		}
 	}
 	
-	public void displayPortalTo(Player player, Location playerEyeLoc, Portal portal, boolean displayFrustum, boolean hidePortalBlocks) {
+	public void displayPortalTo(Player player,
+	                            Location playerEyeLoc,
+	                            Portal portal,
+	                            boolean displayFrustum,
+	                            boolean hidePortalBlocks) {
 		
 		PortalLink link = portalHandler.getPortalLink(portal);
 		
-		if(link == null)
+		if (link == null)
 			return;
 		
 		BlockCache cache = link.getCache(ViewingFrustumFactory.isPlayerBehindPortal(player, portal));
@@ -123,12 +127,12 @@ public class ViewingHandler {
 		
 		Set<BlockCopy> visibleBlocks = new HashSet<>();
 		
-		if(displayFrustum) {
+		if (displayFrustum) {
 			visibleBlocks.addAll(getBlocksInFrustum(cache, playerFrustum));
 			displayFrustum(player, playerFrustum);
 		}
 		
-		if(hidePortalBlocks) {
+		if (hidePortalBlocks) {
 			for (Block block : portal.getPortalBlocks()) {
 				BlockCopy air = new BlockCopy(block);
 				air.setData(Material.AIR.createBlockData());
@@ -188,7 +192,7 @@ public class ViewingHandler {
 		
 		blocksToDisplay.removeIf(blockCopy -> !viewSession.add(blockCopy));
 		
-		for(BlockCopy copy : blocksToDisplay) {
+		for (BlockCopy copy : blocksToDisplay) {
 			player.sendBlockChange(copy.getPosition().toLocation(player.getWorld()), copy.getBlockData());
 		}
 	}

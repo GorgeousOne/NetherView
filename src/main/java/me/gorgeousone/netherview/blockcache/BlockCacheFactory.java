@@ -37,14 +37,14 @@ public class BlockCacheFactory {
 		
 		BlockCopy[][][] newBlockCopies = new BlockCopy[x2 - x1 + 1][y2 - y1 + 1][z2 - z1 + 1];
 		
-		for(int x = min.getX(); x < max.getX(); x++) {
+		for (int x = min.getX(); x < max.getX(); x++) {
 			for (int y = min.getY(); y < max.getY(); y++) {
 				for (int z = min.getZ(); z < max.getZ(); z++) {
 					
 					BlockVec blockPos = new BlockVec(x, y, z);
 					BlockCopy blockCopy = cache.getCopyAt(blockPos);
 					
-					if(blockCopy == null)
+					if (blockCopy == null)
 						continue;
 					
 					BlockCopy transformedBlockCopy = transform.transformBlockCopy(blockCopy.clone());
@@ -74,7 +74,7 @@ public class BlockCacheFactory {
 		
 		//the view distance in blocks to the front shall be greater than at the sides
 		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
-		int frontViewDist =  minPortalExtent + viewDist;
+		int frontViewDist = minPortalExtent + viewDist;
 		int sideViewDist = (int) Math.ceil(viewDist / 2d);
 		
 		Vector cacheCorner1 = portalRect.getMin();
@@ -92,7 +92,7 @@ public class BlockCacheFactory {
 				portalFacing);
 		
 		BlockCache back = copyBlocksInBounds(
-				cacheCorner1.clone().subtract(portalFacing.clone().multiply(frontViewDist-1)),
+				cacheCorner1.clone().subtract(portalFacing.clone().multiply(frontViewDist - 1)),
 				cacheCorner2,
 				portal.getWorld(),
 				portalFacing.clone().multiply(-1));
@@ -100,7 +100,10 @@ public class BlockCacheFactory {
 		return new AbstractMap.SimpleEntry<>(front, back);
 	}
 	
-	private static BlockCache copyBlocksInBounds(Vector cacheCorner1, Vector cacheCorner2, World world, Vector cacheFacing) {
+	private static BlockCache copyBlocksInBounds(Vector cacheCorner1,
+	                                             Vector cacheCorner2,
+	                                             World world,
+	                                             Vector cacheFacing) {
 		
 		Vector cacheMin = Vector.getMinimum(cacheCorner1, cacheCorner2);
 		Vector cacheMax = Vector.getMaximum(cacheCorner1, cacheCorner2);
@@ -124,12 +127,12 @@ public class BlockCacheFactory {
 					
 					Block block = new Location(world, x, y, z).getBlock();
 					
-					if(!isVisible(block))
+					if (!isVisible(block))
 						continue;
 					
 					BlockCopy copy = new BlockCopy(block);
 					
-					if(isCacheBorder(x, y, z, x1, y1, z1, x2, y2, z2, cacheFacing))
+					if (isCacheBorder(x, y, z, x1, y1, z1, x2, y2, z2, cacheFacing))
 						copy.setData(cacheBorderBlock);
 					
 					copiedBlocks[x - x1][y - y1][z - z1] = copy;
@@ -157,33 +160,42 @@ public class BlockCacheFactory {
 	/**
 	 * Returns true if the block is part of the border of the cahche cuboid except the side where the portal is
 	 */
-	private static boolean isCacheBorder(int x, int y, int z, int x1, int y1, int z1, int x2, int y2, int z2, Vector cacheFacing) {
+	private static boolean isCacheBorder(int x,
+	                                     int y,
+	                                     int z,
+	                                     int x1,
+	                                     int y1,
+	                                     int z1,
+	                                     int x2,
+	                                     int y2,
+	                                     int z2,
+	                                     Vector cacheFacing) {
 		
-		if(y == y1 || y == y2-1)
+		if (y == y1 || y == y2 - 1)
 			return true;
 		
-		if(cacheFacing.getZ() != 0) {
-			if (x == x1 || x == x2-1)
+		if (cacheFacing.getZ() != 0) {
+			if (x == x1 || x == x2 - 1)
 				return true;
-		}else if(z == z1 || z == z2-1) {
+		} else if (z == z1 || z == z2 - 1) {
 			return true;
 		}
-	
-		if(cacheFacing.getX() == 1) {
-			return x == x2-1;
-		}else if(cacheFacing.getX() == -1) {
+		
+		if (cacheFacing.getX() == 1) {
+			return x == x2 - 1;
+		} else if (cacheFacing.getX() == -1) {
 			return x == x1;
-		}else if(cacheFacing.getZ() == 1) {
-			return z == z2-1;
-		}else{
+		} else if (cacheFacing.getZ() == 1) {
+			return z == z2 - 1;
+		} else {
 			return z == z1;
 		}
 	}
 	
 	private static boolean isVisible(Block block) {
 		
-		for(BlockFace face : FacingUtils.getAxesFaces()) {
-			if(!block.getRelative(face).getType().isOccluding())
+		for (BlockFace face : FacingUtils.getAxesFaces()) {
+			if (!block.getRelative(face).getType().isOccluding())
 				return true;
 		}
 		
