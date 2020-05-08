@@ -70,7 +70,7 @@ public class BlockCacheHandler {
 		
 		if (!counterPortal.equalsInSize(portal))
 			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are dissimilar in size, it is difficult to get a clear view...");
-
+		
 		Map.Entry<BlockCache, BlockCache> blockCaches = getBlockCaches(counterPortal);
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
 		

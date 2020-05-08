@@ -3,7 +3,6 @@ package me.gorgeousone.netherview;
 import me.gorgeousone.netherview.handlers.BlockCacheHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
-import me.gorgeousone.netherview.listeners.BlockListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
 import org.bukkit.Bukkit;
@@ -152,6 +151,6 @@ public final class Main extends JavaPlugin {
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler, cacheHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
-//		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler), this);
+		//		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler), this);
 	}
 }

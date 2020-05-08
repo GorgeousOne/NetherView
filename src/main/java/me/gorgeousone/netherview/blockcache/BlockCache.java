@@ -2,9 +2,6 @@ package me.gorgeousone.netherview.blockcache;
 
 import org.bukkit.block.Block;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class BlockCache {
 	
 	private BlockCopy[][][] blockCopies;

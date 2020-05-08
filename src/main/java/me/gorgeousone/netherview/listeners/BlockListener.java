@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.Main;
-import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
@@ -67,13 +66,13 @@ public class BlockListener implements Listener {
 	
 	private void updateBlockCaches(Block block) {
 		
-//		BlockVec vec = new BlockVec(block);
-//		for(BlockCache cache : portalHandler.getSourceCaches()) {
-//
-//			if(cache.contains(vec)) {
-//				cache.updateCopy(block);
-//			}
-//		}
+		//		BlockVec vec = new BlockVec(block);
+		//		for(BlockCache cache : portalHandler.getSourceCaches()) {
+		//
+		//			if(cache.contains(vec)) {
+		//				cache.updateCopy(block);
+		//			}
+		//		}
 	}
 	
 	@EventHandler

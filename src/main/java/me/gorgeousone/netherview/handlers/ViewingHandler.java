@@ -1,13 +1,10 @@
 package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.Main;
-import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.blockcache.BlockVec;
 import me.gorgeousone.netherview.blockcache.CacheCopy;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.portal.PortalLink;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.viewfrustum.ViewingFrustum;
 import me.gorgeousone.netherview.viewfrustum.ViewingFrustumFactory;
@@ -20,7 +17,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import sun.awt.geom.AreaOp;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -136,10 +132,10 @@ public class ViewingHandler {
 		Set<BlockCopy> visibleBlocks = new HashSet<>();
 		
 		if (displayFrustum) {
-		
-//			visibleBlocks.addAll(getBlocksInFrustum(cache, playerFrustum));
+			
+			//			visibleBlocks.addAll(getBlocksInFrustum(cache, playerFrustum));
 			visibleBlocks.addAll(getAllBlocks(cache));
-//			System.out.println(cache.getMin() + ", " + cache.getMax());
+			//			System.out.println(cache.getMin() + ", " + cache.getMax());
 			displayFrustum(player, playerFrustum);
 		}
 		
@@ -167,7 +163,7 @@ public class ViewingHandler {
 					
 					BlockCopy copy = cache.getCopyAt(new BlockVec(x, y, z));
 					
-					if(copy != null)
+					if (copy != null)
 						allBlocks.add(copy);
 				}
 			}

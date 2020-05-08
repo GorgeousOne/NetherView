@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview.blockcache;
 
-import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 
 import java.util.HashSet;
@@ -71,7 +70,8 @@ public class CacheCopy {
 		BlockCopy newBlockCopy = blockTransform.transformBlockCopy(new BlockCopy(sourceBlock));
 		BlockVec blockPos = newBlockCopy.getPosition();
 		
-		blockCopies[blockPos.getX() - min.getX()]
+		blockCopies
+				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
 				[blockPos.getZ() - min.getZ()] = newBlockCopy;
 	}
@@ -85,18 +85,16 @@ public class CacheCopy {
 		BlockVec corner2 = blockTransform.transformVec(sourceMax.clone());
 		
 		min = BlockVec.getMinimum(corner1, corner2);
-		max = BlockVec.getMaximum(corner1, corner2);
+		max = BlockVec.getMaximum(corner1, corner2).add(1, 0, 1);
 		
 		int minX = min.getX();
 		int minY = min.getY();
 		int minZ = min.getZ();
 		
 		blockCopies = new BlockCopy
-				[max.getX() - minX + 1]
+				[max.getX() - minX]
 				[max.getY() - minY]
-				[max.getZ() - minZ + 1];
-		
-		System.out.println(min.toString() + " c " + max.toString());
+				[max.getZ() - minZ];
 		
 		for (int x = sourceMin.getX(); x < sourceMax.getX(); x++) {
 			for (int y = sourceMin.getY(); y < sourceMax.getY(); y++) {
@@ -110,9 +108,6 @@ public class CacheCopy {
 					
 					BlockCopy transformedBlockCopy = blockTransform.transformBlockCopy(blockCopy.clone());
 					BlockVec newBlockPos = transformedBlockCopy.getPosition();
-					
-//					Bukkit.broadcastMessage("x: " + (x - sourceMin.getX()) + " x1: " + (newBlockPos.getX() - minX));
-//					Bukkit.broadcastMessage("z: " + (z - sourceMin.getZ()) + " z1: " + (newBlockPos.getZ() - minZ));
 					
 					blockCopies
 							[newBlockPos.getX() - minX]

@@ -24,15 +24,15 @@ public class PortalLink {
 		
 		calculateTransformBetweenPortals();
 		
-//		if(linkTransform.isRotY0Deg()) {
-//			copiedCaches = new AbstractMap.SimpleEntry<>(
-//					BlockCacheFactory.getTransformed(counterCaches.getValue(), linkTransform),
-//					BlockCacheFactory.getTransformed(counterCaches.getKey(), linkTransform));
-//		}else {
-			copiedCaches = new AbstractMap.SimpleEntry<>(
-					BlockCacheFactory.getTransformed(counterCaches.getKey(), linkTransform),
-					BlockCacheFactory.getTransformed(counterCaches.getValue(), linkTransform));
-//		}
+		//		if(linkTransform.isRotY0Deg()) {
+		//			copiedCaches = new AbstractMap.SimpleEntry<>(
+		//					BlockCacheFactory.getTransformed(counterCaches.getValue(), linkTransform),
+		//					BlockCacheFactory.getTransformed(counterCaches.getKey(), linkTransform));
+		//		}else {
+		copiedCaches = new AbstractMap.SimpleEntry<>(
+				BlockCacheFactory.getTransformed(counterCaches.getKey(), linkTransform),
+				BlockCacheFactory.getTransformed(counterCaches.getValue(), linkTransform));
+		//		}
 	}
 	
 	public Portal getCounterPortal() {

@@ -1,10 +1,7 @@
 package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.Main;
-import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.portal.PortalLink;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -23,20 +20,20 @@ public class PortalHandler {
 	
 	private Main main;
 	private Map<UUID, Set<Portal>> worldsWithPortals;
-//	private Map<Portal, PortalLink> portalLinks;
-//	private Map<Portal, Map.Entry<BlockCache, BlockCache>> blockCaches;
+	//	private Map<Portal, PortalLink> portalLinks;
+	//	private Map<Portal, Map.Entry<BlockCache, BlockCache>> blockCaches;
 	
 	public PortalHandler(Main main) {
 		this.main = main;
 		worldsWithPortals = new HashMap<>();
-//		portalLinks = new HashMap<>();
-//		blockCaches = new HashMap<>();
+		//		portalLinks = new HashMap<>();
+		//		blockCaches = new HashMap<>();
 	}
 	
 	public void reset() {
 		worldsWithPortals.clear();
-//		portalLinks.clear();
-//		blockCaches.clear();
+		//		portalLinks.clear();
+		//		blockCaches.clear();
 	}
 	
 	/**
@@ -63,8 +60,8 @@ public class PortalHandler {
 	public void removePortal(Portal portal) {
 		
 		Bukkit.broadcastMessage("removed portal at " + portal.getLocation().toVector().toString());
-//		portalLinks.entrySet().removeIf(linkEntry -> linkEntry.getValue().getCounterPortal() == portal);
-//		portalLinks.remove(portal);
+		//		portalLinks.entrySet().removeIf(linkEntry -> linkEntry.getValue().getCounterPortal() == portal);
+		//		portalLinks.remove(portal);
 		getPortals(portal.getWorld()).remove(portal);
 	}
 	
@@ -106,18 +103,18 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
-//	public PortalLink getPortalLink(Portal portal) {
-//		return portalLinks.get(portal);
-//	}
+	//	public PortalLink getPortalLink(Portal portal) {
+	//		return portalLinks.get(portal);
+	//	}
 	
-//	public void linkPortal(Portal portal, Portal counterPortal) {
-//
-//		if (!counterPortal.equalsInSize(portal))
-//			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are dissimilar in size, it is difficult to get a clear view...");
-//
-//		if (!blockCaches.containsKey(counterPortal))
-//			blockCaches.put(counterPortal, BlockCacheFactory.createBlockCache(counterPortal, main.getPortalProjectionDist()));
-//
-//		portalLinks.put(portal, new PortalLink(portal, counterPortal, blockCaches.get(counterPortal)));
-//	}
+	//	public void linkPortal(Portal portal, Portal counterPortal) {
+	//
+	//		if (!counterPortal.equalsInSize(portal))
+	//			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are dissimilar in size, it is difficult to get a clear view...");
+	//
+	//		if (!blockCaches.containsKey(counterPortal))
+	//			blockCaches.put(counterPortal, BlockCacheFactory.createBlockCache(counterPortal, main.getPortalProjectionDist()));
+	//
+	//		portalLinks.put(portal, new PortalLink(portal, counterPortal, blockCaches.get(counterPortal)));
+	//	}
 }

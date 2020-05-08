@@ -92,7 +92,7 @@ public class Transform {
 		return vec.add(rotCenter).add(translation);
 	}
 	
-	private BlockVec rotateVec(BlockVec relativeVec) {
+	private void rotateVec(BlockVec relativeVec) {
 		
 		int transX = relativeVec.getX();
 		int transZ = relativeVec.getZ();
@@ -100,7 +100,6 @@ public class Transform {
 		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
 		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
 		
-		return relativeVec;
 	}
 	
 	public BlockData rotateBlockData(BlockData data) {
