@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview;
 
+import me.gorgeousone.netherview.handlers.BlockCacheHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
@@ -26,7 +27,9 @@ public final class Main extends JavaPlugin {
 	public final static String RELOAD_PERM = "netherview.reload";
 	
 	private PortalHandler portalHandler;
+	private BlockCacheHandler cacheHandler;
 	private ViewingHandler viewingHandler;
+	
 	private Set<UUID> worldsWithProejctingPortals;
 	private Set<UUID> viewableOnlyWorlds;
 	
@@ -38,7 +41,8 @@ public final class Main extends JavaPlugin {
 	public void onEnable() {
 		
 		portalHandler = new PortalHandler(this);
-		viewingHandler = new ViewingHandler(this, portalHandler);
+		cacheHandler = new BlockCacheHandler(this);
+		viewingHandler = new ViewingHandler(this, portalHandler, cacheHandler);
 		
 		loadConfig();
 		loadConfigData();
@@ -146,8 +150,8 @@ public final class Main extends JavaPlugin {
 	public void registerListeners() {
 		
 		PluginManager manager = Bukkit.getPluginManager();
-		manager.registerEvents(new TeleportListener(this, portalHandler), this);
+		manager.registerEvents(new TeleportListener(this, portalHandler, cacheHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
-		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler), this);
+//		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler), this);
 	}
 }

@@ -67,13 +67,13 @@ public class BlockListener implements Listener {
 	
 	private void updateBlockCaches(Block block) {
 		
-		BlockVec vec = new BlockVec(block);
-		for(BlockCache cache : portalHandler.getSourceCaches()) {
-			
-			if(cache.contains(vec)) {
-				cache.updateCopy(block);
-			}
-		}
+//		BlockVec vec = new BlockVec(block);
+//		for(BlockCache cache : portalHandler.getSourceCaches()) {
+//
+//			if(cache.contains(vec)) {
+//				cache.updateCopy(block);
+//			}
+//		}
 	}
 	
 	@EventHandler

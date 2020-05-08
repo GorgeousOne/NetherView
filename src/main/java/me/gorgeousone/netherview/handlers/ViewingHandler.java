@@ -2,8 +2,10 @@ package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
+import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.blockcache.BlockVec;
+import me.gorgeousone.netherview.blockcache.CacheCopy;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLink;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
@@ -18,6 +20,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import sun.awt.geom.AreaOp;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,11 +33,15 @@ public class ViewingHandler {
 	
 	private Main main;
 	private PortalHandler portalHandler;
+	private BlockCacheHandler cacheHandler;
 	private Map<UUID, Set<BlockCopy>> playerViews;
 	
-	public ViewingHandler(Main main, PortalHandler portalHandler) {
+	public ViewingHandler(Main main,
+	                      PortalHandler portalHandler,
+	                      BlockCacheHandler cacheHandler) {
 		this.main = main;
 		this.portalHandler = portalHandler;
+		this.cacheHandler = cacheHandler;
 		playerViews = new HashMap<>();
 	}
 	
@@ -117,18 +124,22 @@ public class ViewingHandler {
 	                            boolean displayFrustum,
 	                            boolean hidePortalBlocks) {
 		
-		PortalLink link = portalHandler.getPortalLink(portal);
 		
-		if (link == null)
+		if (!cacheHandler.isLinked(portal))
 			return;
 		
-		BlockCache cache = link.getCache(ViewingFrustumFactory.isPlayerBehindPortal(player, portal));
+		Map.Entry<CacheCopy, CacheCopy> projectingCaches = cacheHandler.getProjectionCaches(portal);
+		
+		CacheCopy cache = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? projectingCaches.getKey() : projectingCaches.getValue();
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(playerEyeLoc.toVector(), portal.getPortalRect());
 		
 		Set<BlockCopy> visibleBlocks = new HashSet<>();
 		
 		if (displayFrustum) {
-			visibleBlocks.addAll(getBlocksInFrustum(cache, playerFrustum));
+		
+//			visibleBlocks.addAll(getBlocksInFrustum(cache, playerFrustum));
+			visibleBlocks.addAll(getAllBlocks(cache));
+//			System.out.println(cache.getMin() + ", " + cache.getMax());
 			displayFrustum(player, playerFrustum);
 		}
 		
@@ -143,7 +154,29 @@ public class ViewingHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
-	private Set<BlockCopy> getBlocksInFrustum(BlockCache cache, ViewingFrustum frustum) {
+	private Set<BlockCopy> getAllBlocks(CacheCopy cache) {
+		
+		Set<BlockCopy> allBlocks = new HashSet<>();
+		
+		BlockVec min = cache.getMin();
+		BlockVec max = cache.getMax();
+		
+		for (int x = min.getX(); x <= max.getX(); x++) {
+			for (int y = min.getY(); y <= max.getY(); y++) {
+				for (int z = min.getZ(); z <= max.getZ(); z++) {
+					
+					BlockCopy copy = cache.getCopyAt(new BlockVec(x, y, z));
+					
+					if(copy != null)
+						allBlocks.add(copy);
+				}
+			}
+		}
+		
+		return allBlocks;
+	}
+	
+	private Set<BlockCopy> getBlocksInFrustum(CacheCopy cache, ViewingFrustum frustum) {
 		
 		Set<BlockCopy> blocksInFrustum = new HashSet<>();
 		

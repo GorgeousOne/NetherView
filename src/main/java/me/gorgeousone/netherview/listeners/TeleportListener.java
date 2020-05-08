@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.Main;
+import me.gorgeousone.netherview.handlers.BlockCacheHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
@@ -18,10 +19,14 @@ public class TeleportListener implements Listener {
 	
 	private Main main;
 	private PortalHandler portalHandler;
+	private BlockCacheHandler cacheHandler;
 	
-	public TeleportListener(Main main, PortalHandler portalHandler) {
+	public TeleportListener(Main main,
+	                        PortalHandler portalHandler,
+	                        BlockCacheHandler cacheHandler) {
 		this.main = main;
 		this.portalHandler = portalHandler;
+		this.cacheHandler = cacheHandler;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -58,7 +63,7 @@ public class TeleportListener implements Listener {
 			}
 		}
 		
-		if (portalHandler.getPortalLink(portal) == null) {
+		if (cacheHandler.getCounterPortal(portal) == null) {
 			
 			Block counterPortalBlock = getNearbyPortalBlock(to);
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
@@ -74,7 +79,7 @@ public class TeleportListener implements Listener {
 			}
 			
 			try {
-				portalHandler.linkPortal(portal, counterPortal);
+				cacheHandler.linkPortal(portal, counterPortal);
 				event.setCancelled(true);
 				
 			} catch (IllegalStateException ex) {

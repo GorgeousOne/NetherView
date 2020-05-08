@@ -86,12 +86,10 @@ public class Transform {
 	
 	public BlockVec transformVec(BlockVec vec) {
 		
-		BlockVec transformed = vec.clone();
+		vec.subtract(rotCenter);
+		rotateVec(vec);
 		
-		transformed.subtract(rotCenter);
-		rotateVec(transformed);
-		
-		return transformed.add(rotCenter).add(translation);
+		return vec.add(rotCenter).add(translation);
 	}
 	
 	private BlockVec rotateVec(BlockVec relativeVec) {

@@ -17,6 +17,8 @@ public class BlockCache {
 		this.blockCopies = blockCopies;
 		this.min = offset.clone();
 		this.max = offset.clone().add(sourceCacheSize());
+		
+		System.out.println(min.toString() + " s " + max.toString());
 	}
 	
 	private BlockVec sourceCacheSize() {
@@ -56,44 +58,5 @@ public class BlockCache {
 				[loc.getZ() - min.getZ()];
 		
 		return copy == null ? null : copy.clone();
-	}
-	
-	public Set<BlockCopy> getCopiesAround(BlockVec blockCorner) {
-		
-		Set<BlockCopy> blocksAroundCorner = new HashSet<>();
-		
-		for (BlockVec position : getAllCornerLocs(blockCorner)) {
-			
-			if (!contains(position))
-				continue;
-			
-			BlockCopy copy = getCopyAt(position);
-			
-			if (copy != null)
-				blocksAroundCorner.add(copy.clone());
-		}
-		
-		return blocksAroundCorner;
-	}
-	
-	private Set<BlockVec> getAllCornerLocs(BlockVec blockCorner) {
-		
-		Set<BlockVec> locsAroundCorner = new HashSet<>();
-		
-		int x = blockCorner.getX();
-		int y = blockCorner.getY();
-		int z = blockCorner.getZ();
-		
-		locsAroundCorner.add(new BlockVec(x, y, z));
-		locsAroundCorner.add(new BlockVec(x, y - 1, z));
-		locsAroundCorner.add(new BlockVec(x, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
-		
-		locsAroundCorner.add(new BlockVec(x - 1, y, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z - 1));
-		
-		return locsAroundCorner;
 	}
 }

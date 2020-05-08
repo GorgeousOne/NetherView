@@ -1,10 +1,14 @@
 package me.gorgeousone.netherview.blockcache;
 
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class CacheCopy {
 	
-	private BlockCache cache;
+	private BlockCache sourceCache;
 	private Transform blockTransform;
 	
 	private BlockCopy[][][] blockCopies;
@@ -13,7 +17,7 @@ public class CacheCopy {
 	
 	public CacheCopy(BlockCache cache, Transform blockTransform) {
 		
-		this.cache = cache;
+		this.sourceCache = cache;
 		this.blockTransform = blockTransform;
 		
 		createBlockCopies();
@@ -44,43 +48,62 @@ public class CacheCopy {
 				[loc.getZ() - min.getZ()];
 	}
 	
-	public void updateCopy(Block blockCacheBlock) {
+	public Set<BlockCopy> getCopiesAround(BlockVec blockCorner) {
 		
-		BlockCopy newBlockCopy = blockTransform.transformBlockCopy(new BlockCopy(blockCacheBlock));
+		Set<BlockCopy> blocksAroundCorner = new HashSet<>();
+		
+		for (BlockVec position : getAllCornerLocs(blockCorner)) {
+			
+			if (!contains(position))
+				continue;
+			
+			BlockCopy copy = getCopyAt(position);
+			
+			if (copy != null)
+				blocksAroundCorner.add(copy.clone());
+		}
+		
+		return blocksAroundCorner;
+	}
+	
+	public void updateCopy(Block sourceBlock) {
+		
+		BlockCopy newBlockCopy = blockTransform.transformBlockCopy(new BlockCopy(sourceBlock));
 		BlockVec blockPos = newBlockCopy.getPosition();
 		
-		blockCopies
-				[blockPos.getX() - min.getX()]
+		blockCopies[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
 				[blockPos.getZ() - min.getZ()] = newBlockCopy;
 	}
 	
 	private void createBlockCopies() {
 		
-		BlockVec cacheMin = cache.getMin();
-		BlockVec cacheMax = cache.getMax();
+		BlockVec sourceMin = sourceCache.getMin();
+		BlockVec sourceMax = sourceCache.getMax();
 		
-		BlockVec corner1 = blockTransform.transformVec(cacheMin.clone());
-		BlockVec corner2 = blockTransform.transformVec(cacheMax.clone());
+		BlockVec corner1 = blockTransform.transformVec(sourceMin.clone());
+		BlockVec corner2 = blockTransform.transformVec(sourceMax.clone());
 		
 		min = BlockVec.getMinimum(corner1, corner2);
 		max = BlockVec.getMaximum(corner1, corner2);
 		
-		int x1 = min.getX();
-		int y1 = min.getY();
-		int z1 = min.getZ();
-		int x2 = max.getX();
-		int y2 = max.getY();
-		int z2 = max.getZ();
+		int minX = min.getX();
+		int minY = min.getY();
+		int minZ = min.getZ();
 		
-		blockCopies = new BlockCopy[x2 - x1 + 1][y2 - y1 + 1][z2 - z1 + 1];
+		blockCopies = new BlockCopy
+				[max.getX() - minX + 1]
+				[max.getY() - minY]
+				[max.getZ() - minZ + 1];
 		
-		for (int x = cacheMin.getX(); x < cacheMax.getX(); x++) {
-			for (int y = cacheMin.getY(); y < cacheMax.getY(); y++) {
-				for (int z = cacheMin.getZ(); z < cacheMax.getZ(); z++) {
+		System.out.println(min.toString() + " c " + max.toString());
+		
+		for (int x = sourceMin.getX(); x < sourceMax.getX(); x++) {
+			for (int y = sourceMin.getY(); y < sourceMax.getY(); y++) {
+				for (int z = sourceMin.getZ(); z < sourceMax.getZ(); z++) {
 					
 					BlockVec blockPos = new BlockVec(x, y, z);
-					BlockCopy blockCopy = cache.getCopyAt(blockPos);
+					BlockCopy blockCopy = sourceCache.getCopyAt(blockPos);
 					
 					if (blockCopy == null)
 						continue;
@@ -88,11 +111,36 @@ public class CacheCopy {
 					BlockCopy transformedBlockCopy = blockTransform.transformBlockCopy(blockCopy.clone());
 					BlockVec newBlockPos = transformedBlockCopy.getPosition();
 					
-					blockCopies[newBlockPos.getX() - x1]
-							[newBlockPos.getY() - y1]
-							[newBlockPos.getZ() - z1] = transformedBlockCopy;
+//					Bukkit.broadcastMessage("x: " + (x - sourceMin.getX()) + " x1: " + (newBlockPos.getX() - minX));
+//					Bukkit.broadcastMessage("z: " + (z - sourceMin.getZ()) + " z1: " + (newBlockPos.getZ() - minZ));
+					
+					blockCopies
+							[newBlockPos.getX() - minX]
+							[newBlockPos.getY() - minY]
+							[newBlockPos.getZ() - minZ] = transformedBlockCopy;
 				}
 			}
 		}
+	}
+	
+	private Set<BlockVec> getAllCornerLocs(BlockVec blockCorner) {
+		
+		Set<BlockVec> locsAroundCorner = new HashSet<>();
+		
+		int x = blockCorner.getX();
+		int y = blockCorner.getY();
+		int z = blockCorner.getZ();
+		
+		locsAroundCorner.add(new BlockVec(x, y, z));
+		locsAroundCorner.add(new BlockVec(x, y - 1, z));
+		locsAroundCorner.add(new BlockVec(x, y, z - 1));
+		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
+		
+		locsAroundCorner.add(new BlockVec(x - 1, y, z));
+		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z));
+		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
+		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z - 1));
+		
+		return locsAroundCorner;
 	}
 }
