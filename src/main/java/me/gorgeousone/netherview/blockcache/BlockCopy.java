@@ -28,9 +28,8 @@ public class BlockCopy {
 		return blockData.clone();
 	}
 	
-	public BlockCopy setPosition(BlockVec position) {
+	public void setPosition(BlockVec position) {
 		this.position = position.clone();
-		return this;
 	}
 	
 	public void setData(BlockData blockData) {

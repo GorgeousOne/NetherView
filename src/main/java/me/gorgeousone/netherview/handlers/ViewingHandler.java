@@ -1,9 +1,10 @@
 package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.Main;
+import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.blockcache.BlockVec;
-import me.gorgeousone.netherview.blockcache.CacheCopy;
+import me.gorgeousone.netherview.blockcache.CacheProjection;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.viewfrustum.ViewingFrustum;
@@ -30,15 +31,20 @@ public class ViewingHandler {
 	private Main main;
 	private PortalHandler portalHandler;
 	private BlockCacheHandler cacheHandler;
-	private Map<UUID, Set<BlockCopy>> playerViews;
+	
+	private Map<UUID, CacheProjection> viewedProjections;
+	private Map<UUID, Set<BlockCopy>> playerViewSessions;
 	
 	public ViewingHandler(Main main,
 	                      PortalHandler portalHandler,
 	                      BlockCacheHandler cacheHandler) {
+		
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.cacheHandler = cacheHandler;
-		playerViews = new HashMap<>();
+		
+		viewedProjections = new HashMap<>();
+		playerViewSessions = new HashMap<>();
 	}
 	
 	public void reset() {
@@ -48,21 +54,21 @@ public class ViewingHandler {
 				hideViewSession(player);
 		}
 		
-		playerViews.clear();
+		playerViewSessions.clear();
 	}
 	
 	public Set<BlockCopy> getViewSession(Player player) {
 		
 		UUID uuid = player.getUniqueId();
 		
-		if (!playerViews.containsKey(uuid))
-			playerViews.put(uuid, new HashSet<>());
+		if (!playerViewSessions.containsKey(uuid))
+			playerViewSessions.put(uuid, new HashSet<>());
 		
-		return playerViews.get(uuid);
+		return playerViewSessions.get(uuid);
 	}
 	
 	public boolean hasViewSession(Player player) {
-		return playerViews.containsKey(player.getUniqueId());
+		return playerViewSessions.containsKey(player.getUniqueId());
 	}
 	
 	public void hideViewSession(Player player) {
@@ -73,7 +79,7 @@ public class ViewingHandler {
 		for (BlockCopy copy : getViewSession(player))
 			refreshBlock(player, copy);
 		
-		playerViews.remove(player.getUniqueId());
+		playerViewSessions.remove(player.getUniqueId());
 	}
 	
 	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
@@ -124,18 +130,18 @@ public class ViewingHandler {
 		if (!cacheHandler.isLinked(portal))
 			return;
 		
-		Map.Entry<CacheCopy, CacheCopy> projectingCaches = cacheHandler.getProjectionCaches(portal);
+		Map.Entry<CacheProjection, CacheProjection> projectingCaches = cacheHandler.getProjectionCaches(portal);
 		
-		CacheCopy cache = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? projectingCaches.getKey() : projectingCaches.getValue();
+		CacheProjection projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? projectingCaches.getKey() : projectingCaches.getValue();
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(playerEyeLoc.toVector(), portal.getPortalRect());
+		
+		viewedProjections.put(player.getUniqueId(), projection);
 		
 		Set<BlockCopy> visibleBlocks = new HashSet<>();
 		
 		if (displayFrustum) {
-			
-			//			visibleBlocks.addAll(getBlocksInFrustum(cache, playerFrustum));
-			visibleBlocks.addAll(getAllBlocks(cache));
-			//			System.out.println(cache.getMin() + ", " + cache.getMax());
+			visibleBlocks.addAll(getBlocksInFrustum(projection, playerFrustum));
+//			visibleBlocks.addAll(getAllBlocks(cache));
 			displayFrustum(player, playerFrustum);
 		}
 		
@@ -150,7 +156,7 @@ public class ViewingHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
-	private Set<BlockCopy> getAllBlocks(CacheCopy cache) {
+	private Set<BlockCopy> getAllBlocks(CacheProjection cache) {
 		
 		Set<BlockCopy> allBlocks = new HashSet<>();
 		
@@ -172,12 +178,12 @@ public class ViewingHandler {
 		return allBlocks;
 	}
 	
-	private Set<BlockCopy> getBlocksInFrustum(CacheCopy cache, ViewingFrustum frustum) {
+	private Set<BlockCopy> getBlocksInFrustum(CacheProjection projection, ViewingFrustum frustum) {
 		
 		Set<BlockCopy> blocksInFrustum = new HashSet<>();
 		
-		BlockVec min = cache.getMin();
-		BlockVec max = cache.getMax();
+		BlockVec min = projection.getMin();
+		BlockVec max = projection.getMax();
 		
 		for (int x = min.getX(); x <= max.getX(); x++) {
 			for (int y = min.getY(); y <= max.getY(); y++) {
@@ -188,12 +194,39 @@ public class ViewingHandler {
 					if (!frustum.contains(corner.toVector()))
 						continue;
 					
-					blocksInFrustum.addAll(cache.getCopiesAround(new BlockVec(x, y, z)));
+					blocksInFrustum.addAll(projection.getCopiesAround(new BlockVec(x, y, z)));
 				}
 			}
 		}
 		
 		return blocksInFrustum;
+	}
+	
+	public void updateProjections(BlockCache cache, Set<BlockCopy> updatedCopies) {
+		
+		for (CacheProjection projection : cacheHandler.getLinkedProjections(cache)) {
+			
+			Set<BlockCopy> projectionUpdates = new HashSet<>();
+			
+			for (BlockCopy updatedCopy : updatedCopies)
+				projectionUpdates.add(projection.updateCopy(updatedCopy));
+			
+			World projectionWorld = projection.getWorld();
+			
+			for (Player player : projectionWorld.getPlayers()) {
+				
+				if(viewedProjections.get(player.getUniqueId()) != projection)
+					continue;
+				
+				Set<BlockCopy> viewSession = getViewSession(player);
+				
+				for (BlockCopy blockCopy : projectionUpdates) {
+					
+					if(viewSession.contains(blockCopy))
+						player.sendBlockChange(blockCopy.getPosition().toLocation(projectionWorld), blockCopy.getBlockData());
+				}
+			}
+		}
 	}
 	
 	private void displayFrustum(Player player, ViewingFrustum frustum) {

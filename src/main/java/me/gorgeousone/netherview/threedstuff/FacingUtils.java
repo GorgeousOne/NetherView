@@ -1,12 +1,15 @@
 package me.gorgeousone.netherview.threedstuff;
 
+import me.gorgeousone.netherview.blockcache.BlockVec;
 import org.bukkit.Axis;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FacingUtils {
 	
@@ -80,5 +83,15 @@ public class FacingUtils {
 				BlockFace.EAST,
 				BlockFace.SOUTH,
 				BlockFace.NORTH};
+	}
+	
+	public static BlockVec[] getAxesBlockVecs() {
+		return new BlockVec[] {
+				new BlockVec(1, 0, 0),
+				new BlockVec(0, 1, 0),
+				new BlockVec(0, 0, 1),
+				new BlockVec(-1, 0, 0),
+				new BlockVec(0, -1, 0),
+				new BlockVec(0, 0, -1)};
 	}
 }

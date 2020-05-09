@@ -1,11 +1,11 @@
 package me.gorgeousone.netherview.blockcache;
 
-import org.bukkit.block.Block;
+import org.bukkit.World;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class CacheCopy {
+public class CacheProjection {
 	
 	private BlockCache sourceCache;
 	private Transform blockTransform;
@@ -13,13 +13,19 @@ public class CacheCopy {
 	private BlockCopy[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
+	private World world;
 	
-	public CacheCopy(BlockCache cache, Transform blockTransform) {
+	public CacheProjection(BlockCache cache, Transform blockTransform, World world) {
 		
 		this.sourceCache = cache;
 		this.blockTransform = blockTransform;
+		this.world = world;
 		
 		createBlockCopies();
+	}
+	
+	public World getWorld() {
+		return world;
 	}
 	
 	public BlockVec getMin() {
@@ -65,15 +71,17 @@ public class CacheCopy {
 		return blocksAroundCorner;
 	}
 	
-	public void updateCopy(Block sourceBlock) {
+	public BlockCopy updateCopy(BlockCopy sourceCopy) {
 		
-		BlockCopy newBlockCopy = blockTransform.transformBlockCopy(new BlockCopy(sourceBlock));
+		BlockCopy newBlockCopy = blockTransform.transformBlockCopy(sourceCopy.clone());
 		BlockVec blockPos = newBlockCopy.getPosition();
 		
 		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
 				[blockPos.getZ() - min.getZ()] = newBlockCopy;
+		
+		return newBlockCopy;
 	}
 	
 	private void createBlockCopies() {

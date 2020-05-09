@@ -4,11 +4,12 @@ import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockVec;
-import me.gorgeousone.netherview.blockcache.CacheCopy;
+import me.gorgeousone.netherview.blockcache.CacheProjection;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.Axis;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.util.Vector;
 
 import java.util.AbstractMap;
@@ -23,47 +24,62 @@ public class BlockCacheHandler {
 	
 	private Map<Portal, Portal> counterPortals;
 	
-	//map of portals with their natural blocks around them
-	private Map<Portal, Map.Entry<BlockCache, BlockCache>> blockCaches;
-	//map of portals and their copied area of their counter portals
-	private Map<Portal, Map.Entry<CacheCopy, CacheCopy>> projectionCaches;
-	//map of portals with all the portals, that are going to project their area
+	private Map<Portal, Map.Entry<BlockCache, BlockCache>> sourceCaches;
+	private Map<Portal, Map.Entry<CacheProjection, CacheProjection>> projectionCaches;
 	private Map<Portal, Set<Portal>> linkedPortals;
+	private Map<BlockCache, Set<CacheProjection>> linkedProjections;
 	
 	public BlockCacheHandler(Main main) {
 		this.main = main;
 		
-		blockCaches = new HashMap<>();
+		sourceCaches = new HashMap<>();
 		projectionCaches = new HashMap<>();
 		
 		counterPortals = new HashMap<>();
 		linkedPortals = new HashMap<>();
+		linkedProjections = new HashMap<>();
 	}
 	
-	public Portal getCounterPortal(Portal portal) {
-		return counterPortals.get(portal);
+	public Set<BlockCache> getSourceCaches() {
+		
+		Set<BlockCache> caches = new HashSet<>();
+		
+		for(Map.Entry<BlockCache, BlockCache> cache : sourceCaches.values()) {
+			caches.add(cache.getKey());
+			caches.add(cache.getValue());
+		}
+		
+		return caches;
 	}
 	
 	public boolean isLinked(Portal portal) {
 		return counterPortals.containsKey(portal);
 	}
 	
-	public void createBlockCaches(Portal portal) {
-		blockCaches.put(portal, BlockCacheFactory.createBlockCache(portal, main.getPortalProjectionDist()));
+	public Portal getCounterPortal(Portal portal) {
+		return counterPortals.get(portal);
 	}
 	
 	public Map.Entry<BlockCache, BlockCache> getBlockCaches(Portal portal) {
 		
-		blockCaches.computeIfAbsent(portal, v -> BlockCacheFactory.createBlockCache(portal, main.getPortalProjectionDist()));
-		return blockCaches.get(portal);
+		sourceCaches.putIfAbsent(portal, BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
+		return sourceCaches.get(portal);
 	}
 	
-	public boolean hasBlockCaches(Portal portal) {
-		return blockCaches.containsKey(portal);
-	}
+//	public void createBlockCaches(Portal portal) {
+//		sourceCaches.put(portal, BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
+//	}
+
+//	public boolean hasBlockCaches(Portal portal) {
+//		return sourceCaches.containsKey(portal);
+//	}
 	
-	public Map.Entry<CacheCopy, CacheCopy> getProjectionCaches(Portal portal) {
+	public Map.Entry<CacheProjection, CacheProjection> getProjectionCaches(Portal portal) {
 		return projectionCaches.get(portal);
+	}
+	
+	public Set<CacheProjection> getLinkedProjections(BlockCache cache) {
+		return linkedProjections.getOrDefault(cache, new HashSet<>());
 	}
 	
 	public void linkPortal(Portal portal, Portal counterPortal) {
@@ -74,15 +90,25 @@ public class BlockCacheHandler {
 		Map.Entry<BlockCache, BlockCache> blockCaches = getBlockCaches(counterPortal);
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
 		
-		//notice that the block caches are also switching key value position related to the transform
-		projectionCaches.put(portal, new AbstractMap.SimpleEntry<>(
-				new CacheCopy(blockCaches.getValue(), linkTransform),
-				new CacheCopy(blockCaches.getKey(), linkTransform)
-		));
+		BlockCache cache1 = blockCaches.getKey();
+		BlockCache cache2 = blockCaches.getValue();
 		
+		World portalWorld = portal.getWorld();
+		
+		CacheProjection copy1 = new CacheProjection(cache2, linkTransform, portalWorld);
+		CacheProjection copy2 = new CacheProjection(cache1, linkTransform, portalWorld);
+		
+		//notice that the block caches are also switching key value position related to the transform
+		projectionCaches.put(portal, new AbstractMap.SimpleEntry<>(copy1, copy2));
 		counterPortals.put(portal, counterPortal);
-		linkedPortals.computeIfAbsent(counterPortal, v -> new HashSet<>());
+		
+		linkedPortals.putIfAbsent(counterPortal, new HashSet<>());
 		linkedPortals.get(counterPortal).add(portal);
+		
+		linkedProjections.putIfAbsent(cache1, new HashSet<>());
+		linkedProjections.putIfAbsent(cache2, new HashSet<>());
+		linkedProjections.get(cache1).add(copy2);
+		linkedProjections.get(cache2).add(copy1);
 	}
 	
 	public void deletePortal(Portal portal) {
@@ -92,7 +118,7 @@ public class BlockCacheHandler {
 		
 		linkedPortals.remove(portal);
 		projectionCaches.remove(portal);
-		blockCaches.remove(portal);
+		sourceCaches.remove(portal);
 	}
 	
 	private Transform calculateLinkTransform(Portal portal, Portal counterPortal) {

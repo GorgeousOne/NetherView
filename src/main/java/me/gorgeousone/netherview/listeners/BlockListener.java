@@ -1,10 +1,16 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.Main;
+import me.gorgeousone.netherview.blockcache.BlockCache;
+import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
+import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.blockcache.BlockVec;
+import me.gorgeousone.netherview.handlers.BlockCacheHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -25,18 +31,22 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashSet;
+import java.util.Set;
 
 public class BlockListener implements Listener {
 	
 	private Main main;
 	private PortalHandler portalHandler;
+	private BlockCacheHandler cacheHandler;
 	private ViewingHandler viewingHandler;
 	
 	public BlockListener(Main main,
 	                     PortalHandler portalHandler,
+	                     BlockCacheHandler cacheHandler,
 	                     ViewingHandler viewingHandler) {
 		this.main = main;
 		this.portalHandler = portalHandler;
+		this.cacheHandler = cacheHandler;
 		this.viewingHandler = viewingHandler;
 	}
 	
@@ -64,38 +74,44 @@ public class BlockListener implements Listener {
 		}
 	}
 	
-	private void updateBlockCaches(Block block) {
+	private void updateBlockCaches(Block block, BlockData newBlockData, boolean blockWasOccluding) {
 		
-		//		BlockVec vec = new BlockVec(block);
-		//		for(BlockCache cache : portalHandler.getSourceCaches()) {
-		//
-		//			if(cache.contains(vec)) {
-		//				cache.updateCopy(block);
-		//			}
-		//		}
+		BlockVec blockPos = new BlockVec(block);
+		for(BlockCache cache : cacheHandler.getSourceCaches()) {
+
+			if(!cache.contains(blockPos))
+				continue;
+			
+			Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
+			
+			if(updatedCopies.isEmpty())
+				continue;
+			
+			viewingHandler.updateProjections(cache, updatedCopies);
+		}
 	}
 	
 	@EventHandler
 	public void onInteract(PlayerInteractEvent event) {
-	
-	
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		removeDamagedPortals(event.getBlock());
+		
+		Block block = event.getBlock();
+		removeDamagedPortals(block);
+		updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
-		//		event.get
+		Bukkit.broadcastMessage("from PROBABLY AIR to " + event.getBlock().getType().name());
+		Block block = event.getBlock();
+		updateBlockCaches(block, block.getBlockData(), false);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onBlockExplode(BlockExplodeEvent event) {
-		
-		for (Block block : event.blockList()) {
-		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -137,6 +153,5 @@ public class BlockListener implements Listener {
 	//falling sand and maybe endermen
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-	
 	}
 }
