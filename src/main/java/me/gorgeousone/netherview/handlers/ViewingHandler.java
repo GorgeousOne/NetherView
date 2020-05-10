@@ -32,6 +32,7 @@ public class ViewingHandler {
 	private PortalHandler portalHandler;
 	private BlockCacheHandler cacheHandler;
 	
+	private Map<UUID, Portal> viewedPortals;
 	private Map<UUID, CacheProjection> viewedProjections;
 	private Map<UUID, Set<BlockCopy>> playerViewSessions;
 	
@@ -45,6 +46,7 @@ public class ViewingHandler {
 		
 		viewedProjections = new HashMap<>();
 		playerViewSessions = new HashMap<>();
+		viewedPortals = new HashMap<>();
 	}
 	
 	public void reset() {
@@ -135,6 +137,7 @@ public class ViewingHandler {
 		CacheProjection projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? projectingCaches.getKey() : projectingCaches.getValue();
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(playerEyeLoc.toVector(), portal.getPortalRect());
 		
+		viewedPortals.put(player.getUniqueId(), portal);
 		viewedProjections.put(player.getUniqueId(), projection);
 		
 		Set<BlockCopy> visibleBlocks = new HashSet<>();
@@ -218,11 +221,12 @@ public class ViewingHandler {
 				if(viewedProjections.get(player.getUniqueId()) != projection)
 					continue;
 				
-				Set<BlockCopy> viewSession = getViewSession(player);
+				Portal portal = viewedPortals.get(player.getUniqueId());
+				ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(player.getEyeLocation().toVector(), portal.getPortalRect());
 				
 				for (BlockCopy blockCopy : projectionUpdates) {
 					
-					if(viewSession.contains(blockCopy))
+					if(playerFrustum.contains(blockCopy.getPosition().toVector()))
 						player.sendBlockChange(blockCopy.getPosition().toLocation(projectionWorld), blockCopy.getBlockData());
 				}
 			}

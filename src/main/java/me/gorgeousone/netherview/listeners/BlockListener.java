@@ -95,7 +95,7 @@ public class BlockListener implements Listener {
 	public void onInteract(PlayerInteractEvent event) {
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
 		
 		Block block = event.getBlock();
@@ -103,55 +103,57 @@ public class BlockListener implements Listener {
 		updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
-		Bukkit.broadcastMessage("from PROBABLY AIR to " + event.getBlock().getType().name());
+		
 		Block block = event.getBlock();
 		updateBlockCaches(block, block.getBlockData(), false);
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockExplode(BlockExplodeEvent event) {
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockExplode(EntityExplodeEvent event) {
 		
-		for (Block block : event.blockList()) {
-		}
+		for(Block block : event.blockList())
+			updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
 	}
 	
 	//water, lava, dragon eggs
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockSpill(BlockFromToEvent event) {
+		Block block = event.getToBlock();
+		updateBlockCaches(block, event.getBlock().getBlockData(), false);
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBurn(BlockBurnEvent event) {
 	}
 	
 	//pumpkin/melon growing
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockGrow(BlockGrowEvent event) {
 	}
 	
 	//grass, mycelium spreading
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockSpread(BlockSpreadEvent event) {
 	}
 	
 	//obsidian, concrete
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockForm(BlockFormEvent event) {
 	}
 	
 	//ice melting
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockFade(BlockFadeEvent event) {
 	}
 	
 	//falling sand and maybe endermen
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityChangeBlock(EntityChangeBlockEvent event) {
 	}
 }

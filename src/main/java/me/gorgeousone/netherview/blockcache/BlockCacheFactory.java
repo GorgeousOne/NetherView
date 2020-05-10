@@ -4,6 +4,7 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.Axis;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -183,37 +184,43 @@ public class BlockCacheFactory {
 					blockPos.getX(),
 					blockPos.getY(),
 					blockPos.getZ()));
+			
+			cache.setBlockCopy(blockCopy);
 		}
 		
-		changedBlocks.add(blockCopy);
 		blockCopy.setData(newBlockData);
+		changedBlocks.add(blockCopy);
 		
+		//hide other block copies that are now covered by this occluding block
 		if(newMaterial.isOccluding()) {
+			
+			Bukkit.broadcastMessage("new solid block");
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
-				
-				if(cache.isBlockVisible(touchingBlockPos)) {
-				
-				}else {
+
+				if(!cache.isBlockNowVisible(touchingBlockPos)) {
 					cache.removeBlockCopy(touchingBlockPos);
+					//TODO dont send air, just refresh the block
 					changedBlocks.add(new BlockCopy(touchingBlockPos, Material.AIR.createBlockData()));
 				}
 			}
-			
+
+		//recreate block copies that are revealed by the new transparent block
 		}else {
+			
+			Bukkit.broadcastMessage("new transparent block");
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
 				
-				if (!cache.contains(touchingBlockPos))
+				System.out.println(touchingBlockPos + " - visible " + cache.isBlockListedVisible(touchingBlockPos));
+				
+				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos))
 					continue;
-				
-				BlockCopy touchingCopy = cache.getCopyAt(touchingBlockPos);
-				
-				if (touchingCopy == null)
-					touchingCopy = new BlockCopy(touchingBlockPos, newBlockData);
-				
+
+				BlockCopy touchingCopy = new BlockCopy(touchingBlockPos.toLocation(cacheWorld).getBlock());
+				Bukkit.broadcastMessage("added " + touchingBlockPos);
 				cache.setBlockCopy(touchingCopy);
 				changedBlocks.add(touchingCopy);
 			}

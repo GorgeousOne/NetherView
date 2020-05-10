@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -77,11 +78,15 @@ public class BlockCache {
 			return z == minZ;
 	}
 	
-	public boolean isBlockVisible(BlockVec blockPos) {
+	public BlockCopy getCopyAt(BlockVec blockPos) {
+		
+		if (!contains(blockPos))
+			return null;
+		
 		return blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
-				[blockPos.getZ() - min.getZ()] != null;
+				[blockPos.getZ() - min.getZ()];
 	}
 	
 	public void setBlockCopy(BlockCopy copy) {
@@ -104,16 +109,30 @@ public class BlockCache {
 				[blockPos.getZ() - min.getZ()] = null;
 	}
 	
-	public BlockCopy getCopyAt(BlockVec loc) {
+	/**
+	 * Returns true if the block copy at the given position is listed as visible (it's not null)
+	 */
+	public boolean isBlockListedVisible(BlockVec blockPos) {
+		return getCopyAt(blockPos) != null;
+	}
+	
+	/**
+	 * Returns true if the block copy at the given position is visible by checking the surrounding block copies for transparent ones
+	 */
+	public boolean isBlockNowVisible(BlockVec blockPos) {
 		
-		if (!contains(loc))
-			return null;
+		for(BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+			BlockVec touchingBlockPos = blockPos.clone().add(facing);
+			
+			if(!contains(touchingBlockPos))
+				continue;
+			
+			BlockCopy touchingCopy = getCopyAt(touchingBlockPos);
+			
+			if (touchingCopy != null && !touchingCopy.getBlockData().getMaterial().isOccluding())
+				return true;
+		}
 		
-		BlockCopy copy = blockCopies
-				[loc.getX() - min.getX()]
-				[loc.getY() - min.getY()]
-				[loc.getZ() - min.getZ()];
-		
-		return copy == null ? null : copy.clone();
+		return false;
 	}
 }
