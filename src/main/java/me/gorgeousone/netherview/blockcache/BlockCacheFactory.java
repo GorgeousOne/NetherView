@@ -4,7 +4,6 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.Axis;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -19,49 +18,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class BlockCacheFactory {
-	
-	//	public static BlockCache getTransformed(BlockCache cache, Transform transform) {
-	//
-	//		BlockVec min = cache.getMin();
-	//		BlockVec max = cache.getMax();
-	//
-	//		BlockVec corner1 = transform.transformVec(min.clone());
-	//		BlockVec corner2 = transform.transformVec(max.clone());
-	//
-	//		BlockVec newMin = BlockVec.getMinimum(corner1, corner2);
-	//		BlockVec newMax = BlockVec.getMaximum(corner1, corner2);
-	//
-	//		int minX = newMin.getX();
-	//		int minY = newMin.getY();
-	//		int minZ = newMin.getZ();
-	//		int maxX = newMax.getX();
-	//		int maxY = newMax.getY();
-	//		int maxZ = newMax.getZ();
-	//
-	//		BlockCopy[][][] newBlockCopies = new BlockCopy[maxX - minX + 1][maxY - minY + 1][maxZ - minZ + 1];
-	//
-	//		for (int x = min.getX(); x < max.getX(); x++) {
-	//			for (int y = min.getY(); y < max.getY(); y++) {
-	//				for (int z = min.getZ(); z < max.getZ(); z++) {
-	//
-	//					BlockVec blockPos = new BlockVec(x, y, z);
-	//					BlockCopy blockCopy = cache.getCopyAt(blockPos);
-	//
-	//					if (blockCopy == null)
-	//						continue;
-	//
-	//					BlockCopy transformedBlockCopy = transform.transformBlockCopy(blockCopy.clone());
-	//					BlockVec newBlockPos = transformedBlockCopy.getPosition();
-	//
-	//					newBlockCopies[newBlockPos.getX() - minX]
-	//							[newBlockPos.getY() - minY]
-	//							[newBlockPos.getZ() - minZ] = transformedBlockCopy;
-	//				}
-	//			}
-	//		}
-	//
-	//		return new BlockCache(newMin, newBlockCopies);
-	//	}
 	
 	public static Map.Entry<BlockCache, BlockCache> createBlockCaches(Portal portal, int viewDist) {
 		
@@ -192,35 +148,31 @@ public class BlockCacheFactory {
 		changedBlocks.add(blockCopy);
 		
 		//hide other block copies that are now covered by this occluding block
-		if(newMaterial.isOccluding()) {
-			
-			Bukkit.broadcastMessage("new solid block");
+		if (newMaterial.isOccluding()) {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
-
-				if(!cache.isBlockNowVisible(touchingBlockPos)) {
+				
+				if (!cache.contains(touchingBlockPos))
+					continue;
+				
+				if (!cache.isBlockNowVisible(touchingBlockPos)) {
 					cache.removeBlockCopy(touchingBlockPos);
 					//TODO dont send air, just refresh the block
 					changedBlocks.add(new BlockCopy(touchingBlockPos, Material.AIR.createBlockData()));
 				}
 			}
-
-		//recreate block copies that are revealed by the new transparent block
-		}else {
 			
-			Bukkit.broadcastMessage("new transparent block");
+			//recreate block copies that are revealed by the new transparent block
+		} else {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
 				
-				System.out.println(touchingBlockPos + " - visible " + cache.isBlockListedVisible(touchingBlockPos));
-				
 				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos))
 					continue;
-
+				
 				BlockCopy touchingCopy = new BlockCopy(touchingBlockPos.toLocation(cacheWorld).getBlock());
-				Bukkit.broadcastMessage("added " + touchingBlockPos);
 				cache.setBlockCopy(touchingCopy);
 				changedBlocks.add(touchingCopy);
 			}

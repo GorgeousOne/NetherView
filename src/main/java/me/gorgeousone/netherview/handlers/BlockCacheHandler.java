@@ -44,7 +44,7 @@ public class BlockCacheHandler {
 		
 		Set<BlockCache> caches = new HashSet<>();
 		
-		for(Map.Entry<BlockCache, BlockCache> cache : sourceCaches.values()) {
+		for (Map.Entry<BlockCache, BlockCache> cache : sourceCaches.values()) {
 			caches.add(cache.getKey());
 			caches.add(cache.getValue());
 		}
@@ -66,13 +66,13 @@ public class BlockCacheHandler {
 		return sourceCaches.get(portal);
 	}
 	
-//	public void createBlockCaches(Portal portal) {
-//		sourceCaches.put(portal, BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
-//	}
-
-//	public boolean hasBlockCaches(Portal portal) {
-//		return sourceCaches.containsKey(portal);
-//	}
+	//	public void createBlockCaches(Portal portal) {
+	//		sourceCaches.put(portal, BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
+	//	}
+	
+	//	public boolean hasBlockCaches(Portal portal) {
+	//		return sourceCaches.containsKey(portal);
+	//	}
 	
 	public Map.Entry<CacheProjection, CacheProjection> getProjectionCaches(Portal portal) {
 		return projectionCaches.get(portal);

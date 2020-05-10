@@ -7,9 +7,7 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class FacingUtils {
 	
@@ -86,7 +84,7 @@ public class FacingUtils {
 	}
 	
 	public static BlockVec[] getAxesBlockVecs() {
-		return new BlockVec[] {
+		return new BlockVec[]{
 				new BlockVec(1, 0, 0),
 				new BlockVec(0, 1, 0),
 				new BlockVec(0, 0, 1),

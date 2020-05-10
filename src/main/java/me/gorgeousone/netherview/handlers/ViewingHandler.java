@@ -144,7 +144,7 @@ public class ViewingHandler {
 		
 		if (displayFrustum) {
 			visibleBlocks.addAll(getBlocksInFrustum(projection, playerFrustum));
-//			visibleBlocks.addAll(getAllBlocks(cache));
+			//			visibleBlocks.addAll(getAllBlocks(cache));
 			displayFrustum(player, playerFrustum);
 		}
 		
@@ -218,7 +218,7 @@ public class ViewingHandler {
 			
 			for (Player player : projectionWorld.getPlayers()) {
 				
-				if(viewedProjections.get(player.getUniqueId()) != projection)
+				if (viewedProjections.get(player.getUniqueId()) != projection)
 					continue;
 				
 				Portal portal = viewedPortals.get(player.getUniqueId());
@@ -226,7 +226,7 @@ public class ViewingHandler {
 				
 				for (BlockCopy blockCopy : projectionUpdates) {
 					
-					if(playerFrustum.contains(blockCopy.getPosition().toVector()))
+					if (playerFrustum.contains(blockCopy.getPosition().toVector()))
 						player.sendBlockChange(blockCopy.getPosition().toLocation(projectionWorld), blockCopy.getBlockData());
 				}
 			}

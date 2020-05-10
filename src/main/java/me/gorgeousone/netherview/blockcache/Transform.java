@@ -8,6 +8,10 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.block.data.Rotatable;
+import org.bukkit.block.data.type.RedstoneWire;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Transform {
 	
@@ -135,12 +139,22 @@ public class Transform {
 			
 			for (BlockFace face : multiFacing.getFaces()) {
 				//e.g. vines can face the ceiling, that cant be rotated
-				if (!FacingUtils.isRotatableFace(face))
-					continue;
-				
-				multiFacing.setFace(face, false);
-				multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), true);
+				if (FacingUtils.isRotatableFace(face)) {
+					multiFacing.setFace(face, false);
+					multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), true);
+				}
 			}
+			
+		} else if (data instanceof RedstoneWire) {
+			
+			RedstoneWire wire = (RedstoneWire) data;
+			Map<BlockFace, RedstoneWire.Connection> connections = new HashMap<>();
+			
+			for (BlockFace face : wire.getAllowedFaces())
+				connections.put(face, wire.getFace(face));
+			
+			for (BlockFace face : connections.keySet())
+				wire.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), connections.get(face));
 		}
 		
 		return data;

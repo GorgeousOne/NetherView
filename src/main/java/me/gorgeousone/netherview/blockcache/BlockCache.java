@@ -2,7 +2,6 @@ package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
@@ -93,7 +92,7 @@ public class BlockCache {
 		
 		BlockVec blockPos = copy.getPosition();
 		
-		if(isBorder(blockPos))
+		if (isBorder(blockPos))
 			copy.setData(borderBlock);
 		
 		blockCopies
@@ -121,10 +120,10 @@ public class BlockCache {
 	 */
 	public boolean isBlockNowVisible(BlockVec blockPos) {
 		
-		for(BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+		for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
 			BlockVec touchingBlockPos = blockPos.clone().add(facing);
 			
-			if(!contains(touchingBlockPos))
+			if (!contains(touchingBlockPos))
 				continue;
 			
 			BlockCopy touchingCopy = getCopyAt(touchingBlockPos);
