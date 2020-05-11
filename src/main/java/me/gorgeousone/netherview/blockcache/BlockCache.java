@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
@@ -47,6 +48,9 @@ public class BlockCache {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
+	/**
+	 * Returns true if the block is at any position bordering the cuboid except the side facing the portal.
+	 */
 	public boolean isBorder(BlockVec loc) {
 		
 		if (loc.getY() == min.getY() || loc.getY() == max.getY() - 1)
@@ -77,7 +81,7 @@ public class BlockCache {
 			return z == minZ;
 	}
 	
-	public BlockCopy getCopyAt(BlockVec blockPos) {
+	public BlockCopy getBlockCopyAt(BlockVec blockPos) {
 		
 		if (!contains(blockPos))
 			return null;
@@ -101,7 +105,7 @@ public class BlockCache {
 				[blockPos.getZ() - min.getZ()] = copy;
 	}
 	
-	public void removeBlockCopy(BlockVec blockPos) {
+	public void removeBlockCopyAt(BlockVec blockPos) {
 		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
@@ -112,7 +116,7 @@ public class BlockCache {
 	 * Returns true if the block copy at the given position is listed as visible (it's not null)
 	 */
 	public boolean isBlockListedVisible(BlockVec blockPos) {
-		return getCopyAt(blockPos) != null;
+		return getBlockCopyAt(blockPos) != null;
 	}
 	
 	/**
@@ -126,12 +130,13 @@ public class BlockCache {
 			if (!contains(touchingBlockPos))
 				continue;
 			
-			BlockCopy touchingCopy = getCopyAt(touchingBlockPos);
+			BlockCopy touchingCopy = getBlockCopyAt(touchingBlockPos);
 			
 			if (touchingCopy != null && !touchingCopy.getBlockData().getMaterial().isOccluding())
 				return true;
 		}
 		
+		//TODO check if block is directly in front of the portal.
 		return false;
 	}
 }

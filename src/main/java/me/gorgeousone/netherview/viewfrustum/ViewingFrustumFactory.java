@@ -2,6 +2,7 @@ package me.gorgeousone.netherview.viewfrustum;
 
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
+import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import me.gorgeousone.netherview.threedstuff.Line;
 import org.bukkit.Axis;
 import org.bukkit.entity.Player;
@@ -34,11 +35,17 @@ public final class ViewingFrustumFactory {
 		Vector portalNormal = portalRect.getPlane().getNormal();
 		Vector playerFacingToPortal = portalNormal.clone().multiply(isPlayerBehindPortal ? 1 : -1);
 		
-		//aka near plane of the viewing frustum. the maximum rectangle the player can possibly see
+		//this will become near plane of the viewing frustum. It will be cropped to fit the actual player view
 		AxisAlignedRect maxViewingRect = portalRect.clone().translate(playerFacingToPortal.clone().multiply(0.5));
 		
-		Vector viewingRectMin = maxViewingRect.getMin();
-		Vector viewingRectMax = maxViewingRect.getMax();
+		//somehow you can see a few more blocks with a high FOV, on the sides of the screen. 
+		// Thus the portal bounds get widened a bit with this threshold.
+		Vector threshold = FacingUtils.getAxisWidthFacing(portalRect.getAxis());
+		threshold.setY(1);
+		threshold.multiply(0.2);
+		
+		Vector viewingRectMin = maxViewingRect.getMin().subtract(threshold);
+		Vector viewingRectMax = maxViewingRect.getMax().add(threshold);
 		
 		//if needed the viewing rect bounds are contracted with ray casting
 		//here for the height...

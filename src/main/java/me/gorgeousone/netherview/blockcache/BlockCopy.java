@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 

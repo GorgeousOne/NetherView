@@ -1,11 +1,12 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class CacheProjection {
+public class ProjectionCache {
 	
 	private BlockCache sourceCache;
 	private Transform blockTransform;
@@ -15,7 +16,7 @@ public class CacheProjection {
 	private BlockVec max;
 	private World world;
 	
-	public CacheProjection(BlockCache cache, Transform blockTransform, World world) {
+	public ProjectionCache(BlockCache cache, Transform blockTransform, World world) {
 		
 		this.sourceCache = cache;
 		this.blockTransform = blockTransform;
@@ -109,7 +110,7 @@ public class CacheProjection {
 				for (int z = sourceMin.getZ(); z < sourceMax.getZ(); z++) {
 					
 					BlockVec blockPos = new BlockVec(x, y, z);
-					BlockCopy blockCopy = sourceCache.getCopyAt(blockPos);
+					BlockCopy blockCopy = sourceCache.getBlockCopyAt(blockPos);
 					
 					if (blockCopy == null)
 						continue;

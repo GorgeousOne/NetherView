@@ -1,6 +1,6 @@
 package threedtests;
 
-import me.gorgeousone.netherview.blockcache.BlockVec;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.blockcache.Transform;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

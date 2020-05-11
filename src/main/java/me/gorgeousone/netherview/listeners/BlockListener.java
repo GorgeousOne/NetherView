@@ -4,8 +4,7 @@ import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
-import me.gorgeousone.netherview.blockcache.BlockVec;
-import me.gorgeousone.netherview.handlers.BlockCacheHandler;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
@@ -30,22 +29,20 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class BlockListener implements Listener {
 	
 	private Main main;
 	private PortalHandler portalHandler;
-	private BlockCacheHandler cacheHandler;
 	private ViewingHandler viewingHandler;
 	
 	public BlockListener(Main main,
 	                     PortalHandler portalHandler,
-	                     BlockCacheHandler cacheHandler,
 	                     ViewingHandler viewingHandler) {
 		this.main = main;
 		this.portalHandler = portalHandler;
-		this.cacheHandler = cacheHandler;
 		this.viewingHandler = viewingHandler;
 	}
 	
@@ -66,28 +63,39 @@ public class BlockListener implements Listener {
 	
 	private void updateBlockCaches(Block block, BlockData newBlockData, boolean blockWasOccluding) {
 		
+		World blockWorld = block.getWorld();
+		
+		if (!main.canBeViewed(blockWorld))
+			return;
+		
 		BlockVec blockPos = new BlockVec(block);
-		for (BlockCache cache : cacheHandler.getSourceCaches()) {
+		
+		//TODO filter caches by world
+		for (Portal portal : portalHandler.getPortals(blockWorld)) {
 			
-			if (!cache.contains(blockPos))
-				continue;
+			Map.Entry<BlockCache, BlockCache> caches = portal.getBlockCaches();
+			BlockCache front = caches.getKey();
+			BlockCache back = caches.getValue();
 			
-			Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
+			if (front.contains(blockPos)) {
+				Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(front, block, newBlockData, blockWasOccluding);
+				
+				if (updatedCopies.isEmpty())
+					viewingHandler.updateProjections(front, updatedCopies);
+			}
 			
-			if (updatedCopies.isEmpty())
-				continue;
-			
-			viewingHandler.updateProjections(cache, updatedCopies);
+			if (back.contains(blockPos)) {
+				Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(back, block, newBlockData, blockWasOccluding);
+				
+				if (updatedCopies.isEmpty())
+					viewingHandler.updateProjections(back, updatedCopies);
+			}
 		}
 	}
 	
 	@EventHandler
 	public void onInteract(PlayerInteractEvent event) {
 	
-	}
-	
-	private boolean isTntIgnited(PlayerInteractEvent event) {
-		return false;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -110,6 +118,12 @@ public class BlockListener implements Listener {
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockExplode(BlockExplodeEvent event) {
+		
+		for (Block block : event.blockList()) {
+			if(block.getType() == Material.NETHER_PORTAL)
+				removeDamagedPortals(block);
+		}
+		
 		for (Block block : event.blockList())
 			updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
 	}

@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.Main;
-import me.gorgeousone.netherview.handlers.BlockCacheHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
@@ -19,14 +18,11 @@ public class TeleportListener implements Listener {
 	
 	private Main main;
 	private PortalHandler portalHandler;
-	private BlockCacheHandler cacheHandler;
 	
 	public TeleportListener(Main main,
-	                        PortalHandler portalHandler,
-	                        BlockCacheHandler cacheHandler) {
+	                        PortalHandler portalHandler) {
 		this.main = main;
 		this.portalHandler = portalHandler;
-		this.cacheHandler = cacheHandler;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -49,8 +45,8 @@ public class TeleportListener implements Listener {
 		if (portalBlock == null)
 			return;
 		
-		Portal portal = portalHandler.getPortalByBlock(portalBlock);
 		Player player = event.getPlayer();
+		Portal portal = portalHandler.getPortalByBlock(portalBlock);
 		
 		if (portal == null) {
 			
@@ -63,7 +59,8 @@ public class TeleportListener implements Listener {
 			}
 		}
 		
-		if (cacheHandler.getCounterPortal(portal) == null) {
+		
+		if (!portal.isLinked()) {
 			
 			Block counterPortalBlock = getNearbyPortalBlock(to);
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
@@ -79,7 +76,7 @@ public class TeleportListener implements Listener {
 			}
 			
 			try {
-				cacheHandler.linkPortal(portal, counterPortal);
+				portalHandler.linkPortalTo(portal, counterPortal);
 				event.setCancelled(true);
 				
 			} catch (IllegalStateException ex) {
@@ -89,8 +86,8 @@ public class TeleportListener implements Listener {
 	}
 	
 	/**
-	 * Finds the portal block a player might have touched at the location or the blocks next to it.
-	 * (players in creative mode teleport to the nether before directly touching any portal block)
+	 * Finds the portal block a player might have touched at the location or the blocks next to it
+	 * (players in creative mode often teleport to the nether before their location appears to be inside a portal).
 	 */
 	private Block getNearbyPortalBlock(Location location) {
 		
@@ -108,5 +105,4 @@ public class TeleportListener implements Listener {
 		
 		return null;
 	}
-	
 }

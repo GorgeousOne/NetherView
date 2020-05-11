@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview.threedstuff;
 
-import me.gorgeousone.netherview.blockcache.BlockVec;
 import org.bukkit.Axis;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;

@@ -2,6 +2,7 @@ package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.Axis;
 import org.bukkit.Location;
@@ -21,8 +22,8 @@ public class BlockCacheFactory {
 	
 	public static Map.Entry<BlockCache, BlockCache> createBlockCaches(Portal portal, int viewDist) {
 		
-		//theoretically the view distance needs to be increased by 1 for the extra layer of border around the cuboid of blocks
-		//but somehow it is even 2. Don't ask me
+		//theoretically the view distance needs to be increased by 1 for the extra layer of border around the cuboid of blocks.
+		//but somehow it's 2. Don't ask me.
 		viewDist += 2;
 		
 		AxisAlignedRect portalRect = portal.getPortalRect();
@@ -34,7 +35,8 @@ public class BlockCacheFactory {
 		//the view distance in blocks to the front shall be greater than at the sides
 		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
 		int frontViewDist = minPortalExtent + viewDist;
-		int sideViewDist = (int) Math.ceil(viewDist / 2d);
+		
+		int sideViewDist = (int) Math.ceil(viewDist / 1.618d);
 		
 		Vector cacheCorner1 = portalRect.getMin();
 		cacheCorner1.subtract(new Vector(0, sideViewDist, 0));
@@ -120,7 +122,7 @@ public class BlockCacheFactory {
 		if (cache.isBorder(blockPos))
 			return changedBlocks;
 		
-		BlockCopy blockCopy = cache.getCopyAt(blockPos);
+		BlockCopy blockCopy = cache.getBlockCopyAt(blockPos);
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
 		if (blockWasOccluding == newMaterial.isOccluding()) {
@@ -157,7 +159,7 @@ public class BlockCacheFactory {
 					continue;
 				
 				if (!cache.isBlockNowVisible(touchingBlockPos)) {
-					cache.removeBlockCopy(touchingBlockPos);
+					cache.removeBlockCopyAt(touchingBlockPos);
 					//TODO dont send air, just refresh the block
 					changedBlocks.add(new BlockCopy(touchingBlockPos, Material.AIR.createBlockData()));
 				}

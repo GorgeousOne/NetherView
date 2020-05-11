@@ -1,13 +1,17 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.blockcache.BlockVec;
+import me.gorgeousone.netherview.blockcache.BlockCache;
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
+import java.util.AbstractMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Portal {
@@ -21,6 +25,11 @@ public class Portal {
 	private BlockVec min;
 	private BlockVec max;
 	
+	private Portal counterPortal;
+	
+	private Map.Entry<BlockCache, BlockCache> blockCaches;
+	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
+	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
 	              Set<Block> portalBlocks,
@@ -30,8 +39,10 @@ public class Portal {
 		
 		this.world = world;
 		this.portalRect = portalRect;
+		
 		this.portalBlocks = portalBlocks;
 		this.frameBlocks = frameBlocks;
+		
 		this.min = min;
 		this.max = max;
 	}
@@ -66,15 +77,32 @@ public class Portal {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
-	public boolean containsBlock(Block portalBlock) {
-		return portalBlocks.contains(portalBlock);
-	}
-	
 	public boolean equalsInSize(Portal other) {
 		
 		AxisAlignedRect otherRect = other.getPortalRect();
 		
 		return portalRect.width() == otherRect.width() &&
 		       portalRect.height() == otherRect.height();
+	}
+	
+	public void setLinkedTo(Portal counterPortal, Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
+		this.counterPortal = counterPortal;
+		this.projectionCaches = projectionCaches;
+	}
+	
+	public boolean isLinked() {
+		return counterPortal != null;
+	}
+	
+	public void setBlockCaches(Map.Entry<BlockCache, BlockCache> blockCaches) {
+		this.blockCaches = blockCaches;
+	}
+	
+	public Map.Entry<BlockCache, BlockCache> getBlockCaches() {
+		return blockCaches;
+	}
+	
+	public Map.Entry<ProjectionCache, ProjectionCache> getProjectionCaches() {
+		return projectionCaches;
 	}
 }

@@ -3,8 +3,8 @@ package me.gorgeousone.netherview.handlers;
 import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
-import me.gorgeousone.netherview.blockcache.BlockVec;
-import me.gorgeousone.netherview.blockcache.CacheProjection;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.viewfrustum.ViewingFrustum;
@@ -30,19 +30,15 @@ public class ViewingHandler {
 	
 	private Main main;
 	private PortalHandler portalHandler;
-	private BlockCacheHandler cacheHandler;
 	
 	private Map<UUID, Portal> viewedPortals;
-	private Map<UUID, CacheProjection> viewedProjections;
+	private Map<UUID, ProjectionCache> viewedProjections;
 	private Map<UUID, Set<BlockCopy>> playerViewSessions;
 	
-	public ViewingHandler(Main main,
-	                      PortalHandler portalHandler,
-	                      BlockCacheHandler cacheHandler) {
+	public ViewingHandler(Main main, PortalHandler portalHandler) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
-		this.cacheHandler = cacheHandler;
 		
 		viewedProjections = new HashMap<>();
 		playerViewSessions = new HashMap<>();
@@ -129,12 +125,12 @@ public class ViewingHandler {
 	                            boolean hidePortalBlocks) {
 		
 		
-		if (!cacheHandler.isLinked(portal))
+		if (!portal.isLinked())
 			return;
 		
-		Map.Entry<CacheProjection, CacheProjection> projectingCaches = cacheHandler.getProjectionCaches(portal);
+		Map.Entry<ProjectionCache, ProjectionCache> projectingCaches = portal.getProjectionCaches();
 		
-		CacheProjection projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? projectingCaches.getKey() : projectingCaches.getValue();
+		ProjectionCache projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? projectingCaches.getKey() : projectingCaches.getValue();
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(playerEyeLoc.toVector(), portal.getPortalRect());
 		
 		viewedPortals.put(player.getUniqueId(), portal);
@@ -159,7 +155,7 @@ public class ViewingHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
-	private Set<BlockCopy> getAllBlocks(CacheProjection cache) {
+	private Set<BlockCopy> getAllBlocks(ProjectionCache cache) {
 		
 		Set<BlockCopy> allBlocks = new HashSet<>();
 		
@@ -181,7 +177,7 @@ public class ViewingHandler {
 		return allBlocks;
 	}
 	
-	private Set<BlockCopy> getBlocksInFrustum(CacheProjection projection, ViewingFrustum frustum) {
+	private Set<BlockCopy> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
 		
 		Set<BlockCopy> blocksInFrustum = new HashSet<>();
 		
@@ -207,7 +203,7 @@ public class ViewingHandler {
 	
 	public void updateProjections(BlockCache cache, Set<BlockCopy> updatedCopies) {
 		
-		for (CacheProjection projection : cacheHandler.getLinkedProjections(cache)) {
+		for (ProjectionCache projection : portalHandler.getLinkedProjections(cache)) {
 			
 			Set<BlockCopy> projectionUpdates = new HashSet<>();
 			
