@@ -1,9 +1,10 @@
 package me.gorgeousone.netherview.blockcache;
 
-import org.bukkit.block.Block;
-
-import java.util.HashSet;
-import java.util.Set;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.threedstuff.FacingUtils;
+import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.util.Vector;
 
 public class BlockCache {
 	
@@ -11,16 +12,26 @@ public class BlockCache {
 	
 	private BlockVec min;
 	private BlockVec max;
+	private Vector facing;
+	private World world;
+	private BlockData borderBlock;
 	
-	public BlockCache(BlockVec offset, BlockCopy[][][] blockCopies) {
+	public BlockCache(BlockVec offset, BlockCopy[][][] blockCopies, Vector facing, World world, BlockData borderBlock) {
 		
 		this.blockCopies = blockCopies;
 		this.min = offset.clone();
 		this.max = offset.clone().add(sourceCacheSize());
+		this.facing = facing;
+		this.world = world;
+		this.borderBlock = borderBlock;
 	}
 	
 	private BlockVec sourceCacheSize() {
 		return new BlockVec(blockCopies.length, blockCopies[0].length, blockCopies[0][0].length);
+	}
+	
+	public World getWorld() {
+		return world;
 	}
 	
 	public BlockVec getMin() {
@@ -31,69 +42,101 @@ public class BlockCache {
 		return max.clone();
 	}
 	
-	public void updateCopy(Block block) {
-		
-		blockCopies
-				[block.getX() - min.getX()]
-				[block.getY() - min.getY()]
-				[block.getZ() - min.getZ()].setData(block.getBlockData());
-	}
-	
-	public BlockCopy getCopyAt(BlockVec loc) {
-		
-		if(!contains(loc))
-			return null;
-		
-		BlockCopy copy =  blockCopies
-				[loc.getX() - min.getX()]
-				[loc.getY() - min.getY()]
-				[loc.getZ() - min.getZ()];
-		
-		return copy == null ? null : copy.clone();
-	}
-	
 	public boolean contains(BlockVec loc) {
 		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
 		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
-	public Set<BlockCopy> getCopiesAround(BlockVec blockCorner) {
+	/**
+	 * Returns true if the block is at any position bordering the cuboid except the side facing the portal.
+	 */
+	public boolean isBorder(BlockVec loc) {
 		
-		Set<BlockCopy> blocksAroundCorner = new HashSet<>();
+		if (loc.getY() == min.getY() || loc.getY() == max.getY() - 1)
+			return true;
 		
-		for (BlockVec position : getAllCornerLocs(blockCorner)) {
-			
-			if (!contains(position))
-				continue;
-			
-			BlockCopy copy = getCopyAt(position);
-			
-			if(copy != null)
-				blocksAroundCorner.add(copy.clone());
+		int x = loc.getX();
+		int z = loc.getZ();
+		
+		int minX = min.getX();
+		int minZ = min.getZ();
+		int maxX = max.getX() - 1;
+		int maxZ = max.getZ() - 1;
+		
+		if (facing.getZ() != 0) {
+			if (x == minX || x == maxX)
+				return true;
+		} else if (z == minZ || z == maxZ) {
+			return true;
 		}
 		
-		return blocksAroundCorner;
+		if (facing.getX() == 1)
+			return x == maxX;
+		if (facing.getX() == -1)
+			return x == minX;
+		if (facing.getZ() == 1)
+			return z == maxZ;
+		else
+			return z == minZ;
 	}
 	
-	private Set<BlockVec> getAllCornerLocs(BlockVec blockCorner) {
+	public BlockCopy getBlockCopyAt(BlockVec blockPos) {
 		
-		Set<BlockVec> locsAroundCorner = new HashSet<>();
+		if (!contains(blockPos))
+			return null;
 		
-		int x = blockCorner.getX();
-		int y = blockCorner.getY();
-		int z = blockCorner.getZ();
+		return blockCopies
+				[blockPos.getX() - min.getX()]
+				[blockPos.getY() - min.getY()]
+				[blockPos.getZ() - min.getZ()];
+	}
+	
+	public void setBlockCopy(BlockCopy copy) {
 		
-		locsAroundCorner.add(new BlockVec(x, y, z));
-		locsAroundCorner.add(new BlockVec(x, y - 1, z));
-		locsAroundCorner.add(new BlockVec(x, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
+		BlockVec blockPos = copy.getPosition();
 		
-		locsAroundCorner.add(new BlockVec(x - 1, y, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y -1, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x - 1, y -1, z - 1));
+		if (isBorder(blockPos))
+			copy.setData(borderBlock);
 		
-		return locsAroundCorner;
+		blockCopies
+				[blockPos.getX() - min.getX()]
+				[blockPos.getY() - min.getY()]
+				[blockPos.getZ() - min.getZ()] = copy;
+	}
+	
+	public void removeBlockCopyAt(BlockVec blockPos) {
+		blockCopies
+				[blockPos.getX() - min.getX()]
+				[blockPos.getY() - min.getY()]
+				[blockPos.getZ() - min.getZ()] = null;
+	}
+	
+	/**
+	 * Returns true if the block copy at the given position is listed as visible (it's not null)
+	 */
+	public boolean isBlockListedVisible(BlockVec blockPos) {
+		return getBlockCopyAt(blockPos) != null;
+	}
+	
+	/**
+	 * Returns true if the block copy at the given position is visible by checking the surrounding block copies for transparent ones
+	 */
+	public boolean isBlockNowVisible(BlockVec blockPos) {
+		
+		for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+			BlockVec touchingBlockPos = blockPos.clone().add(facing);
+			
+			if (!contains(touchingBlockPos))
+				continue;
+			
+			BlockCopy touchingCopy = getBlockCopyAt(touchingBlockPos);
+			
+			if (touchingCopy != null && !touchingCopy.getBlockData().getMaterial().isOccluding())
+				return true;
+		}
+		
+		//TODO check if block is directly in front of the portal.
+		return false;
 	}
 }

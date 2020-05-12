@@ -7,7 +7,6 @@ import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -27,6 +26,7 @@ public final class Main extends JavaPlugin {
 	
 	private PortalHandler portalHandler;
 	private ViewingHandler viewingHandler;
+	
 	private Set<UUID> worldsWithProejctingPortals;
 	private Set<UUID> viewableOnlyWorlds;
 	
@@ -36,17 +36,13 @@ public final class Main extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
-	
+		
 		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
 		
 		loadConfig();
 		loadConfigData();
 		registerListeners();
-		
-		System.out.println("is block " + Material.GLOWSTONE.isBlock());
-		System.out.println("is solid " + Material.GLOWSTONE.isSolid());
-		System.out.println("is occluding " + Material.GLOWSTONE.isOccluding());
 	}
 	
 	@Override
@@ -85,8 +81,8 @@ public final class Main extends JavaPlugin {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-		if("nvreload".equals(command.getName())) {
+		
+		if ("nvreload".equals(command.getName())) {
 			
 			if (sender.hasPermission(RELOAD_PERM)) {
 				reload();
@@ -117,27 +113,27 @@ public final class Main extends JavaPlugin {
 		Bukkit.broadcastMessage(portalDisplayRangeSquared + " " + portalProjectionDist);
 		worldsWithProejctingPortals = new HashSet<>();
 		viewableOnlyWorlds = new HashSet<>();
-
+		
 		List<String> worldNames = getConfig().getStringList("worlds-with-projecting-portals");
 		
-		for(String worldName : worldNames) {
+		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
 			
-			if(world == null) {
+			if (world == null) {
 				getLogger().info("Could not find world " + worldName + ".");
-			}else {
+			} else {
 				worldsWithProejctingPortals.add(world.getUID());
 			}
 		}
 		
 		worldNames = getConfig().getStringList("viewable-worlds");
 		
-		for(String worldName : worldNames) {
+		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
 			
-			if(world == null) {
+			if (world == null) {
 				getLogger().info("Could not find world " + worldName + ".");
-			}else {
+			} else {
 				viewableOnlyWorlds.add(world.getUID());
 			}
 		}

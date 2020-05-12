@@ -1,12 +1,13 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 
 import java.util.Objects;
 
 public class BlockCopy {
-
+	
 	private BlockVec position;
 	private BlockData blockData;
 	
@@ -28,9 +29,8 @@ public class BlockCopy {
 		return blockData.clone();
 	}
 	
-	public BlockCopy setPosition(BlockVec position) {
+	public void setPosition(BlockVec position) {
 		this.position = position.clone();
-		return this;
 	}
 	
 	public void setData(BlockData blockData) {

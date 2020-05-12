@@ -19,7 +19,8 @@ public class TeleportListener implements Listener {
 	private Main main;
 	private PortalHandler portalHandler;
 	
-	public TeleportListener(Main main, PortalHandler portalHandler) {
+	public TeleportListener(Main main,
+	                        PortalHandler portalHandler) {
 		this.main = main;
 		this.portalHandler = portalHandler;
 	}
@@ -27,16 +28,16 @@ public class TeleportListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPortalTravel(PlayerTeleportEvent event) {
 		
-		if(event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
+		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
 			return;
 		
-		if(!event.getPlayer().hasPermission(Main.LINK_PERM))
+		if (!event.getPlayer().hasPermission(Main.LINK_PERM))
 			return;
 		
 		Location to = event.getTo();
 		Location from = event.getFrom();
 		
-		if(!main.canViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
+		if (!main.canViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
 			return;
 		
 		Block portalBlock = getNearbyPortalBlock(from);
@@ -44,64 +45,64 @@ public class TeleportListener implements Listener {
 		if (portalBlock == null)
 			return;
 		
-		Portal portal = portalHandler.getPortalByBlock(portalBlock);
 		Player player = event.getPlayer();
+		Portal portal = portalHandler.getPortalByBlock(portalBlock);
 		
-		if(portal == null) {
+		if (portal == null) {
 			
 			try {
 				portal = portalHandler.addPortalStructure(portalBlock);
-			
-			}catch(Exception ex) {
+				
+			} catch (Exception ex) {
 				player.sendMessage(ex.getMessage());
 				return;
 			}
 		}
 		
-		if (portalHandler.getPortalLink(portal) == null) {
+		
+		if (!portal.isLinked()) {
 			
 			Block counterPortalBlock = getNearbyPortalBlock(to);
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
-			if(counterPortal == null) {
+			if (counterPortal == null) {
 				try {
 					counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
-				
-				}catch(Exception ex) {
+					
+				} catch (Exception ex) {
 					player.sendMessage(ex.getMessage());
 					return;
 				}
 			}
 			
 			try {
-				portalHandler.linkPortal(portal, counterPortal);
+				portalHandler.linkPortalTo(portal, counterPortal);
 				event.setCancelled(true);
 				
-			}catch (IllegalStateException ex) {
+			} catch (IllegalStateException ex) {
 				player.sendMessage(ex.getMessage());
 			}
 		}
 	}
 	
 	/**
-	 * 	Finds the portal block a player might have touched at the location or the blocks next to it.
-	 * 	(players in creative mode teleport to the nether before directly touching any portal block)
+	 * Finds the portal block a player might have touched at the location or the blocks next to it
+	 * (players in creative mode often teleport to the nether before their location appears to be inside a portal).
 	 */
 	private Block getNearbyPortalBlock(Location location) {
 		
 		Block block = location.getBlock();
 		
-		if(block.getType() == Material.NETHER_PORTAL)
+		if (block.getType() == Material.NETHER_PORTAL)
 			return block;
 		
-		for(BlockFace face : FacingUtils.getAxesFaces()) {
+		for (BlockFace face : FacingUtils.getAxesFaces()) {
 			Block neighbor = block.getRelative(face);
 			
-			if(neighbor.getType() == Material.NETHER_PORTAL)
+			if (neighbor.getType() == Material.NETHER_PORTAL)
 				return neighbor;
 		}
 		
 		return null;
 	}
-	
 }

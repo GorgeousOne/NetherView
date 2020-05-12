@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.blockcache.BlockVec;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.Axis;
@@ -36,7 +36,7 @@ public class PortalLocator {
 		portalMax.add(frameExtension);
 		
 		Set<Block> frameBlocks = getPortalFrameBlocks(world, portalMin, portalMax, portalAxis);
-			
+		
 		return new Portal(world, portalRect, innerBlocks, frameBlocks, portalMin, portalMax);
 	}
 	
@@ -59,7 +59,7 @@ public class PortalLocator {
 		if (portalAxis == Axis.X) {
 			position.setX(getPortalExtent(portalBlock, BlockFace.WEST).getX());
 			width = getPortalExtent(portalBlock, BlockFace.EAST).getX() - position.getBlockX() + 1;
-		
+			
 		} else {
 			position.setZ(getPortalExtent(portalBlock, BlockFace.NORTH).getZ());
 			width = getPortalExtent(portalBlock, BlockFace.SOUTH).getZ() - position.getBlockZ() + 1;
@@ -99,15 +99,15 @@ public class PortalLocator {
 		
 		Set<Block> portalBlocks = new HashSet<>();
 		
-		for(int x = portalMin.getX(); x < portalMax.getX(); x++) {
-			for(int y = portalMin.getY(); y < portalMax.getY(); y++) {
-				for(int z = portalMin.getZ(); z < portalMax.getZ(); z++) {
+		for (int x = portalMin.getX(); x < portalMax.getX(); x++) {
+			for (int y = portalMin.getY(); y < portalMax.getY(); y++) {
+				for (int z = portalMin.getZ(); z < portalMax.getZ(); z++) {
 					
 					Block portalBlock = world.getBlockAt(x, y, z);
 					
-					if(portalBlock.getType() == Material.NETHER_PORTAL) {
+					if (portalBlock.getType() == Material.NETHER_PORTAL) {
 						portalBlocks.add(portalBlock);
-					}else {
+					} else {
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal seems to be malformed, yet intact. Mysterious...");
 					}
 				}
@@ -120,7 +120,10 @@ public class PortalLocator {
 	/**
 	 * Returns a set of blocks where obsidian blocks need to be placed.
 	 */
-	private static Set<Block> getPortalFrameBlocks(World world, BlockVec portalMin, BlockVec portalMax, Axis portalAxis) {
+	private static Set<Block> getPortalFrameBlocks(World world,
+	                                               BlockVec portalMin,
+	                                               BlockVec portalMax,
+	                                               Axis portalAxis) {
 		
 		Set<Block> frameBlocks = new HashSet<>();
 		
@@ -131,21 +134,21 @@ public class PortalLocator {
 		int portalMaxY = portalMax.getY();
 		int portalMaxZ = portalMax.getZ();
 		
-		for(int x = portalMinX; x < portalMaxX; x++) {
-			for(int y = portalMinY; y < portalMaxY; y++) {
-				for(int z = portalMinZ; z < portalMaxZ; z++) {
+		for (int x = portalMinX; x < portalMaxX; x++) {
+			for (int y = portalMinY; y < portalMaxY; y++) {
+				for (int z = portalMinZ; z < portalMaxZ; z++) {
 					
 					//only check the frame blocks that are at the border of this "flat cuboid"
-					if(y > portalMinY && y < portalMaxY-1 &&
-					   (portalAxis == Axis.X ? x > portalMinX : z > portalMinZ) &&
-					   (portalAxis == Axis.X ? x < portalMaxX-1 : z < portalMaxZ-1))
+					if (y > portalMinY && y < portalMaxY - 1 &&
+					    (portalAxis == Axis.X ? x > portalMinX : z > portalMinZ) &&
+					    (portalAxis == Axis.X ? x < portalMaxX - 1 : z < portalMaxZ - 1))
 						continue;
 					
 					Block portalBlock = world.getBlockAt(x, y, z);
 					
-					if(portalBlock.getType() == Material.OBSIDIAN) {
+					if (portalBlock.getType() == Material.OBSIDIAN) {
 						frameBlocks.add(portalBlock);
-					}else {
+					} else {
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "Something about this portal frame seems to be incomplete...");
 					}
 				}

@@ -2,7 +2,10 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.blockcache.BlockVec;
+import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
+import me.gorgeousone.netherview.blockcache.BlockCopy;
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
@@ -24,8 +27,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashSet;
+import java.util.Set;
 
 public class BlockListener implements Listener {
 	
@@ -41,83 +46,153 @@ public class BlockListener implements Listener {
 		this.viewingHandler = viewingHandler;
 	}
 	
-	private void onBlockChange(Block block, BlockData newData) {
-		
-		World blockWorld = block.getWorld();
-		
-	}
-	
 	private void removeDamagedPortals(Block block) {
 		
 		World blockWorld = block.getWorld();
 		
-		if(!main.canBeViewed(blockWorld))
+		if (!main.canBeViewed(blockWorld))
 			return;
 		
 		BlockVec blockLoc = new BlockVec(block);
 		
-		for(Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
-			if(portal.contains(blockLoc))
+		for (Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
+			
+			if (portal.contains(blockLoc)) {
+				viewingHandler.removePortal(portal);
 				portalHandler.removePortal(portal);
+			}
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	private void updateBlockCaches(Block block, BlockData newBlockData, boolean blockWasOccluding) {
+		
+		World blockWorld = block.getWorld();
+		
+		if (!main.canBeViewed(blockWorld))
+			return;
+		
+		BlockVec blockPos = new BlockVec(block);
+		
+		for (BlockCache cache : portalHandler.getBlockCaches(blockWorld)) {
+			
+			if (!cache.contains(blockPos))
+				continue;
+				
+			Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
+			
+			if (!updatedCopies.isEmpty())
+				viewingHandler.updateProjections(cache, updatedCopies);
+		}
+		
+		refreshProjections(block);
+	}
+	
+	private void refreshProjections(Block block) {
+		
+		World blockWorld = block.getWorld();
+		
+		if (!main.canViewOtherWorlds(blockWorld))
+			return;
+		
+		BlockVec blockPos = new BlockVec(block);
+		
+		for(ProjectionCache projection : portalHandler.getProjectionCaches(blockWorld)) {
+			
+			if(!projection.contains(blockPos))
+				continue;
+			
+			viewingHandler.refreshProjection(projection.getPortal(), projection.getCopyAt(new BlockVec(block)));
+		}
+	}
+	
+	@EventHandler
+	public void onInteract(PlayerInteractEvent event) {
+	
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		removeDamagedPortals(event.getBlock());
+		
+		Block block = event.getBlock();
+		updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
+		
+		Material blockType = block.getType();
+		if (blockType == Material.OBSIDIAN || blockType == Material.NETHER_PORTAL)
+			removeDamagedPortals(block);
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
-//		event.get
+		
+		Block block = event.getBlock();
+		updateBlockCaches(block, block.getBlockData(), false);
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockExplode(BlockExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
+			if(block.getType() == Material.NETHER_PORTAL)
+				removeDamagedPortals(block);
 		}
+		
+		for (Block block : event.blockList())
+			updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockExplode(EntityExplodeEvent event) {
-		
-		for (Block block : event.blockList()) {
-		}
+		for (Block block : event.blockList())
+			updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
 	}
 	
 	//water, lava, dragon eggs
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockSpill(BlockFromToEvent event) {
+		Block block = event.getToBlock();
+		updateBlockCaches(block, event.getBlock().getBlockData(), false);
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBurn(BlockBurnEvent event) {
+		Block block = event.getBlock();
+		updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
+	}
+	
+	private void onAnyGrowEvent(BlockGrowEvent event) {
+		Block block = event.getBlock();
+		updateBlockCaches(block, event.getNewState().getBlockData(), block.getType().isOccluding());
 	}
 	
 	//pumpkin/melon growing
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockGrow(BlockGrowEvent event) {
+		onAnyGrowEvent(event);
 	}
 	
 	//grass, mycelium spreading
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockSpread(BlockSpreadEvent event) {
+		onAnyGrowEvent(event);
 	}
 	
 	//obsidian, concrete
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockForm(BlockFormEvent event) {
+		onAnyGrowEvent(event);
 	}
 	
 	//ice melting
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockFade(BlockFadeEvent event) {
+		Block block = event.getBlock();
+		updateBlockCaches(block, event.getNewState().getBlockData(), block.getType().isOccluding());
 	}
 	
-	//falling sand and maybe endermen
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	//falling sand and maybe endermen (actually also sheeps but that doesn't work)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-	
+		Block block = event.getBlock();
+		updateBlockCaches(block, event.getBlockData(), false);
 	}
 }

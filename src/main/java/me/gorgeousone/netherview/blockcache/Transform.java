@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.Axis;
 import org.bukkit.block.BlockFace;
@@ -8,6 +9,10 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.block.data.Rotatable;
+import org.bukkit.block.data.type.RedstoneWire;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Transform {
 	
@@ -60,19 +65,19 @@ public class Transform {
 		rotYMatrix[1][1] = -1;
 	}
 	
-	boolean isRotY90DegRight() {
+	public boolean isRotY90DegRight() {
 		return rotYMatrix[0][1] == -1;
 	}
 	
-	boolean isRotY90DegLeft() {
+	public boolean isRotY90DegLeft() {
 		return rotYMatrix[0][1] == 1;
 	}
 	
-	boolean isRotY180Deg() {
+	public boolean isRotY180Deg() {
 		return rotYMatrix[0][0] == -1;
 	}
 	
-	boolean isRotY0Deg() {
+	public boolean isRotY0Deg() {
 		return rotYMatrix[0][0] == 1;
 	}
 	
@@ -86,15 +91,13 @@ public class Transform {
 	
 	public BlockVec transformVec(BlockVec vec) {
 		
-		BlockVec transformed = vec.clone();
+		vec.subtract(rotCenter);
+		rotateVec(vec);
 		
-		transformed.subtract(rotCenter);
-		rotateVec(transformed);
-		
-		return transformed.add(rotCenter).add(translation);
+		return vec.add(rotCenter).add(translation);
 	}
 	
-	private BlockVec rotateVec(BlockVec relativeVec) {
+	private void rotateVec(BlockVec relativeVec) {
 		
 		int transX = relativeVec.getX();
 		int transZ = relativeVec.getZ();
@@ -102,48 +105,57 @@ public class Transform {
 		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
 		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
 		
-		return relativeVec;
 	}
 	
 	public BlockData rotateBlockData(BlockData data) {
 		
-		if(isRotY0Deg())
+		if (isRotY0Deg())
 			return data;
 		
 		int rotInQuarterTurns = getRotationInQuarterTurns();
 		
-		if(data instanceof Orientable) {
+		if (data instanceof Orientable) {
 			
-			if(isRotY180Deg())
+			if (isRotY180Deg())
 				return data;
 			
 			Orientable orientable = (Orientable) data;
 			
-			if(orientable.getAxis() != Axis.Y)
+			if (orientable.getAxis() != Axis.Y)
 				orientable.setAxis(orientable.getAxis() == Axis.X ? Axis.Z : Axis.X);
-		
-		}else if(data instanceof Directional) {
+			
+		} else if (data instanceof Directional) {
 			
 			Directional directional = (Directional) data;
 			directional.setFacing(FacingUtils.getRotatedFace(directional.getFacing(), rotInQuarterTurns));
-		
-		}else if(data instanceof Rotatable) {
+			
+		} else if (data instanceof Rotatable) {
 			
 			Rotatable rotatable = (Rotatable) data;
 			rotatable.setRotation(FacingUtils.getRotatedFace(rotatable.getRotation(), rotInQuarterTurns));
-		
-		}else if(data instanceof MultipleFacing) {
+			
+		} else if (data instanceof MultipleFacing) {
 			
 			MultipleFacing multiFacing = (MultipleFacing) data;
 			
-			for(BlockFace face : multiFacing.getFaces()) {
+			for (BlockFace face : multiFacing.getFaces()) {
 				//e.g. vines can face the ceiling, that cant be rotated
-				if(!FacingUtils.isRotatableFace(face))
-					continue;
-				
-				multiFacing.setFace(face, false);
-				multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), true);
+				if (FacingUtils.isRotatableFace(face)) {
+					multiFacing.setFace(face, false);
+					multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), true);
+				}
 			}
+			
+		} else if (data instanceof RedstoneWire) {
+			
+			RedstoneWire wire = (RedstoneWire) data;
+			Map<BlockFace, RedstoneWire.Connection> connections = new HashMap<>();
+			
+			for (BlockFace face : wire.getAllowedFaces())
+				connections.put(face, wire.getFace(face));
+			
+			for (BlockFace face : connections.keySet())
+				wire.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), connections.get(face));
 		}
 		
 		return data;
@@ -151,11 +163,11 @@ public class Transform {
 	
 	private int getRotationInQuarterTurns() {
 		
-		if(isRotY90DegLeft())
+		if (isRotY90DegLeft())
 			return -1;
-		else if(isRotY180Deg())
+		else if (isRotY180Deg())
 			return 2;
-		else if(isRotY90DegRight())
+		else if (isRotY90DegRight())
 			return 1;
 		
 		return 0;
@@ -178,7 +190,7 @@ public class Transform {
 	}
 	
 	private int[][] cloneRotY() {
-		return new int[][] {
+		return new int[][]{
 				{rotYMatrix[0][0], rotYMatrix[0][1]},
 				{rotYMatrix[1][0], rotYMatrix[1][1]}
 		};

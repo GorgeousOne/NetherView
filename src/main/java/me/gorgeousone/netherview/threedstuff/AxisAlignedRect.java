@@ -16,7 +16,7 @@ public class AxisAlignedRect {
 	
 	public AxisAlignedRect(Axis axis, Vector pos, double width, double height) {
 		
-		if(axis == Axis.Y)
+		if (axis == Axis.Y)
 			throw new IllegalArgumentException("Why would you want to use Axis.Y for a rectangle?");
 		
 		this.axis = axis;
@@ -74,11 +74,11 @@ public class AxisAlignedRect {
 		if (pointY < min.getY() || pointY > max.getY())
 			return false;
 		
-		if(axis == Axis.X) {
+		if (axis == Axis.X) {
 			double pointX = pointInPlane.getX();
 			return pointX >= min.getX() && pointX <= max.getX();
 			
-		}else {
+		} else {
 			double pointZ = pointInPlane.getZ();
 			return pointZ >= min.getZ() && pointZ <= max.getZ();
 		}
