@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
 
@@ -14,19 +15,22 @@ public class ProjectionCache {
 	private BlockCopy[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
-	private World world;
+	private Portal portal;
 	
-	public ProjectionCache(BlockCache cache, Transform blockTransform, World world) {
+	public ProjectionCache(Portal projectionPortal, BlockCache sourceCache, Transform blockTransform) {
 		
-		this.sourceCache = cache;
+		this.sourceCache = sourceCache;
 		this.blockTransform = blockTransform;
-		this.world = world;
-		
+		this.portal = projectionPortal;
 		createBlockCopies();
 	}
 	
+	public Portal getPortal() {
+		return portal;
+	}
+	
 	public World getWorld() {
-		return world;
+		return portal.getWorld();
 	}
 	
 	public BlockVec getMin() {

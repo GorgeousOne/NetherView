@@ -9,7 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -85,9 +84,18 @@ public class Portal {
 		       portalRect.height() == otherRect.height();
 	}
 	
+	public Portal getCounterPortal() {
+		return counterPortal;
+	}
+	
 	public void setLinkedTo(Portal counterPortal, Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
 		this.counterPortal = counterPortal;
 		this.projectionCaches = projectionCaches;
+	}
+	
+	public void unlink() {
+		this.counterPortal = null;
+		this.projectionCaches = null;
 	}
 	
 	public boolean isLinked() {
@@ -98,11 +106,19 @@ public class Portal {
 		this.blockCaches = blockCaches;
 	}
 	
-	public Map.Entry<BlockCache, BlockCache> getBlockCaches() {
-		return blockCaches;
+	public BlockCache getFrontCache() {
+		return blockCaches.getKey();
 	}
 	
-	public Map.Entry<ProjectionCache, ProjectionCache> getProjectionCaches() {
-		return projectionCaches;
+	public BlockCache getBackCache() {
+		return blockCaches.getValue();
+	}
+	
+	public ProjectionCache getFrontProjection() {
+		return projectionCaches.getKey();
+	}
+	
+	public ProjectionCache getBackProjection() {
+		return projectionCaches.getValue();
 	}
 }

@@ -28,6 +28,7 @@ public class PortalHandler {
 	
 	private Main main;
 	private Map<UUID, Set<Portal>> worldsWithPortals;
+	private Map<Portal, Set<Portal>> linkedPortals;
 	private Map<BlockCache, Set<ProjectionCache>> linkedProjections;
 	
 	public PortalHandler(Main main) {
@@ -35,6 +36,7 @@ public class PortalHandler {
 		this.main = main;
 		
 		worldsWithPortals = new HashMap<>();
+		linkedPortals = new HashMap<>();
 		linkedProjections = new HashMap<>();
 	}
 	
@@ -58,21 +60,32 @@ public class PortalHandler {
 	private void addPortal(Portal portal) {
 		
 		UUID worldID = portal.getWorld().getUID();
-		
-		if (!worldsWithPortals.containsKey(worldID))
-			worldsWithPortals.put(worldID, new HashSet<>());
-		
+		worldsWithPortals.putIfAbsent(worldID, new HashSet<>());
 		worldsWithPortals.get(worldID).add(portal);
 	}
 	
 	public void removePortal(Portal portal) {
 		
 		Bukkit.broadcastMessage("removed portal at " + portal.getLocation().toVector().toString());
+		
+		if(linkedPortals.containsKey(portal)) {
+			
+			for (Portal linkedPortal : linkedPortals.get(portal))
+				linkedPortal.unlink();
+			
+			linkedProjections.remove(portal.getFrontCache());
+			linkedProjections.remove(portal.getBackCache());
+		}
+		
+		if(portal.isLinked()) {
+			
+			Portal counterPortal = portal.getCounterPortal();
+			linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
+			linkedProjections.get(counterPortal.getBackCache()).remove(portal.getFrontProjection());
+		}
+		
+		linkedPortals.remove(portal);
 		getPortals(portal.getWorld()).remove(portal);
-	}
-	
-	public Set<Portal> getPortals(World world) {
-		return worldsWithPortals.getOrDefault(world.getUID(), new HashSet<>());
 	}
 	
 	public Portal getPortalByBlock(Block portalBlock) {
@@ -86,6 +99,14 @@ public class PortalHandler {
 		}
 		
 		return null;
+	}
+	
+	public Set<Portal> getPortals(World world) {
+		return worldsWithPortals.getOrDefault(world.getUID(), new HashSet<>());
+	}
+	
+	public Set<Portal> getLinkedPortals(Portal portal) {
+		return linkedPortals.getOrDefault(portal, new HashSet<>());
 	}
 	
 	public Portal getNearestPortal(Location playerLoc) {
@@ -109,24 +130,51 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
+	public Set<BlockCache> getBlockCaches(World world) {
+		
+		Set<BlockCache> caches = new HashSet<>();
+		
+		for(Portal portal : getPortals(world)) {
+			caches.add(portal.getFrontCache());
+			caches.add(portal.getBackCache());
+		}
+		
+		return caches;
+	}
+	
+	public Set<ProjectionCache> getProjectionCaches(World world) {
+		
+		Set<ProjectionCache> projections = new HashSet<>();
+		
+		for(Portal portal : getPortals(world)) {
+			
+			if(portal.isLinked()) {
+				projections.add(portal.getFrontProjection());
+				projections.add(portal.getBackProjection());
+			}
+		}
+		
+		return projections;
+	}
+	
 	public void linkPortalTo(Portal portal, Portal counterPortal) {
 		
 		if (!counterPortal.equalsInSize(portal))
 			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are dissimilar in size, it is difficult to get a clear view...");
 		
-		Map.Entry<BlockCache, BlockCache> blockCaches = counterPortal.getBlockCaches();
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
 		
-		BlockCache cache1 = blockCaches.getKey();
-		BlockCache cache2 = blockCaches.getValue();
+		BlockCache cache1 = counterPortal.getFrontCache();
+		BlockCache cache2 = counterPortal.getBackCache();
 		
-		World portalWorld = portal.getWorld();
+		//the projections caches are switching positions because of to the rotation transform
+		ProjectionCache copy1 = new ProjectionCache(portal, cache2, linkTransform);
+		ProjectionCache copy2 = new ProjectionCache(portal, cache1, linkTransform);
 		
-		ProjectionCache copy1 = new ProjectionCache(cache2, linkTransform, portalWorld);
-		ProjectionCache copy2 = new ProjectionCache(cache1, linkTransform, portalWorld);
-		
-		//notice that the block caches are also switching key value position related to the transform
 		portal.setLinkedTo(counterPortal, new AbstractMap.SimpleEntry<>(copy1, copy2));
+		
+		linkedPortals.putIfAbsent(counterPortal, new HashSet<>());
+		linkedPortals.get(counterPortal).add(portal);
 		
 		linkedProjections.putIfAbsent(cache1, new HashSet<>());
 		linkedProjections.putIfAbsent(cache2, new HashSet<>());

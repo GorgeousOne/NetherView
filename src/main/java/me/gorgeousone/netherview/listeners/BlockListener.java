@@ -4,6 +4,7 @@ import me.gorgeousone.netherview.Main;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
@@ -29,7 +30,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class BlockListener implements Listener {
@@ -56,8 +56,11 @@ public class BlockListener implements Listener {
 		BlockVec blockLoc = new BlockVec(block);
 		
 		for (Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
-			if (portal.contains(blockLoc))
+			
+			if (portal.contains(blockLoc)) {
+				viewingHandler.removePortal(portal);
 				portalHandler.removePortal(portal);
+			}
 		}
 	}
 	
@@ -70,26 +73,35 @@ public class BlockListener implements Listener {
 		
 		BlockVec blockPos = new BlockVec(block);
 		
-		//TODO filter caches by world
-		for (Portal portal : portalHandler.getPortals(blockWorld)) {
+		for (BlockCache cache : portalHandler.getBlockCaches(blockWorld)) {
 			
-			Map.Entry<BlockCache, BlockCache> caches = portal.getBlockCaches();
-			BlockCache front = caches.getKey();
-			BlockCache back = caches.getValue();
-			
-			if (front.contains(blockPos)) {
-				Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(front, block, newBlockData, blockWasOccluding);
+			if (!cache.contains(blockPos))
+				continue;
 				
-				if (updatedCopies.isEmpty())
-					viewingHandler.updateProjections(front, updatedCopies);
-			}
+			Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
 			
-			if (back.contains(blockPos)) {
-				Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(back, block, newBlockData, blockWasOccluding);
-				
-				if (updatedCopies.isEmpty())
-					viewingHandler.updateProjections(back, updatedCopies);
-			}
+			if (!updatedCopies.isEmpty())
+				viewingHandler.updateProjections(cache, updatedCopies);
+		}
+		
+		refreshProjections(block);
+	}
+	
+	private void refreshProjections(Block block) {
+		
+		World blockWorld = block.getWorld();
+		
+		if (!main.canViewOtherWorlds(blockWorld))
+			return;
+		
+		BlockVec blockPos = new BlockVec(block);
+		
+		for(ProjectionCache projection : portalHandler.getProjectionCaches(blockWorld)) {
+			
+			if(!projection.contains(blockPos))
+				continue;
+			
+			viewingHandler.refreshProjection(projection.getPortal(), projection.getCopyAt(new BlockVec(block)));
 		}
 	}
 	

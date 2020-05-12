@@ -39,7 +39,7 @@ public final class ViewingFrustumFactory {
 		AxisAlignedRect maxViewingRect = portalRect.clone().translate(playerFacingToPortal.clone().multiply(0.5));
 		
 		//somehow you can see a few more blocks with a high FOV, on the sides of the screen. 
-		// Thus the portal bounds get widened a bit with this threshold.
+		//Thus the portal bounds get widened a bit with this threshold.
 		Vector threshold = FacingUtils.getAxisWidthFacing(portalRect.getAxis());
 		threshold.setY(1);
 		threshold.multiply(0.2);
