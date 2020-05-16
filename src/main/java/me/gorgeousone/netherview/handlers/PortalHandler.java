@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.Main;
+import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -26,12 +26,12 @@ import java.util.UUID;
 
 public class PortalHandler {
 	
-	private Main main;
+	private NetherView main;
 	private Map<UUID, Set<Portal>> worldsWithPortals;
 	private Map<Portal, Set<Portal>> linkedPortals;
 	private Map<BlockCache, Set<ProjectionCache>> linkedProjections;
 	
-	public PortalHandler(Main main) {
+	public PortalHandler(NetherView main) {
 		
 		this.main = main;
 		
@@ -53,7 +53,6 @@ public class PortalHandler {
 		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
 		addPortal(portal);
 		
-		Bukkit.broadcastMessage(ChatColor.GRAY + "Portal added: " + portal.getWorld().getName() + ", " + portal.getPortalRect().getMin().toString());
 		return portal;
 	}
 	
@@ -65,8 +64,6 @@ public class PortalHandler {
 	}
 	
 	public void removePortal(Portal portal) {
-		
-		Bukkit.broadcastMessage("removed portal at " + portal.getLocation().toVector().toString());
 		
 		if(linkedPortals.containsKey(portal)) {
 			
@@ -109,14 +106,14 @@ public class PortalHandler {
 		return linkedPortals.getOrDefault(portal, new HashSet<>());
 	}
 	
-	public Portal getNearestPortal(Location playerLoc) {
+	public Portal getNearestLinkedPortal(Location playerLoc) {
 		
 		Portal nearestPortal = null;
 		double minDist = -1;
 		
 		for (Portal portal : getPortals(playerLoc.getWorld())) {
 			
-			if (portal.getWorld() != playerLoc.getWorld())
+			if (!portal.isLinked())
 				continue;
 			
 			double dist = portal.getLocation().distanceSquared(playerLoc);

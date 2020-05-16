@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.Main;
+import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
@@ -16,10 +16,10 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class TeleportListener implements Listener {
 	
-	private Main main;
+	private NetherView main;
 	private PortalHandler portalHandler;
 	
-	public TeleportListener(Main main,
+	public TeleportListener(NetherView main,
 	                        PortalHandler portalHandler) {
 		this.main = main;
 		this.portalHandler = portalHandler;
@@ -31,7 +31,7 @@ public class TeleportListener implements Listener {
 		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
 			return;
 		
-		if (!event.getPlayer().hasPermission(Main.LINK_PERM))
+		if (!event.getPlayer().hasPermission(NetherView.LINK_PERM))
 			return;
 		
 		Location to = event.getTo();
