@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.Main;
+import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
@@ -29,14 +29,14 @@ import java.util.UUID;
 
 public class ViewingHandler {
 	
-	private Main main;
+	private NetherView main;
 	private PortalHandler portalHandler;
 	
 	private Map<UUID, Portal> viewedPortals;
 	private Map<UUID, ProjectionCache> viewedProjections;
 	private Map<UUID, Set<BlockCopy>> playerViewSessions;
 	
-	public ViewingHandler(Main main, PortalHandler portalHandler) {
+	public ViewingHandler(NetherView main, PortalHandler portalHandler) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
@@ -75,15 +75,21 @@ public class ViewingHandler {
 		for (BlockCopy copy : getViewSession(player))
 			hideBlock(player, copy);
 		
+		removeVieSession(player);
+	}
+	
+	public void removeVieSession(Player player) {
 		playerViewSessions.remove(player.getUniqueId());
+		viewedPortals.remove(player.getUniqueId());
 	}
 	
 	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
 		
-		Portal portal = portalHandler.getNearestPortal(playerEyeLoc);
+		Portal portal = portalHandler.getNearestLinkedPortal(playerEyeLoc);
 		
 		if (portal == null) {
 			hideViewSession(player);
+			removeVieSession(player);
 			return;
 		}
 		
@@ -91,6 +97,7 @@ public class ViewingHandler {
 		
 		if (portalDistance.lengthSquared() > main.getPortalDisplayRangeSquared()) {
 			hideViewSession(player);
+			removeVieSession(player);
 			return;
 		}
 		
@@ -107,6 +114,7 @@ public class ViewingHandler {
 			//if the player is standing inside the portal projection should be dropped
 		} else {
 			hideViewSession(player);
+			removeVieSession(player);
 		}
 	}
 	
@@ -142,11 +150,11 @@ public class ViewingHandler {
 		
 		if (displayFrustum) {
 			visibleBlocks.addAll(getBlocksInFrustum(projection, playerFrustum));
-//			visibleBlocks.addAll(getAllBlocks(cache));
-			displayFrustum(player, playerFrustum);
+//			displayFrustum(player, playerFrustum);
 		}
 		
 		if (hidePortalBlocks) {
+			
 			for (Block block : portal.getPortalBlocks()) {
 				BlockCopy air = new BlockCopy(block);
 				air.setData(Material.AIR.createBlockData());
@@ -253,14 +261,14 @@ public class ViewingHandler {
 		}.runTask(main);
 	}
 	
-	private void displayFrustum(Player player, ViewingFrustum frustum) {
-		
-		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-		World world = player.getWorld();
-		
-		player.spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-	}
+//	private void displayFrustum(Player player, ViewingFrustum frustum) {
+//
+//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
+//		World world = player.getWorld();
+//
+//		player.spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
+//		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
+//	}
 	
 	private void displayBlocks(Player player, Set<BlockCopy> blocksToDisplay) {
 		
@@ -282,9 +290,10 @@ public class ViewingHandler {
 			displayBlockCopy(player, blockCopy);
 	}
 	
-	private void displayBlockCopy(Player player, BlockCopy blockCopy) {
+	public void displayBlockCopy(Player player, BlockCopy blockCopy) {
 		player.sendBlockChange(blockCopy.getPosition().toLocation(player.getWorld()), blockCopy.getBlockData());
 	}
+	
 	private void hideBlock(Player player, BlockCopy blockCopy) {
 		
 		Location blockLoc = blockCopy.getPosition().toLocation(player.getWorld());
@@ -295,6 +304,7 @@ public class ViewingHandler {
 		
 		Set<Portal> affectedPortals = portalHandler.getLinkedPortals(portal);
 		affectedPortals.add(portal);
+		
 		Iterator<Map.Entry<UUID, Portal>> iter = viewedPortals.entrySet().iterator();
 		
 		while (iter.hasNext()) {
@@ -304,8 +314,8 @@ public class ViewingHandler {
 			if (!affectedPortals.contains(playerView.getValue()))
 				continue;
 			
-			hideViewSession(Bukkit.getPlayer(playerView.getKey()));
 			iter.remove();
+			hideViewSession(Bukkit.getPlayer(playerView.getKey()));
 		}
 	}
 }

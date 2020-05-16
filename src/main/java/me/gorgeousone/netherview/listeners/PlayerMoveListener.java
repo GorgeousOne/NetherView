@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.Main;
+import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -16,10 +16,10 @@ import org.bukkit.util.Vector;
 
 public class PlayerMoveListener implements Listener {
 	
-	private Main main;
+	private NetherView main;
 	private ViewingHandler viewingHandler;
 	
-	public PlayerMoveListener(Main main, ViewingHandler viewingHandler) {
+	public PlayerMoveListener(NetherView main, ViewingHandler viewingHandler) {
 		this.main = main;
 		this.viewingHandler = viewingHandler;
 	}
@@ -29,7 +29,7 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!player.hasPermission(Main.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR)
+		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR)
 			return;
 		
 		World playerWorld = player.getWorld();

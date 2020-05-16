@@ -2,7 +2,7 @@ name: NetherView
 version: ${project.version}
 api-version: 1.13
 
-main: me.gorgeousone.netherview.Main
+main: me.gorgeousone.netherview.NetherView
 
 commands:
   nvreload:

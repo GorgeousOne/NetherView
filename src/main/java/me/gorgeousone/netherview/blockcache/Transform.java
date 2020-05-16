@@ -137,14 +137,16 @@ public class Transform {
 		} else if (data instanceof MultipleFacing) {
 			
 			MultipleFacing multiFacing = (MultipleFacing) data;
+			Map<BlockFace, Boolean> facings = new HashMap<>();
 			
-			for (BlockFace face : multiFacing.getFaces()) {
+			for (BlockFace face : multiFacing.getAllowedFaces()) {
 				//e.g. vines can face the ceiling, that cant be rotated
-				if (FacingUtils.isRotatableFace(face)) {
-					multiFacing.setFace(face, false);
-					multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), true);
-				}
+				if (FacingUtils.isRotatableFace(face))
+					facings.put(face, multiFacing.hasFace(face));
 			}
+			
+			for (BlockFace face : facings.keySet())
+				multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), facings.get(face));
 			
 		} else if (data instanceof RedstoneWire) {
 			

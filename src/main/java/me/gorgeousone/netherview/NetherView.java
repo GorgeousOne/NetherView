@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public final class Main extends JavaPlugin {
+public final class NetherView extends JavaPlugin {
 	
 	public final static String VIEW_PERM = "netherview.viewportals";
 	public final static String LINK_PERM = "netherview.linkportals";
@@ -86,19 +86,19 @@ public final class Main extends JavaPlugin {
 			
 			if (sender.hasPermission(RELOAD_PERM)) {
 				reload();
-				sender.sendMessage(ChatColor.DARK_RED + "[" + ChatColor.DARK_PURPLE + "NV" + ChatColor.DARK_RED + "]" + ChatColor.LIGHT_PURPLE + " Reloaded.");
+				sender.sendMessage(ChatColor.DARK_RED + "[" + ChatColor.DARK_PURPLE + "NV" + ChatColor.DARK_RED + "]" + ChatColor.LIGHT_PURPLE + " Reloaded config settings.");
 				
 			} else {
 				sender.sendMessage(ChatColor.RED + "You do not have the permission for this command!");
 			}
 			
 			return true;
-			
 		}
 		return false;
 	}
 	
 	private void loadConfig() {
+		
 		reloadConfig();
 		getConfig().options().copyDefaults(true);
 		saveConfig();
@@ -110,7 +110,6 @@ public final class Main extends JavaPlugin {
 		portalProjectionDist = getConfig().getInt("portal-projection-view-distance", 16);
 		portalDisplayRangeSquared = (int) Math.pow(getConfig().getInt("portal-display-range", 16), 2);
 		
-		Bukkit.broadcastMessage(portalDisplayRangeSquared + " " + portalProjectionDist);
 		worldsWithProejctingPortals = new HashSet<>();
 		viewableOnlyWorlds = new HashSet<>();
 		

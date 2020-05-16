@@ -6,7 +6,7 @@
 
     <groupId>me.gorgeousone</groupId>
     <artifactId>netherview</artifactId>
-    <version>1.0</version>
+    <version>beta</version>
     <packaging>jar</packaging>
 
     <name>NetherView</name>
