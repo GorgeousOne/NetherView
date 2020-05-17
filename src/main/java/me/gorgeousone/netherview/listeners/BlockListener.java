@@ -5,10 +5,10 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.BlockPosition;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
-import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
@@ -34,6 +34,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class BlockListener implements Listener {
@@ -61,7 +62,7 @@ public class BlockListener implements Listener {
 					@Override
 					public void onPacketSending(PacketEvent event) {
 						
-						if (event.getPacketType() != PacketType.Play.Server.BLOCK_CHANGE)
+						if (event.isCancelled() || event.getPacketType() != PacketType.Play.Server.BLOCK_CHANGE)
 							return;
 						
 						Player player = event.getPlayer();
@@ -69,11 +70,13 @@ public class BlockListener implements Listener {
 						if (!viewingHandler.hasViewSession(player))
 							return;
 						
-						BlockVec blockPos = new BlockVec(event.getPacket().getBlockPositionModifier().getValues().get(0));
-						BlockCopy equalCopy = new BlockCopy(blockPos, null);
+						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
 						
-						if (viewingHandler.getViewSession(player).contains(equalCopy))
+						if(isInPlayersPortalView(player, new BlockVec(blockPos))) {
+							//TODO dont cancel event, rather insert the projections matdata
 							event.setCancelled(true);
+							System.out.println("stop this " + new BlockVec(blockPos) + " " + event.getPacket().getBlockData().getValues().get(0).toString());
+						}
 					}
 				}
 		);
@@ -111,32 +114,30 @@ public class BlockListener implements Listener {
 			if (!cache.contains(blockPos))
 				continue;
 			
-			Set<BlockCopy> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
+			Map<BlockVec, BlockData> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
 			
 			if (!updatedCopies.isEmpty())
 				viewingHandler.updateProjections(cache, updatedCopies);
 		}
-		
-//		refreshProjections(block);
 	}
 	
-//	private void refreshProjections(Block block) {
-//
-//		World blockWorld = block.getWorld();
-//
-//		if (!main.canViewOtherWorlds(blockWorld))
-//			return;
-//
-//		BlockVec blockPos = new BlockVec(block);
-//
-//		for (ProjectionCache projection : portalHandler.getProjectionCaches(blockWorld)) {
-//
-//			if (!projection.contains(blockPos))
-//				continue;
-//
-//			viewingHandler.refreshProjection(projection.getPortal(), projection.getCopyAt(new BlockVec(block)));
-//		}
-//	}
+	//	private void refreshProjections(Block block) {
+	//
+	//		World blockWorld = block.getWorld();
+	//
+	//		if (!main.canViewOtherWorlds(blockWorld))
+	//			return;
+	//
+	//		BlockVec blockPos = new BlockVec(block);
+	//
+	//		for (ProjectionCache projection : portalHandler.getProjectionCaches(blockWorld)) {
+	//
+	//			if (!projection.contains(blockPos))
+	//				continue;
+	//
+	//			viewingHandler.refreshProjection(projection.getPortal(), projection.getCopyAt(new BlockVec(block)));
+	//		}
+	//	}
 	
 	//	@EventHandler
 	//	public void onInteract(PlayerInteractEvent event) {
@@ -170,13 +171,21 @@ public class BlockListener implements Listener {
 	//		}
 	//	}
 	
+	private boolean isInPlayersPortalView(Player player, BlockVec blockPos) {
+		
+		if(!viewingHandler.hasViewSession(player))
+			return false;
+		
+		return viewingHandler.getViewSession(player).containsKey(blockPos);
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
 		
 		Block block = event.getBlock();
-		updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
-		
 		Material blockType = block.getType();
+		
+		updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
 		
 		if (blockType == Material.OBSIDIAN || blockType == Material.NETHER_PORTAL)
 			removeDamagedPortals(block);

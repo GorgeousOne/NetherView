@@ -81,14 +81,6 @@ public class Transform {
 		return rotYMatrix[0][0] == 1;
 	}
 	
-	public BlockCopy transformBlockCopy(BlockCopy blockCopy) {
-		
-		blockCopy.setPosition(transformVec(blockCopy.getPosition()));
-		blockCopy.setData(rotateBlockData(blockCopy.getBlockData()));
-		
-		return blockCopy;
-	}
-	
 	public BlockVec transformVec(BlockVec vec) {
 		
 		vec.subtract(rotCenter);
@@ -107,50 +99,44 @@ public class Transform {
 		
 	}
 	
-	public BlockData rotateBlockData(BlockData data) {
+	public BlockData rotateData(BlockData blockData) {
 		
 		if (isRotY0Deg())
-			return data;
+			return blockData;
 		
 		int rotInQuarterTurns = getRotationInQuarterTurns();
 		
-		if (data instanceof Orientable) {
+		if (blockData instanceof Orientable) {
 			
 			if (isRotY180Deg())
-				return data;
+				return blockData;
 			
-			Orientable orientable = (Orientable) data;
+			Orientable orientable = (Orientable) blockData;
 			
 			if (orientable.getAxis() != Axis.Y)
 				orientable.setAxis(orientable.getAxis() == Axis.X ? Axis.Z : Axis.X);
 			
-		} else if (data instanceof Directional) {
+		} else if (blockData instanceof Directional) {
 			
-			Directional directional = (Directional) data;
+			Directional directional = (Directional) blockData;
 			directional.setFacing(FacingUtils.getRotatedFace(directional.getFacing(), rotInQuarterTurns));
 			
-		} else if (data instanceof Rotatable) {
+		} else if (blockData instanceof Rotatable) {
 			
-			Rotatable rotatable = (Rotatable) data;
+			Rotatable rotatable = (Rotatable) blockData;
 			rotatable.setRotation(FacingUtils.getRotatedFace(rotatable.getRotation(), rotInQuarterTurns));
 			
-		} else if (data instanceof MultipleFacing) {
+		} else if (blockData instanceof MultipleFacing) {
 			
-			MultipleFacing multiFacing = (MultipleFacing) data;
+			MultipleFacing multiFacing = (MultipleFacing) blockData;
 			Map<BlockFace, Boolean> facings = new HashMap<>();
 			
-			for (BlockFace face : multiFacing.getAllowedFaces()) {
-				//e.g. vines can face the ceiling, that cant be rotated
-				if (FacingUtils.isRotatableFace(face))
-					facings.put(face, multiFacing.hasFace(face));
-			}
-			
-			for (BlockFace face : facings.keySet())
+			for (BlockFace face : ((MultipleFacing) blockData).getAllowedFaces())
 				multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), facings.get(face));
 			
-		} else if (data instanceof RedstoneWire) {
+		} else if (blockData instanceof RedstoneWire) {
 			
-			RedstoneWire wire = (RedstoneWire) data;
+			RedstoneWire wire = (RedstoneWire) blockData;
 			Map<BlockFace, RedstoneWire.Connection> connections = new HashMap<>();
 			
 			for (BlockFace face : wire.getAllowedFaces())
@@ -160,7 +146,7 @@ public class Transform {
 				wire.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), connections.get(face));
 		}
 		
-		return data;
+		return blockData;
 	}
 	
 	private int getRotationInQuarterTurns() {

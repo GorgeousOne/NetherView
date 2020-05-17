@@ -3,7 +3,6 @@ package me.gorgeousone.netherview.handlers;
 import me.gorgeousone.netherview.DisplayUtils;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.blockcache.BlockCopy;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.portal.Portal;
@@ -16,12 +15,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +32,7 @@ public class ViewingHandler {
 	
 	private Map<UUID, Portal> viewedPortals;
 	private Map<UUID, ProjectionCache> viewedProjections;
-	private Map<UUID, Set<BlockCopy>> playerViewSessions;
+	private Map<UUID, Map<BlockVec, BlockData>> playerViewSessions;
 	
 	public ViewingHandler(NetherView main, PortalHandler portalHandler) {
 		
@@ -56,13 +54,11 @@ public class ViewingHandler {
 		playerViewSessions.clear();
 	}
 	
-	public Set<BlockCopy> getViewSession(Player player) {
+	public Map<BlockVec, BlockData> getViewSession(Player player) {
 		
 		UUID uuid = player.getUniqueId();
 		
-		if (!playerViewSessions.containsKey(uuid))
-			playerViewSessions.put(uuid, new HashSet<>());
-		
+		playerViewSessions.putIfAbsent(uuid, new HashMap<>());
 		return playerViewSessions.get(uuid);
 	}
 	
@@ -71,10 +67,7 @@ public class ViewingHandler {
 	}
 	
 	public void hideViewSession(Player player) {
-		
-		for (BlockCopy copy : getViewSession(player))
-			hideBlock(player, copy);
-		
+		DisplayUtils.removeFakeBlocks(player, getViewSession(player));
 		removeVieSession(player);
 	}
 	
@@ -146,28 +139,30 @@ public class ViewingHandler {
 		viewedPortals.put(player.getUniqueId(), portal);
 		viewedProjections.put(player.getUniqueId(), projection);
 		
-		Set<BlockCopy> visibleBlocks = new HashSet<>();
+		Map<BlockVec, BlockData> visibleBlocks = new HashMap<>();
+		
+		long start = System.currentTimeMillis();
 		
 		if (displayFrustum) {
-			visibleBlocks.addAll(getBlocksInFrustum(projection, playerFrustum));
-//			displayFrustum(player, playerFrustum);
+			visibleBlocks.putAll(getBlocksInFrustum(projection, playerFrustum));
 		}
 		
+		long stamp = System.currentTimeMillis();
+		
 		if (hidePortalBlocks) {
-			
-			for (Block block : portal.getPortalBlocks()) {
-				BlockCopy air = new BlockCopy(block);
-				air.setData(Material.AIR.createBlockData());
-				visibleBlocks.add(air);
+			for (Block portalBlock : portal.getPortalBlocks()) {
+				visibleBlocks.put(new BlockVec(portalBlock), Material.AIR.createBlockData());
 			}
 		}
 		
+		
 		displayBlocks(player, visibleBlocks);
+		System.out.println("calc time " + (stamp - start));
 	}
 	
-//	private Set<BlockCopy> getAllBlocks(ProjectionCache cache) {
+//	private Map<BlockVec, BlockData> getAllBlocks(ProjectionCache cache) {
 //
-//		Set<BlockCopy> allBlocks = new HashSet<>();
+//		Map<BlockVec, BlockData> allBlocks = new HashSet<>();
 //
 //		BlockVec min = cache.getMin();
 //		BlockVec max = cache.getMax();
@@ -176,7 +171,7 @@ public class ViewingHandler {
 //			for (int y = min.getY(); y <= max.getY(); y++) {
 //				for (int z = min.getZ(); z <= max.getZ(); z++) {
 //
-//					BlockCopy copy = cache.getCopyAt(new BlockVec(x, y, z));
+//					BlockData copy = cache.getCopyAt(new BlockVec(x, y, z));
 //
 //					if (copy != null)
 //						allBlocks.add(copy);
@@ -187,9 +182,9 @@ public class ViewingHandler {
 //		return allBlocks;
 //	}
 	
-	private Set<BlockCopy> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
+	private Map<BlockVec, BlockData> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
 		
-		Set<BlockCopy> blocksInFrustum = new HashSet<>();
+		Map<BlockVec, BlockData> blocksInFrustum = new HashMap<>();
 		
 		BlockVec min = projection.getMin();
 		BlockVec max = projection.getMax();
@@ -203,7 +198,7 @@ public class ViewingHandler {
 					if (!frustum.contains(corner.toVector()))
 						continue;
 					
-					blocksInFrustum.addAll(projection.getCopiesAround(new BlockVec(x, y, z)));
+					blocksInFrustum.putAll(projection.getCopiesAround(new BlockVec(x, y, z)));
 				}
 			}
 		}
@@ -211,14 +206,15 @@ public class ViewingHandler {
 		return blocksInFrustum;
 	}
 	
-	public void updateProjections(BlockCache cache, Set<BlockCopy> updatedCopies) {
+	public void updateProjections(BlockCache cache, Map<BlockVec, BlockData> updatedCopies) {
 		
 		for (ProjectionCache projection : portalHandler.getLinkedProjections(cache)) {
 			
-			Set<BlockCopy> projectionUpdates = new HashSet<>();
+			Map<BlockVec, BlockData> projectionUpdates = new HashMap<>();
 			
-			for (BlockCopy updatedCopy : updatedCopies)
-				projectionUpdates.add(projection.updateCopy(updatedCopy));
+			for (BlockVec blockPos : updatedCopies.keySet()) {
+				projectionUpdates.put(blockPos, projection.updateCopy(blockPos, updatedCopies.get(blockPos)));
+			}
 			
 			World projectionWorld = projection.getWorld();
 			
@@ -231,95 +227,64 @@ public class ViewingHandler {
 				Portal portal = viewedPortals.get(player.getUniqueId());
 				ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum2(player.getEyeLocation().toVector(), portal.getPortalRect());
 				
-				for (BlockCopy blockCopy : projectionUpdates) {
+				for (BlockVec blockPos : projectionUpdates.keySet()) {
 					
-					if (playerFrustum.contains(blockCopy.getPosition().toVector()))
-						player.sendBlockChange(blockCopy.getPosition().toLocation(projectionWorld), blockCopy.getBlockData());
+					if (playerFrustum.contains(blockPos.toVector()))
+						player.sendBlockChange(blockPos.toLocation(projectionWorld), projectionUpdates.get(blockPos));
 				}
 			}
 		}
 	}
 	
-	public void refreshProjection(Portal portal, BlockCopy blockCopy) {
-		
-		World portalWorld = portal.getWorld();
-		
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				
-				for (Player player : portalWorld.getPlayers()) {
-					
-					if(!hasViewSession(player) || viewedPortals.get(player.getUniqueId()) != portal)
-						continue;
-					
-					if(getViewSession(player).contains(blockCopy)) {
-						displayBlockCopy(player, blockCopy);
-					}
-				}
-			}
-		}.runTask(main);
-	}
-	
-//	private void displayFrustum(Player player, ViewingFrustum frustum) {
+//	public void refreshProjection(Portal portal, BlockData blockCopy) {
 //
-//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-//		World world = player.getWorld();
+//		World portalWorld = portal.getWorld();
 //
-//		player.spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-//		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-//	}
-	
-//	private void displayBlocks(Player player, Set<BlockCopy> blocksToDisplay) {
+//		new BukkitRunnable() {
+//			@Override
+//			public void run() {
 //
-//		Set<BlockCopy> viewSession = getViewSession(player);
-//		Iterator<BlockCopy> iterator = viewSession.iterator();
+//				for (Player player : portalWorld.getPlayers()) {
 //
-//		while (iterator.hasNext()) {
-//			BlockCopy nextCopy = iterator.next();
+//					if(!hasViewSession(player) || viewedPortals.get(player.getUniqueId()) != portal)
+//						continue;
 //
-//			if (!blocksToDisplay.contains(nextCopy)) {
-//				hideBlock(player, nextCopy);
-//				iterator.remove();
+//					if(getViewSession(player).contains(blockCopy)) {
+//						displayBlockCopy(player, blockCopy);
+//					}
+//				}
 //			}
-//		}
-//
-//		blocksToDisplay.removeIf(blockCopy -> !viewSession.add(blockCopy));
-//
-//		for (BlockCopy blockCopy : blocksToDisplay)
-//			displayBlockCopy(player, blockCopy);
+//		}.runTask(main);
 //	}
 	
-	private void displayBlocks(Player player, Set<BlockCopy> blocksToDisplay) {
+	private void displayBlocks(Player player, Map<BlockVec, BlockData> blocksToDisplay) {
 		
-		Set<BlockCopy> viewSession = getViewSession(player);
-		Iterator<BlockCopy> iterator = viewSession.iterator();
+		Map<BlockVec, BlockData> viewSession = getViewSession(player);
 		
-		Set<BlockCopy> removedBlocks = new HashSet<>();
+		Map<BlockVec, BlockData> removedBlocks = new HashMap<>();
+		Iterator<BlockVec> iterator = viewSession.keySet().iterator();
 		
 		while (iterator.hasNext()) {
-			BlockCopy nextCopy = iterator.next();
+			BlockVec blockPos = iterator.next();
 			
-			if (!blocksToDisplay.contains(nextCopy)) {
-				removedBlocks.add(nextCopy);
+			if (!blocksToDisplay.containsKey(blockPos)) {
+				removedBlocks.put(blockPos, viewSession.get(blockPos));
 				iterator.remove();
 			}
 		}
 		
-		blocksToDisplay.removeIf(blockCopy -> !viewSession.add(blockCopy));
+		iterator = blocksToDisplay.keySet().iterator();
+		
+		while (iterator.hasNext()) {
+			
+			if(viewSession.containsKey(iterator.next()))
+				iterator.remove();
+		}
+		
+		viewSession.putAll(blocksToDisplay);
 		
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
-	}
-	
-	public void displayBlockCopy(Player player, BlockCopy blockCopy) {
-		player.sendBlockChange(blockCopy.getPosition().toLocation(player.getWorld()), blockCopy.getBlockData());
-	}
-	
-	private void hideBlock(Player player, BlockCopy blockCopy) {
-		
-		Location blockLoc = blockCopy.getPosition().toLocation(player.getWorld());
-		player.sendBlockChange(blockLoc, blockLoc.getBlock().getBlockData());
 	}
 	
 	public void removePortal(Portal portal) {
