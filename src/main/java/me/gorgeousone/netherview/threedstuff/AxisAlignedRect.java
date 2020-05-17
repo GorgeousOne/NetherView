@@ -17,7 +17,7 @@ public class AxisAlignedRect {
 	public AxisAlignedRect(Axis axis, Vector pos, double width, double height) {
 		
 		if (axis == Axis.Y)
-			throw new IllegalArgumentException("Why would you want to use Axis.Y for a rectangle?");
+			throw new IllegalArgumentException("Why would you want to use Axis.Y for a portal rectangle?");
 		
 		this.axis = axis;
 		this.pos = pos.clone();

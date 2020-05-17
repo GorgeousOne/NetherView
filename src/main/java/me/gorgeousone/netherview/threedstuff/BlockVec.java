@@ -107,6 +107,10 @@ public class BlockVec {
 		return new Location(world, x, y, z);
 	}
 	
+	public Block toBlock(World world) {
+		return world.getBlockAt(x, y, z);
+	}
+	
 	@Override
 	public BlockVec clone() {
 		return new BlockVec(x, y, z);

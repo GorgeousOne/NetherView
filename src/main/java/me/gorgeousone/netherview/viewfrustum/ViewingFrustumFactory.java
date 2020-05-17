@@ -13,21 +13,8 @@ public final class ViewingFrustumFactory {
 	private ViewingFrustumFactory() {}
 	
 	/**
-	 * Returns a viewing frustum with a near plane roughly representing the area the player can see through the portal.
+	 * Returns a viewing frustum with a near plane precisely representing the area the player can see through the portal.
 	 */
-	public static ViewingFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect) {
-		
-		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);
-		Vector portalNormal = portalRect.getPlane().getNormal();
-		Vector playerFacingToPortal = portalNormal.clone().multiply(isPlayerBehindPortal ? 1 : -1);
-		
-		//clone the portalRect and simply translate it towards the side of the portal which is further away from the player
-		AxisAlignedRect nearPlane = portalRect.clone();
-		nearPlane.translate(playerFacingToPortal.multiply(0.5));
-		
-		return new ViewingFrustum(viewPoint, nearPlane);
-	}
-	
 	public static ViewingFrustum createFrustum2(Vector viewPoint, AxisAlignedRect portalRect) {
 		
 		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);

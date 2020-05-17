@@ -7,11 +7,16 @@ public class ViewingFrustum {
 	
 	private Vector viewPoint;
 	private AxisAlignedRect nearPlaneRect;
+	private AxisAlignedRect farPlaneRect;
 	
 	public ViewingFrustum(Vector viewPoint, AxisAlignedRect nearPlane) {
 		this.viewPoint = viewPoint;
 		this.nearPlaneRect = nearPlane;
 	}
+	
+	private void createFarPlaneRect(double frustumLength) {
+	}
+	
 	
 	public AxisAlignedRect getNearPlaneRect() {
 		return nearPlaneRect;
