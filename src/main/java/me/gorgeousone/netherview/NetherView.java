@@ -1,5 +1,7 @@
 package me.gorgeousone.netherview;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
@@ -24,6 +26,8 @@ public final class NetherView extends JavaPlugin {
 	public final static String LINK_PERM = "netherview.linkportals";
 	public final static String RELOAD_PERM = "netherview.reload";
 	
+	private ProtocolManager protocolManager;
+	
 	private PortalHandler portalHandler;
 	private ViewingHandler viewingHandler;
 	
@@ -33,6 +37,11 @@ public final class NetherView extends JavaPlugin {
 	private boolean hidePortalBlocks;
 	private int portalProjectionDist;
 	private int portalDisplayRangeSquared;
+	
+	@Override
+	public void onLoad() {
+		protocolManager = ProtocolLibrary.getProtocolManager();
+	}
 	
 	@Override
 	public void onEnable() {
