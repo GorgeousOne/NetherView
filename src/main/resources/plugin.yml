@@ -4,6 +4,8 @@ api-version: 1.13
 
 main: me.gorgeousone.netherview.NetherView
 
+depend: [ProtocolLib]
+
 commands:
   nvreload:
     description: /<command>

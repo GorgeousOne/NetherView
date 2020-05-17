@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
+import me.gorgeousone.netherview.DisplayUtils;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCopy;
@@ -13,7 +14,6 @@ import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -270,6 +270,26 @@ public class ViewingHandler {
 //		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
 //	}
 	
+//	private void displayBlocks(Player player, Set<BlockCopy> blocksToDisplay) {
+//
+//		Set<BlockCopy> viewSession = getViewSession(player);
+//		Iterator<BlockCopy> iterator = viewSession.iterator();
+//
+//		while (iterator.hasNext()) {
+//			BlockCopy nextCopy = iterator.next();
+//
+//			if (!blocksToDisplay.contains(nextCopy)) {
+//				hideBlock(player, nextCopy);
+//				iterator.remove();
+//			}
+//		}
+//
+//		blocksToDisplay.removeIf(blockCopy -> !viewSession.add(blockCopy));
+//
+//		for (BlockCopy blockCopy : blocksToDisplay)
+//			displayBlockCopy(player, blockCopy);
+//	}
+	
 	private void displayBlocks(Player player, Set<BlockCopy> blocksToDisplay) {
 		
 		Set<BlockCopy> viewSession = getViewSession(player);
@@ -285,9 +305,7 @@ public class ViewingHandler {
 		}
 		
 		blocksToDisplay.removeIf(blockCopy -> !viewSession.add(blockCopy));
-		
-		for (BlockCopy blockCopy : blocksToDisplay)
-			displayBlockCopy(player, blockCopy);
+		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
 	
 	public void displayBlockCopy(Player player, BlockCopy blockCopy) {
