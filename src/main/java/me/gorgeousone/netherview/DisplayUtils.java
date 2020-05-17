@@ -17,11 +17,23 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class DisplayUtils {
+	
+	public static void removeFakeBlocks(Player player, Set<BlockCopy> blockCopies) {
+		
+		World playerWorld = player.getWorld();
+		Set<BlockCopy> updatedBlockCopies = new HashSet<>();
+		
+		for (BlockCopy blockCopy : blockCopies)
+			updatedBlockCopies.add(blockCopy.clone().setData(blockCopy.getBlock(playerWorld).getBlockData()));
+		
+		displayFakeBlocks(player, updatedBlockCopies);
+	}
 	
 	public static void displayFakeBlocks(Player player, Set<BlockCopy> blockCopies) {
 		

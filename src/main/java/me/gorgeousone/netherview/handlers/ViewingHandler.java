@@ -295,16 +295,20 @@ public class ViewingHandler {
 		Set<BlockCopy> viewSession = getViewSession(player);
 		Iterator<BlockCopy> iterator = viewSession.iterator();
 		
+		Set<BlockCopy> removedBlocks = new HashSet<>();
+		
 		while (iterator.hasNext()) {
 			BlockCopy nextCopy = iterator.next();
 			
 			if (!blocksToDisplay.contains(nextCopy)) {
-				hideBlock(player, nextCopy);
+				removedBlocks.add(nextCopy);
 				iterator.remove();
 			}
 		}
 		
 		blocksToDisplay.removeIf(blockCopy -> !viewSession.add(blockCopy));
+		
+		DisplayUtils.removeFakeBlocks(player, removedBlocks);
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
 	
