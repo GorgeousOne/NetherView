@@ -27,7 +27,7 @@ public final class NetherView extends JavaPlugin {
 	private PortalHandler portalHandler;
 	private ViewingHandler viewingHandler;
 	
-	private Set<UUID> worldsWithProejctingPortals;
+	private Set<UUID> worldsWithProjectingPortals;
 	private Set<UUID> viewableOnlyWorlds;
 	
 	private int portalProjectionDist;
@@ -38,6 +38,8 @@ public final class NetherView extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
+		
+		new Metrics(this, 7571);
 		
 		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
@@ -78,7 +80,7 @@ public final class NetherView extends JavaPlugin {
 	}
 	
 	public boolean canViewOtherWorlds(World world) {
-		return worldsWithProejctingPortals.contains(world.getUID());
+		return worldsWithProjectingPortals.contains(world.getUID());
 	}
 	
 	public boolean canBeViewed(World world) {
@@ -118,7 +120,7 @@ public final class NetherView extends JavaPlugin {
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
 		
-		worldsWithProejctingPortals = new HashSet<>();
+		worldsWithProjectingPortals = new HashSet<>();
 		viewableOnlyWorlds = new HashSet<>();
 		
 		List<String> worldNames = getConfig().getStringList("worlds-with-projecting-portals");
@@ -129,7 +131,7 @@ public final class NetherView extends JavaPlugin {
 			if (world == null) {
 				getLogger().info("Could not find world " + worldName + ".");
 			} else {
-				worldsWithProejctingPortals.add(world.getUID());
+				worldsWithProjectingPortals.add(world.getUID());
 			}
 		}
 		
