@@ -49,7 +49,7 @@ public class DisplayUtils {
 			MultiBlockChangeInfo[] blockInfo = new MultiBlockChangeInfo[chunkBlockData.size()];
 			int i = 0;
 			
-			for(Map.Entry<BlockVec, BlockData> entry : chunkBlockData.entrySet()) {
+			for (Map.Entry<BlockVec, BlockData> entry : chunkBlockData.entrySet()) {
 				
 				Location blockLoc = entry.getKey().toLocation(playerWorld);
 				blockInfo[i] = new MultiBlockChangeInfo(blockLoc, WrappedBlockData.createData(entry.getValue()));

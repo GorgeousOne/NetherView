@@ -1,8 +1,6 @@
 package me.gorgeousone.netherview.threedstuff;
 
-import org.bukkit.Axis;
 import org.bukkit.block.BlockFace;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,33 +41,6 @@ public class FacingUtils {
 		int positiveTurns = (quarterTurns % 4 + 4);
 		int rotatedFaceIndex = (rotationFaces.indexOf(face) + positiveTurns * 4) % rotationFaces.size();
 		return rotationFaces.get(rotatedFaceIndex);
-	}
-	
-	/**
-	 * Returns the normal vector for the plane of a portal with the passed axis.
-	 */
-	public static Vector getAxisPlaneNormal(Axis axis) {
-		
-		switch (axis) {
-			case X:
-				return new Vector(0, 0, 1);
-			case Z:
-				return new Vector(1, 0, 0);
-			default:
-				throw new IllegalArgumentException("Portals can only face in x or z direction.");
-		}
-	}
-	
-	public static Vector getAxisWidthFacing(Axis axis) {
-		
-		switch (axis) {
-			case X:
-				return new Vector(1, 0, 0);
-			case Z:
-				return new Vector(0, 0, 1);
-			default:
-				throw new IllegalArgumentException("Portals can only face in x or z direction.");
-		}
 	}
 	
 	public static BlockFace[] getAxesFaces() {

@@ -21,7 +21,11 @@ public class AxisAlignedRect {
 		
 		this.axis = axis;
 		this.pos = pos.clone();
-		this.plane = new Plane(pos, FacingUtils.getAxisPlaneNormal(axis));
+		
+		if (axis == Axis.X)
+			plane = new Plane(pos, new Vector(0, 0, 1));
+		else
+			plane = new Plane(pos, new Vector(1, 0, 0));
 		
 		setSize(width, height);
 	}
@@ -81,6 +85,28 @@ public class AxisAlignedRect {
 		} else {
 			double pointZ = pointInPlane.getZ();
 			return pointZ >= min.getZ() && pointZ <= max.getZ();
+		}
+	}
+	
+	/**
+	 * Returns a normal vector for the plane of the rectangle.
+	 */
+	public Vector getPlaneNormal() {
+		return plane.getNormal();
+	}
+	
+	/**
+	 * Returns a vector 90° to the plane normal vector
+	 */
+	public Vector getWidthFacing() {
+		
+		switch (axis) {
+			case X:
+				return new Vector(1, 0, 0);
+			case Z:
+				return new Vector(0, 0, 1);
+			default:
+				throw new IllegalArgumentException("Portals can only face in x or z direction.");
 		}
 	}
 	

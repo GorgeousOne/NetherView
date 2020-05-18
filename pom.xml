@@ -78,13 +78,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.spigotmcserver</groupId>
-            <artifactId>spigot-server-api</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/spigot-1.13.2.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
             <version>4.5.0</version>

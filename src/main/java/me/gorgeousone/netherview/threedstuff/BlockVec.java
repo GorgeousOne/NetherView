@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview.threedstuff;
 
-import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import org.bukkit.Location;
 import org.bukkit.World;

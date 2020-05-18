@@ -2,6 +2,7 @@ package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
+import org.bukkit.Axis;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 
@@ -12,24 +13,34 @@ import java.util.Set;
 
 public class ProjectionCache {
 	
-	private BlockCache sourceCache;
+	private Portal portal;
 	private Transform blockTransform;
 	
 	private BlockData[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
-	private Portal portal;
+	
+	private int cacheLength;
 	
 	public ProjectionCache(Portal projectionPortal, BlockCache sourceCache, Transform blockTransform) {
 		
-		this.sourceCache = sourceCache;
-		this.blockTransform = blockTransform;
 		this.portal = projectionPortal;
-		createBlockCopies();
+		this.blockTransform = blockTransform;
+		
+		createBlockCopies(sourceCache);
+		
+		if (portal.getAxis() == Axis.X)
+			cacheLength = blockCopies[0][0].length;
+		else
+			cacheLength = blockCopies.length;
 	}
 	
 	public Portal getPortal() {
 		return portal;
+	}
+	
+	public Transform getTransform() {
+		return blockTransform;
 	}
 	
 	public World getWorld() {
@@ -42,6 +53,14 @@ public class ProjectionCache {
 	
 	public BlockVec getMax() {
 		return max.clone();
+	}
+	
+	/**
+	 * Returns the length of the projection cache measured from portal to back wall.
+	 * The value is important for the length of viewing frustums.
+	 */
+	public int getCacheLength() {
+		return cacheLength;
 	}
 	
 	public boolean contains(BlockVec loc) {
@@ -79,19 +98,15 @@ public class ProjectionCache {
 		return blocksAroundCorner;
 	}
 	
-	public BlockData updateCopy(BlockVec blockPos, BlockData sourceData) {
-		
-		BlockData newBlockData = blockTransform.rotateData(sourceData.clone());
+	public void updateCopy(BlockVec blockPos, BlockData newBlockData) {
 		
 		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
 				[blockPos.getZ() - min.getZ()] = newBlockData;
-		
-		return newBlockData;
 	}
 	
-	private void createBlockCopies() {
+	private void createBlockCopies(BlockCache sourceCache) {
 		
 		BlockVec sourceMin = sourceCache.getMin();
 		BlockVec sourceMax = sourceCache.getMax();
@@ -116,7 +131,7 @@ public class ProjectionCache {
 				for (int z = sourceMin.getZ(); z < sourceMax.getZ(); z++) {
 					
 					BlockVec blockPos = new BlockVec(x, y, z);
-					BlockData blockData = sourceCache.getDataAt(blockPos);
+					BlockData blockData = sourceCache.getBlockDataAt(blockPos);
 					
 					if (blockData == null)
 						continue;
@@ -137,19 +152,16 @@ public class ProjectionCache {
 		
 		Set<BlockVec> locsAroundCorner = new HashSet<>();
 		
-		int x = blockCorner.getX();
-		int y = blockCorner.getY();
-		int z = blockCorner.getZ();
-		
-		locsAroundCorner.add(new BlockVec(x, y, z));
-		locsAroundCorner.add(new BlockVec(x, y - 1, z));
-		locsAroundCorner.add(new BlockVec(x, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x, y - 1, z - 1));
-		
-		locsAroundCorner.add(new BlockVec(x - 1, y, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z));
-		locsAroundCorner.add(new BlockVec(x - 1, y, z - 1));
-		locsAroundCorner.add(new BlockVec(x - 1, y - 1, z - 1));
+		for(int dx = -1; dx <= 0; dx++) {
+			for(int dy = -1; dy <= 0; dy++) {
+				for(int dz = -1; dz <= 0; dz++) {
+					locsAroundCorner.add(new BlockVec(
+							blockCorner.getX() + dx,
+							blockCorner.getY() + dy,
+							blockCorner.getZ() + dz));
+				}
+			}
+		}
 		
 		return locsAroundCorner;
 	}

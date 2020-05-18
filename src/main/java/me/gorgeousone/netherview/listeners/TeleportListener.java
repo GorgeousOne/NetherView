@@ -4,6 +4,7 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -59,7 +60,6 @@ public class TeleportListener implements Listener {
 			}
 		}
 		
-		
 		if (!portal.isLinked()) {
 			
 			Block counterPortalBlock = getNearbyPortalBlock(to);
@@ -77,6 +77,7 @@ public class TeleportListener implements Listener {
 			
 			try {
 				portalHandler.linkPortalTo(portal, counterPortal);
+				player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
 				event.setCancelled(true);
 				
 			} catch (IllegalStateException ex) {

@@ -4,7 +4,6 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
-import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -26,10 +25,8 @@ public class BlockCacheFactory {
 		viewDist += 2;
 		
 		AxisAlignedRect portalRect = portal.getPortalRect();
-		Axis portalAxis = portal.getAxis();
-		
-		Vector portalFacing = FacingUtils.getAxisPlaneNormal(portalAxis);
-		Vector widthFacing = FacingUtils.getAxisWidthFacing(portalAxis);
+		Vector portalFacing = portalRect.getPlaneNormal();
+		Vector widthFacing = portalRect.getWidthFacing();
 		
 		//the view distance in blocks to the front shall be greater than at the sides
 		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
@@ -123,7 +120,7 @@ public class BlockCacheFactory {
 		if (cache.isBorder(blockPos))
 			return changedBlocks;
 		
-		BlockData oldBlockData = cache.getDataAt(blockPos);
+		BlockData oldBlockData = cache.getBlockDataAt(blockPos);
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
 		if (blockWasOccluding == newMaterial.isOccluding()) {
@@ -144,7 +141,7 @@ public class BlockCacheFactory {
 					blockPos.getY(),
 					blockPos.getZ()).getBlockData();
 			
-			cache.setBlockCopy(blockPos, oldBlockData);
+			cache.setBlockDataAt(blockPos, oldBlockData);
 		}
 		
 		changedBlocks.put(blockPos, newBlockData);
@@ -159,13 +156,13 @@ public class BlockCacheFactory {
 					continue;
 				
 				if (!cache.isBlockNowVisible(touchingBlockPos)) {
-					cache.removeBlockCopyAt(touchingBlockPos);
+					cache.removeBlockDataAt(touchingBlockPos);
 					//TODO dont send air, just remove the fake block
 					changedBlocks.put(touchingBlockPos, Material.AIR.createBlockData());
 				}
 			}
 			
-		//re-add fake blocks that are revealed by the new transparent block
+			//re-add fake blocks that are revealed by the new transparent block
 		} else {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
@@ -175,7 +172,7 @@ public class BlockCacheFactory {
 					continue;
 				
 				BlockData touchingBlockData = touchingBlockPos.toLocation(cacheWorld).getBlock().getBlockData();
-				cache.setBlockCopy(touchingBlockPos, touchingBlockData);
+				cache.setBlockDataAt(touchingBlockPos, touchingBlockData);
 				changedBlocks.put(touchingBlockPos, touchingBlockData);
 			}
 		}
@@ -196,7 +193,7 @@ public class BlockCacheFactory {
 	//	}
 	
 	/**
-	 * Returns true if the block is part of the border of the cahche cuboid except the side where the portal is
+	 * Returns true if the block is part of the border of the cache cuboid except the side where the portal is
 	 */
 	private static boolean isCacheBorder(
 			int x, int y, int z,

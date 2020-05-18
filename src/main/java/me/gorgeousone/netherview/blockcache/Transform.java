@@ -131,7 +131,12 @@ public class Transform {
 			MultipleFacing multiFacing = (MultipleFacing) blockData;
 			Map<BlockFace, Boolean> facings = new HashMap<>();
 			
-			for (BlockFace face : ((MultipleFacing) blockData).getAllowedFaces())
+			for (BlockFace face : multiFacing.getAllowedFaces()) {
+				if (FacingUtils.isRotatableFace(face))
+					facings.put(face, multiFacing.hasFace(face));
+			}
+			
+			for (BlockFace face : facings.keySet())
 				multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), facings.get(face));
 			
 		} else if (blockData instanceof RedstoneWire) {
@@ -139,8 +144,10 @@ public class Transform {
 			RedstoneWire wire = (RedstoneWire) blockData;
 			Map<BlockFace, RedstoneWire.Connection> connections = new HashMap<>();
 			
-			for (BlockFace face : wire.getAllowedFaces())
-				connections.put(face, wire.getFace(face));
+			for (BlockFace face : wire.getAllowedFaces()) {
+				if (FacingUtils.isRotatableFace(face))
+					connections.put(face, wire.getFace(face));
+			}
 			
 			for (BlockFace face : connections.keySet())
 				wire.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), connections.get(face));
