@@ -5,6 +5,7 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -29,10 +30,8 @@ public class TeleportListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPortalTravel(PlayerTeleportEvent event) {
 		
-		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)
-			return;
-		
-		if (!event.getPlayer().hasPermission(NetherView.LINK_PERM))
+		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL ||
+		    !event.getPlayer().hasPermission(NetherView.LINK_PERM))
 			return;
 		
 		Location to = event.getTo();
@@ -43,46 +42,35 @@ public class TeleportListener implements Listener {
 		
 		Block portalBlock = getNearbyPortalBlock(from);
 		
+		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null)
 			return;
 		
 		Player player = event.getPlayer();
 		Portal portal = portalHandler.getPortalByBlock(portalBlock);
 		
-		if (portal == null) {
-			
-			try {
-				portal = portalHandler.addPortalStructure(portalBlock);
-				
-			} catch (Exception ex) {
-				player.sendMessage(ex.getMessage());
-				return;
-			}
-		}
+		try {
 		
-		if (!portal.isLinked()) {
+			if(portal == null)
+				portal = portalHandler.addPortalStructure(portalBlock);
 			
+			if (portal.isLinked())
+				return;
+				
 			Block counterPortalBlock = getNearbyPortalBlock(to);
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
-			if (counterPortal == null) {
-				try {
-					counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
-					
-				} catch (Exception ex) {
-					player.sendMessage(ex.getMessage());
-					return;
-				}
-			}
+			if (counterPortal == null)
+				counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
 			
-			try {
-				portalHandler.linkPortalTo(portal, counterPortal);
-				player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
+			portalHandler.linkPortalTo(portal, counterPortal);
+			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
+			
+			if (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinking())
 				event.setCancelled(true);
-				
-			} catch (IllegalStateException ex) {
-				player.sendMessage(ex.getMessage());
-			}
+			
+		}catch (IllegalArgumentException | IllegalStateException ex) {
+			player.sendMessage(ex.getMessage());
 		}
 	}
 	

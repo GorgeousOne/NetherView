@@ -24,7 +24,7 @@ public final class ViewingFrustumFactory {
 		//this will become near plane of the viewing frustum. It will be cropped to fit the actual player view through the portal
 		AxisAlignedRect maxViewingRect = portalRect.clone().translate(playerFacingToPortal.clone().multiply(0.5));
 		
-
+		
 		//widen the rectangle bounds a bit so the projection becomes smoother/more consistent when moving quickly
 		//side effects are blocks slightly sticking out at the sides when standing further away
 		Vector threshold = portalRect.getWidthFacing();

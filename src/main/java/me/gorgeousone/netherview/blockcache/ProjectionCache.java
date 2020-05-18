@@ -152,9 +152,9 @@ public class ProjectionCache {
 		
 		Set<BlockVec> locsAroundCorner = new HashSet<>();
 		
-		for(int dx = -1; dx <= 0; dx++) {
-			for(int dy = -1; dy <= 0; dy++) {
-				for(int dz = -1; dz <= 0; dz++) {
+		for (int dx = -1; dx <= 0; dx++) {
+			for (int dy = -1; dy <= 0; dy++) {
+				for (int dz = -1; dz <= 0; dz++) {
 					locsAroundCorner.add(new BlockVec(
 							blockCorner.getX() + dx,
 							blockCorner.getY() + dy,

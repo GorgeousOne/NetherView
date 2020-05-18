@@ -1,7 +1,5 @@
 package me.gorgeousone.netherview;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
@@ -26,22 +24,17 @@ public final class NetherView extends JavaPlugin {
 	public final static String LINK_PERM = "netherview.linkportals";
 	public final static String RELOAD_PERM = "netherview.reload";
 	
-	private ProtocolManager protocolManager;
-	
 	private PortalHandler portalHandler;
 	private ViewingHandler viewingHandler;
 	
 	private Set<UUID> worldsWithProejctingPortals;
 	private Set<UUID> viewableOnlyWorlds;
 	
-	private boolean hidePortalBlocks;
 	private int portalProjectionDist;
 	private int portalDisplayRangeSquared;
 	
-	@Override
-	public void onLoad() {
-		protocolManager = ProtocolLibrary.getProtocolManager();
-	}
+	private boolean hidePortalBlocks;
+	private boolean cancelTeleportWhenLinking;
 	
 	@Override
 	public void onEnable() {
@@ -80,6 +73,10 @@ public final class NetherView extends JavaPlugin {
 		return hidePortalBlocks;
 	}
 	
+	public boolean cancelTeleportWhenLinking() {
+		return cancelTeleportWhenLinking;
+	}
+	
 	public boolean canViewOtherWorlds(World world) {
 		return worldsWithProejctingPortals.contains(world.getUID());
 	}
@@ -115,9 +112,11 @@ public final class NetherView extends JavaPlugin {
 	
 	private void loadConfigData() {
 		
+		portalProjectionDist = getConfig().getInt("portal-projection-view-distance", 8);
+		portalDisplayRangeSquared = (int) Math.pow(getConfig().getInt("portal-display-range", 32), 2);
+		
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
-		portalProjectionDist = getConfig().getInt("portal-projection-view-distance", 16);
-		portalDisplayRangeSquared = (int) Math.pow(getConfig().getInt("portal-display-range", 16), 2);
+		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
 		
 		worldsWithProejctingPortals = new HashSet<>();
 		viewableOnlyWorlds = new HashSet<>();

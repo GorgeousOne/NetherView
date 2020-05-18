@@ -14,8 +14,6 @@ import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
@@ -70,6 +68,7 @@ public class ViewingHandler {
 	
 	/**
 	 * Removes the players view session and removes all sent fake blocks.
+	 *
 	 * @param player
 	 */
 	public void hideViewSession(Player player) {
@@ -194,25 +193,25 @@ public class ViewingHandler {
 		
 		AxisAlignedRect nearPlaneRect = frustum.getNearPlaneRect();
 		AxisAlignedRect farPlaneRect = frustum.getFarPlaneRect();
-
-		if(farPlaneRect.getAxis() == Axis.X) {
-
+		
+		if (farPlaneRect.getAxis() == Axis.X) {
+			
 			double newMinX = Math.min(nearPlaneRect.getMin().getX(), farPlaneRect.getMin().getX());
 			double newMaxX = Math.max(nearPlaneRect.getMax().getX(), farPlaneRect.getMax().getX());
-
-			if(newMinX > min.getX())
+			
+			if (newMinX > min.getX())
 				min.setX((int) Math.floor(newMinX));
-			if(newMaxX < max.getX())
+			if (newMaxX < max.getX())
 				max.setX((int) Math.ceil(newMaxX));
-
+			
 		} else {
-
+			
 			double newMinZ = Math.min(nearPlaneRect.getMin().getZ(), farPlaneRect.getMin().getZ());
 			double newMaxZ = Math.max(nearPlaneRect.getMax().getZ(), farPlaneRect.getMax().getZ());
-
-			if(newMinZ > min.getZ())
+			
+			if (newMinZ > min.getZ())
 				min.setZ((int) Math.floor(newMinZ));
-			if(newMaxZ < max.getZ())
+			if (newMaxZ < max.getZ())
 				max.setZ((int) Math.ceil(newMaxZ));
 		}
 		
@@ -312,18 +311,18 @@ public class ViewingHandler {
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
 	
-//	private void displayFrustum(Player player, ViewingFrustum frustum) {
-//
-//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-//		AxisAlignedRect farPlane = frustum.getFarPlaneRect();
-//		World world = player.getWorld();
-//
-//		player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-//		player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-//
-//		player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMin().toLocation(world), 0, 0, 0, 0);
-//		player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMax().toLocation(world), 0, 0, 0, 0);
-//	}
+	//	private void displayFrustum(Player player, ViewingFrustum frustum) {
+	//
+	//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
+	//		AxisAlignedRect farPlane = frustum.getFarPlaneRect();
+	//		World world = player.getWorld();
+	//
+	//		player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
+	//		player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
+	//
+	//		player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMin().toLocation(world), 0, 0, 0, 0);
+	//		player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMax().toLocation(world), 0, 0, 0, 0);
+	//	}
 	
 	public void removePortal(Portal portal) {
 		

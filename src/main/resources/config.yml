@@ -1,6 +1,7 @@
 portal-projection-view-distance: 8
-portal-display-range: 16
+portal-display-range: 32
 hide-portal-blocks: false
+cancel-teleport-when-linking-portals: true
 worlds-with-projecting-portals:
   - world
 viewable-worlds:

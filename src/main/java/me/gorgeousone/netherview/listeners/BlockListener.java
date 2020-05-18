@@ -117,7 +117,7 @@ public class BlockListener implements Listener {
 	@EventHandler
 	public void onBlockInteract(PlayerInteractEvent event) {
 		
-		if(event.getAction() != Action.LEFT_CLICK_BLOCK)
+		if (event.getAction() != Action.LEFT_CLICK_BLOCK)
 			return;
 		
 		Player player = event.getPlayer();

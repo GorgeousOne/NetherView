@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.viewfrustum;
 
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.Line;
 import me.gorgeousone.netherview.threedstuff.Plane;
 import org.bukkit.util.Vector;
