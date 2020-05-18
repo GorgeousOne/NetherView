@@ -60,7 +60,6 @@ public class DisplayUtils {
 			
 			try {
 				protocolManager.sendServerPacket(player, fakeBlocksPacket);
-				
 			} catch (InvocationTargetException e) {
 				throw new RuntimeException("Failed to send packet " + fakeBlocksPacket, e);
 			}

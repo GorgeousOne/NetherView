@@ -5,11 +5,14 @@ import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
+import me.gorgeousone.netherview.updatechecks.UpdateCheck;
+import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,8 +20,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public final class NetherView extends JavaPlugin {
+	
+	private static final int resourceId =  78885;
 	
 	public final static String VIEW_PERM = "netherview.viewportals";
 	public final static String LINK_PERM = "netherview.linkportals";
@@ -47,6 +53,7 @@ public final class NetherView extends JavaPlugin {
 		loadConfig();
 		loadConfigData();
 		registerListeners();
+		checkForUpdates();
 	}
 	
 	@Override
@@ -61,6 +68,7 @@ public final class NetherView extends JavaPlugin {
 		
 		loadConfig();
 		loadConfigData();
+		checkForUpdates();
 	}
 	
 	public int getPortalProjectionDist() {
@@ -126,13 +134,13 @@ public final class NetherView extends JavaPlugin {
 		List<String> worldNames = getConfig().getStringList("worlds-with-projecting-portals");
 		
 		for (String worldName : worldNames) {
+			
 			World world = Bukkit.getWorld(worldName);
 			
-			if (world == null) {
-				getLogger().info("Could not find world " + worldName + ".");
-			} else {
+			if (world == null)
+				getLogger().log(Level.WARNING, "Could not find world " + worldName + ".");
+			else
 				worldsWithProjectingPortals.add(world.getUID());
-			}
 		}
 		
 		worldNames = getConfig().getStringList("viewable-worlds");
@@ -140,11 +148,10 @@ public final class NetherView extends JavaPlugin {
 		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
 			
-			if (world == null) {
-				getLogger().info("Could not find world " + worldName + ".");
-			} else {
+			if (world == null)
+				getLogger().log(Level.WARNING, "Could not find world " + worldName + ".");
+			else
 				viewableOnlyWorlds.add(world.getUID());
-			}
 		}
 	}
 	
@@ -154,5 +161,24 @@ public final class NetherView extends JavaPlugin {
 		manager.registerEvents(new TeleportListener(this, portalHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
 		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler), this);
+	}
+	
+	private void checkForUpdates() {
+		
+		new UpdateCheck(this, resourceId).handleResponse((versionResponse, newVersion) -> {
+			
+			if(versionResponse == VersionResponse.FOUND_NEW) {
+			
+				for (Player player : Bukkit.getOnlinePlayers()) {
+					if (player.isOp())
+						player.sendMessage("A new version of NetherView is available: " + ChatColor.LIGHT_PURPLE + newVersion);
+				}
+				
+				getLogger().info("A new version of NetherView is available: " + newVersion);
+			
+			}else if(versionResponse == VersionResponse.UNAVAILABLE) {
+					getLogger().info("Unable to check for new versions...");
+			}
+		}).check();
 	}
 }
