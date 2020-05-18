@@ -2,7 +2,6 @@ package me.gorgeousone.netherview.viewfrustum;
 
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import me.gorgeousone.netherview.threedstuff.Line;
 import org.bukkit.Axis;
 import org.bukkit.entity.Player;
@@ -13,42 +12,30 @@ public final class ViewingFrustumFactory {
 	private ViewingFrustumFactory() {}
 	
 	/**
-	 * Returns a viewing frustum with a near plane roughly representing the area the player can see through the portal.
+	 * Returns a viewing frustum with a near plane precisely representing the area the player can see through the portal.
 	 */
-	public static ViewingFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect) {
-		
-		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);
-		Vector portalNormal = portalRect.getPlane().getNormal();
-		Vector playerFacingToPortal = portalNormal.clone().multiply(isPlayerBehindPortal ? 1 : -1);
-		
-		//clone the portalRect and simply translate it towards the side of the portal which is further away from the player
-		AxisAlignedRect nearPlane = portalRect.clone();
-		nearPlane.translate(playerFacingToPortal.multiply(0.5));
-		
-		return new ViewingFrustum(viewPoint, nearPlane);
-	}
-	
-	public static ViewingFrustum createFrustum2(Vector viewPoint, AxisAlignedRect portalRect) {
+	public static ViewingFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect, double frustumLength) {
 		
 		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);
 		
 		Vector portalNormal = portalRect.getPlane().getNormal();
 		Vector playerFacingToPortal = portalNormal.clone().multiply(isPlayerBehindPortal ? 1 : -1);
 		
-		//this will become near plane of the viewing frustum. It will be cropped to fit the actual player view
+		//this will become near plane of the viewing frustum. It will be cropped to fit the actual player view through the portal
 		AxisAlignedRect maxViewingRect = portalRect.clone().translate(playerFacingToPortal.clone().multiply(0.5));
 		
-		//somehow you can see a few more blocks with a high FOV, on the sides of the screen. 
-		//Thus the portal bounds get widened a bit with this threshold.
-		Vector threshold = FacingUtils.getAxisWidthFacing(portalRect.getAxis());
+		
+		//widen the rectangle bounds a bit so the projection becomes smoother/more consistent when moving quickly
+		//side effects are blocks slightly sticking out at the sides when standing further away
+		Vector threshold = portalRect.getWidthFacing();
 		threshold.setY(1);
-		threshold.multiply(0.2);
+		threshold.multiply(0.1);
 		
 		Vector viewingRectMin = maxViewingRect.getMin().subtract(threshold);
 		Vector viewingRectMax = maxViewingRect.getMax().add(threshold);
 		
-		//if needed the viewing rect bounds are contracted with ray casting
-		//here for the height...
+		//depending on which portal frame blocks will block the view, the viewing rect bounds are contracted by casting rays along the block edges
+		//here for the height of the rect...
 		if (viewPoint.getY() < viewingRectMin.getY()) {
 			
 			Vector closeRectMin = viewingRectMin.clone().subtract(playerFacingToPortal);
@@ -100,10 +87,10 @@ public final class ViewingFrustumFactory {
 		double rectWidth = portalAxis == Axis.X ? viewingRectSize.getX() : viewingRectSize.getZ();
 		double rectHeight = viewingRectSize.getY();
 		
-		//the new contracted rect that is left visible
+		//the new contracted rect that is left for seeing through:
 		AxisAlignedRect actualViewingRect = new AxisAlignedRect(maxViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
 		
-		return new ViewingFrustum(viewPoint, actualViewingRect);
+		return new ViewingFrustum(viewPoint, actualViewingRect, frustumLength);
 	}
 	
 	public static boolean isPlayerBehindPortal(Player player, Portal portal) {

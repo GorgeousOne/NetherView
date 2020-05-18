@@ -8,21 +8,22 @@ import org.bukkit.util.Vector;
 
 public class BlockCache {
 	
-	private BlockCopy[][][] blockCopies;
-	
+	private World world;
+	private BlockData[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
+	
 	private Vector facing;
-	private World world;
 	private BlockData borderBlock;
 	
-	public BlockCache(BlockVec offset, BlockCopy[][][] blockCopies, Vector facing, World world, BlockData borderBlock) {
+	public BlockCache(BlockVec offset, BlockData[][][] blockCopies, Vector facing, World world, BlockData borderBlock) {
 		
+		this.world = world;
 		this.blockCopies = blockCopies;
 		this.min = offset.clone();
 		this.max = offset.clone().add(sourceCacheSize());
+		
 		this.facing = facing;
-		this.world = world;
 		this.borderBlock = borderBlock;
 	}
 	
@@ -81,7 +82,7 @@ public class BlockCache {
 			return z == minZ;
 	}
 	
-	public BlockCopy getBlockCopyAt(BlockVec blockPos) {
+	public BlockData getBlockDataAt(BlockVec blockPos) {
 		
 		if (!contains(blockPos))
 			return null;
@@ -92,20 +93,18 @@ public class BlockCache {
 				[blockPos.getZ() - min.getZ()];
 	}
 	
-	public void setBlockCopy(BlockCopy copy) {
-		
-		BlockVec blockPos = copy.getPosition();
+	public void setBlockDataAt(BlockVec blockPos, BlockData blockData) {
 		
 		if (isBorder(blockPos))
-			copy.setData(borderBlock);
+			blockData = borderBlock.clone();
 		
 		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
-				[blockPos.getZ() - min.getZ()] = copy;
+				[blockPos.getZ() - min.getZ()] = blockData;
 	}
 	
-	public void removeBlockCopyAt(BlockVec blockPos) {
+	public void removeBlockDataAt(BlockVec blockPos) {
 		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
@@ -113,10 +112,10 @@ public class BlockCache {
 	}
 	
 	/**
-	 * Returns true if the block copy at the given position is listed as visible (it's not null)
+	 * Returns true if the block copy at the given position is listed as visible (when it's not null)
 	 */
 	public boolean isBlockListedVisible(BlockVec blockPos) {
-		return getBlockCopyAt(blockPos) != null;
+		return getBlockDataAt(blockPos) != null;
 	}
 	
 	/**
@@ -125,14 +124,15 @@ public class BlockCache {
 	public boolean isBlockNowVisible(BlockVec blockPos) {
 		
 		for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+			
 			BlockVec touchingBlockPos = blockPos.clone().add(facing);
 			
 			if (!contains(touchingBlockPos))
 				continue;
 			
-			BlockCopy touchingCopy = getBlockCopyAt(touchingBlockPos);
+			BlockData touchingBlock = getBlockDataAt(touchingBlockPos);
 			
-			if (touchingCopy != null && !touchingCopy.getBlockData().getMaterial().isOccluding())
+			if (touchingBlock != null && !touchingBlock.getMaterial().isOccluding())
 				return true;
 		}
 		

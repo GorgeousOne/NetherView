@@ -1,8 +1,7 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.FacingUtils;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -28,15 +27,13 @@ public class PortalLocator {
 		
 		Set<Block> innerBlocks = getInnerPortalBlocks(world, portalMin, portalMax);
 		
-		Axis portalAxis = portalRect.getAxis();
-		BlockVec frameExtension = new BlockVec(FacingUtils.getAxisWidthFacing(portalAxis));
-		frameExtension.setY(1);
+		BlockVec frameExtent = new BlockVec(portalRect.getWidthFacing());
+		frameExtent.setY(1);
 		
-		portalMin.subtract(frameExtension);
-		portalMax.add(frameExtension);
+		portalMin.subtract(frameExtent);
+		portalMax.add(frameExtent);
 		
-		Set<Block> frameBlocks = getPortalFrameBlocks(world, portalMin, portalMax, portalAxis);
-		
+		Set<Block> frameBlocks = getPortalFrameBlocks(world, portalMin, portalMax, portalRect.getAxis());
 		return new Portal(world, portalRect, innerBlocks, frameBlocks, portalMin, portalMax);
 	}
 	

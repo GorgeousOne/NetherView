@@ -4,7 +4,6 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.FacingUtils;
-import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -14,9 +13,8 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 import java.util.AbstractMap;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class BlockCacheFactory {
 	
@@ -27,10 +25,8 @@ public class BlockCacheFactory {
 		viewDist += 2;
 		
 		AxisAlignedRect portalRect = portal.getPortalRect();
-		Axis portalAxis = portal.getAxis();
-		
-		Vector portalFacing = FacingUtils.getAxisPlaneNormal(portalAxis);
-		Vector widthFacing = FacingUtils.getAxisWidthFacing(portalAxis);
+		Vector portalFacing = portalRect.getPlaneNormal();
+		Vector widthFacing = portalRect.getWidthFacing();
 		
 		//the view distance in blocks to the front shall be greater than at the sides
 		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
@@ -79,7 +75,7 @@ public class BlockCacheFactory {
 		if (maxX < minX || maxY < minY || maxZ < minZ)
 			throw new IllegalArgumentException("Cannot create a BlockCache smaller than 1 block.");
 		
-		BlockCopy[][][] copiedBlocks = new BlockCopy[maxX - minX][maxY - minY][maxZ - minZ];
+		BlockData[][][] copiedBlocks = new BlockData[maxX - minX][maxY - minY][maxZ - minZ];
 		BlockData cacheBorderBlock = getCacheBorderBlock(cacheWorld);
 		
 		for (int x = minX; x < maxX; x++) {
@@ -91,12 +87,14 @@ public class BlockCacheFactory {
 					if (!isVisible(block))
 						continue;
 					
-					BlockCopy copy = new BlockCopy(block);
+					BlockData blockData;
 					
 					if (isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing))
-						copy.setData(cacheBorderBlock);
+						blockData = cacheBorderBlock.clone();
+					else
+						blockData = block.getBlockData();
 					
-					copiedBlocks[x - minX][y - minY][z - minZ] = copy;
+					copiedBlocks[x - minX][y - minY][z - minZ] = blockData;
 				}
 			}
 		}
@@ -109,27 +107,27 @@ public class BlockCacheFactory {
 	 *
 	 * @return all block copies that were affected and updated in the process.
 	 */
-	public static Set<BlockCopy> updateBlockInCache(
+	public static Map<BlockVec, BlockData> updateBlockInCache(
 			BlockCache cache,
 			Block changedBlock,
 			BlockData newBlockData,
 			boolean blockWasOccluding) {
 		
-		Set<BlockCopy> changedBlocks = new HashSet<>();
+		Map<BlockVec, BlockData> changedBlocks = new HashMap<>();
 		BlockVec blockPos = new BlockVec(changedBlock);
 		Material newMaterial = newBlockData.getMaterial();
 		
 		if (cache.isBorder(blockPos))
 			return changedBlocks;
 		
-		BlockCopy blockCopy = cache.getBlockCopyAt(blockPos);
+		BlockData oldBlockData = cache.getBlockDataAt(blockPos);
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
 		if (blockWasOccluding == newMaterial.isOccluding()) {
 			
-			if (blockCopy != null) {
-				blockCopy.setData(newBlockData);
-				changedBlocks.add(blockCopy);
+			//check if the block was visible (simply listed in the array) before
+			if (oldBlockData != null) {
+				changedBlocks.put(blockPos, oldBlockData);
 			}
 			
 			return changedBlocks;
@@ -137,17 +135,16 @@ public class BlockCacheFactory {
 		
 		World cacheWorld = cache.getWorld();
 		
-		if (blockCopy == null) {
-			blockCopy = new BlockCopy(cacheWorld.getBlockAt(
+		if (oldBlockData == null) {
+			oldBlockData = cacheWorld.getBlockAt(
 					blockPos.getX(),
 					blockPos.getY(),
-					blockPos.getZ()));
+					blockPos.getZ()).getBlockData();
 			
-			cache.setBlockCopy(blockCopy);
+			cache.setBlockDataAt(blockPos, oldBlockData);
 		}
 		
-		blockCopy.setData(newBlockData);
-		changedBlocks.add(blockCopy);
+		changedBlocks.put(blockPos, newBlockData);
 		
 		//hide other block copies that are now covered by this occluding block
 		if (newMaterial.isOccluding()) {
@@ -159,13 +156,13 @@ public class BlockCacheFactory {
 					continue;
 				
 				if (!cache.isBlockNowVisible(touchingBlockPos)) {
-					cache.removeBlockCopyAt(touchingBlockPos);
-					//TODO dont send air, just refresh the block
-					changedBlocks.add(new BlockCopy(touchingBlockPos, Material.AIR.createBlockData()));
+					cache.removeBlockDataAt(touchingBlockPos);
+					//TODO dont send air, just remove the fake block
+					changedBlocks.put(touchingBlockPos, Material.AIR.createBlockData());
 				}
 			}
 			
-			//recreate block copies that are revealed by the new transparent block
+			//re-add fake blocks that are revealed by the new transparent block
 		} else {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
@@ -174,9 +171,9 @@ public class BlockCacheFactory {
 				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos))
 					continue;
 				
-				BlockCopy touchingCopy = new BlockCopy(touchingBlockPos.toLocation(cacheWorld).getBlock());
-				cache.setBlockCopy(touchingCopy);
-				changedBlocks.add(touchingCopy);
+				BlockData touchingBlockData = touchingBlockPos.toLocation(cacheWorld).getBlock().getBlockData();
+				cache.setBlockDataAt(touchingBlockPos, touchingBlockData);
+				changedBlocks.put(touchingBlockPos, touchingBlockData);
 			}
 		}
 		
@@ -196,7 +193,7 @@ public class BlockCacheFactory {
 	//	}
 	
 	/**
-	 * Returns true if the block is part of the border of the cahche cuboid except the side where the portal is
+	 * Returns true if the block is part of the border of the cache cuboid except the side where the portal is
 	 */
 	private static boolean isCacheBorder(
 			int x, int y, int z,

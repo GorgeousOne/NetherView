@@ -9,7 +9,6 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Axis;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -65,7 +64,7 @@ public class PortalHandler {
 	
 	public void removePortal(Portal portal) {
 		
-		if(linkedPortals.containsKey(portal)) {
+		if (linkedPortals.containsKey(portal)) {
 			
 			for (Portal linkedPortal : linkedPortals.get(portal))
 				linkedPortal.unlink();
@@ -74,7 +73,7 @@ public class PortalHandler {
 			linkedProjections.remove(portal.getBackCache());
 		}
 		
-		if(portal.isLinked()) {
+		if (portal.isLinked()) {
 			
 			Portal counterPortal = portal.getCounterPortal();
 			linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
@@ -131,27 +130,12 @@ public class PortalHandler {
 		
 		Set<BlockCache> caches = new HashSet<>();
 		
-		for(Portal portal : getPortals(world)) {
+		for (Portal portal : getPortals(world)) {
 			caches.add(portal.getFrontCache());
 			caches.add(portal.getBackCache());
 		}
 		
 		return caches;
-	}
-	
-	public Set<ProjectionCache> getProjectionCaches(World world) {
-		
-		Set<ProjectionCache> projections = new HashSet<>();
-		
-		for(Portal portal : getPortals(world)) {
-			
-			if(portal.isLinked()) {
-				projections.add(portal.getFrontProjection());
-				projections.add(portal.getBackProjection());
-			}
-		}
-		
-		return projections;
 	}
 	
 	public void linkPortalTo(Portal portal, Portal counterPortal) {
