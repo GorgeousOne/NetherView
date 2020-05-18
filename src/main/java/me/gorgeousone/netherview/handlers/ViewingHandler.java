@@ -68,8 +68,6 @@ public class ViewingHandler {
 	
 	/**
 	 * Removes the players view session and removes all sent fake blocks.
-	 *
-	 * @param player
 	 */
 	public void hideViewSession(Player player) {
 		DisplayUtils.removeFakeBlocks(player, getViewSession(player));
@@ -281,8 +279,17 @@ public class ViewingHandler {
 		}
 	}
 	
+	//	private void displayFrustum(Player player, ViewingFrustum frustum) {
+	//
+	//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
+	//		World world = player.getWorld();
+	//
+	//		player.spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
+	//		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
+	//	}
+	
 	private void displayBlocks(Player player, Map<BlockVec, BlockData> blocksToDisplay) {
-		
+
 		Map<BlockVec, BlockData> viewSession = getViewSession(player);
 		
 		Map<BlockVec, BlockData> removedBlocks = new HashMap<>();

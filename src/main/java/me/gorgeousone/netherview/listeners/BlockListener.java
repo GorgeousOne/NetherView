@@ -10,10 +10,10 @@ import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -26,7 +26,6 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-
 import java.util.HashSet;
 import java.util.Map;
 
@@ -42,7 +41,6 @@ public class BlockListener implements Listener {
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.viewingHandler = viewingHandler;
-		
 		addBlockUpdateInterceptor();
 	}
 	
@@ -132,6 +130,38 @@ public class BlockListener implements Listener {
 			event.setCancelled(true);
 	}
 	
+//	@EventHandler
+//	public void onInteract(PlayerInteractEvent event) {
+//
+//		Action action = event.getAction();
+//
+//		if(action != Action.LEFT_CLICK_BLOCK && action != Action.RIGHT_CLICK_BLOCK)
+//			return;
+//
+//		Player player = event.getPlayer();
+//
+//		if (!viewingHandler.hasViewSession(player))
+//			return;
+//
+//		Set<BlockCopy> viewSession = viewingHandler.getViewSession(player);
+//		BlockCopy clickedBlock = new BlockCopy(event.getClickedBlock());
+//
+//		if (viewSession.contains(clickedBlock)) {
+//			new BukkitRunnable() {
+//				@Override
+//				public void run() {
+//
+//					for(BlockCopy copy : viewSession) {
+//						if(copy.equals(clickedBlock)) {
+//							viewingHandler.displayBlockCopy(player, copy);
+//							return;
+//						}
+//					}
+//				}
+//			}.runTask(main);
+//		}
+//	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
 		
@@ -166,7 +196,7 @@ public class BlockListener implements Listener {
 	public void onBlockExplode(BlockExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			if (block.getType() == Material.NETHER_PORTAL)
+			if(block.getType() == Material.NETHER_PORTAL)
 				removeDamagedPortals(block);
 		}
 		

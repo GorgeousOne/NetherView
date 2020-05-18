@@ -24,16 +24,14 @@ public class BlockVec {
 		this(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
 	}
 	
+	public BlockVec(BlockPosition blockPosition) {
+		this(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
+	}
+	
 	public BlockVec(int x, int y, int z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-	}
-	
-	public BlockVec(BlockPosition position) {
-		this.x = position.getX();
-		this.y = position.getY();
-		this.z = position.getZ();
 	}
 	
 	public int getX() {
