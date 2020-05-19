@@ -1,20 +1,49 @@
 package me.gorgeousone.netherview.portal;
 
+import me.gorgeousone.netherview.FacingUtils;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Orientable;
+import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class PortalLocator {
+	
+	private static Material PORTAL_MATERIAL;
+	
+	public static void configureVersion(Material portalMaterial) {
+		PortalLocator.PORTAL_MATERIAL = portalMaterial;
+	}
+	
+	/**
+	 * Finds the portal block a player might have touched at the location or the blocks next to it
+	 * (players in creative mode often teleport to the nether before their location appears to be inside a portal).
+	 */
+	public static Block getNearbyPortalBlock(Location location) {
+		
+		Block block = location.getBlock();
+		
+		if (block.getType() == PORTAL_MATERIAL)
+			return block;
+		
+		for (BlockFace face : FacingUtils.getAxesFaces()) {
+			Block neighbor = block.getRelative(face);
+			
+			if (neighbor.getType() == PORTAL_MATERIAL)
+				return neighbor;
+		}
+		
+		return null;
+	}
 	
 	public static Portal locatePortalStructure(Block portalBlock) {
 		
@@ -27,7 +56,7 @@ public class PortalLocator {
 		
 		Set<Block> innerBlocks = getInnerPortalBlocks(world, portalMin, portalMax);
 		
-		BlockVec frameExtent = new BlockVec(portalRect.getWidthFacing());
+		BlockVec frameExtent = new BlockVec(portalRect.getCrossNormal());
 		frameExtent.setY(1);
 		
 		portalMin.subtract(frameExtent);
@@ -42,8 +71,8 @@ public class PortalLocator {
 	 */
 	private static AxisAlignedRect getPortalRect(Block portalBlock) {
 		
-		Orientable portalData = (Orientable) portalBlock.getBlockData();
-		Axis portalAxis = portalData.getAxis();
+		MaterialData data = portalBlock.getState().getData();
+		Axis portalAxis = data.getData() == 1 ? Axis.X : Axis.Z;
 		
 		Vector position = new Vector(
 				portalBlock.getX(),
@@ -80,7 +109,7 @@ public class PortalLocator {
 			
 			Block nextBlock = blockIterator.getRelative(facing);
 			
-			if (nextBlock.getType() != Material.NETHER_PORTAL)
+			if (nextBlock.getType() != PORTAL_MATERIAL)
 				return blockIterator;
 			
 			blockIterator = nextBlock;
@@ -102,7 +131,7 @@ public class PortalLocator {
 					
 					Block portalBlock = world.getBlockAt(x, y, z);
 					
-					if (portalBlock.getType() == Material.NETHER_PORTAL) {
+					if (portalBlock.getType() == PORTAL_MATERIAL) {
 						portalBlocks.add(portalBlock);
 					} else {
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal seems to be malformed, yet intact. Mysterious...");

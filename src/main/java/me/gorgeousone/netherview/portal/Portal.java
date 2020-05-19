@@ -4,7 +4,7 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;

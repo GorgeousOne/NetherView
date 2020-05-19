@@ -10,16 +10,8 @@ public abstract class BlockType {
 	
 	private static boolean isLegacyServer;
 	
-	public static void configureVersion(String versionString) {
-	
-		isLegacyServer =
-				versionString.contains("1.8") ||
-			    versionString.contains("1.9") ||
-			    versionString.contains("1.10") ||
-			    versionString.contains("1.11") ||
-			    versionString.contains("1.12");
-		
-		System.out.println("is legacy " + isLegacyServer);
+	public static void configureVersion(boolean isLegacyServer) {
+		BlockType.isLegacyServer = isLegacyServer;
 	}
 	
 	public static BlockType of(Block block) {
@@ -34,12 +26,12 @@ public abstract class BlockType {
 		return isLegacyServer ? new LegacyBlockType(state) : new AquaticBlockType(state);
 	}
 	
-	public static BlockType match(String materialName, MaterialData alternative) {
+	public static BlockType match(String materialName, String alternativeMat, byte data) {
 		
 		Material material = Material.matchMaterial(materialName);
 		
 		if(material == null)
-			return new LegacyBlockType(alternative);
+			return new LegacyBlockType(new MaterialData(Material.valueOf(alternativeMat), data));
 		else
 			return BlockType.of(material);
 	}

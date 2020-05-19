@@ -34,13 +34,16 @@ public class BlockListener implements Listener {
 	private NetherView main;
 	private PortalHandler portalHandler;
 	private ViewingHandler viewingHandler;
+	private Material portalMaterial;
 	
 	public BlockListener(NetherView main,
 	                     PortalHandler portalHandler,
-	                     ViewingHandler viewingHandler) {
+	                     ViewingHandler viewingHandler,
+	                     Material portalMaterial) {
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.viewingHandler = viewingHandler;
+		this.portalMaterial = portalMaterial;
 		addBlockUpdateInterceptor();
 	}
 	
@@ -115,6 +118,11 @@ public class BlockListener implements Listener {
 	@EventHandler
 	public void onBlockInteract(PlayerInteractEvent event) {
 		
+		if(event.getPlayer().isSneaking()) {
+			Block blok = event.getClickedBlock();
+			event.getPlayer().sendMessage(blok.getType().name() + ", " + blok.getData());
+		}
+		
 		if (event.getAction() != Action.LEFT_CLICK_BLOCK)
 			return;
 		
@@ -170,7 +178,7 @@ public class BlockListener implements Listener {
 		
 		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		
-		if (blockType == Material.OBSIDIAN || blockType == Material.NETHER_PORTAL)
+		if (blockType == Material.OBSIDIAN || blockType == portalMaterial)
 			removeDamagedPortals(block);
 	}
 	
@@ -196,7 +204,7 @@ public class BlockListener implements Listener {
 	public void onBlockExplode(BlockExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			if(block.getType() == Material.NETHER_PORTAL)
+			if(block.getType() == portalMaterial)
 				removeDamagedPortals(block);
 		}
 		
@@ -208,7 +216,7 @@ public class BlockListener implements Listener {
 	public void onBlockExplode(EntityExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			if (block.getType() == Material.NETHER_PORTAL)
+			if (block.getType() == portalMaterial)
 				removeDamagedPortals(block);
 		}
 		

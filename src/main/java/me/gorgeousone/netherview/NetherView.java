@@ -6,10 +6,12 @@ import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
+import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -31,6 +33,9 @@ public final class NetherView extends JavaPlugin {
 	public final static String LINK_PERM = "netherview.linkportals";
 	public final static String RELOAD_PERM = "netherview.reload";
 	
+	private boolean isLegacyServer;
+	private Material portalMaterial;
+	
 	private PortalHandler portalHandler;
 	private ViewingHandler viewingHandler;
 	
@@ -47,6 +52,10 @@ public final class NetherView extends JavaPlugin {
 	public void onEnable() {
 		
 		new Metrics(this, 7571);
+
+		loadServerVersion();
+		BlockType.configureVersion(isLegacyServer);
+		PortalLocator.configureVersion(portalMaterial);
 		
 		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
@@ -57,7 +66,6 @@ public final class NetherView extends JavaPlugin {
 		checkForUpdates();
 		
 		System.out.println("I TELL YOU WHAT: " + getServer().getBukkitVersion());
-		BlockType.configureVersion(getServer().getBukkitVersion());
 	}
 	
 	@Override
@@ -117,6 +125,19 @@ public final class NetherView extends JavaPlugin {
 		return false;
 	}
 	
+	private void loadServerVersion() {
+		
+		String version = getServer().getBukkitVersion();
+		isLegacyServer =
+				version.contains("1.8") ||
+				version.contains("1.9") ||
+				version.contains("1.10") ||
+				version.contains("1.11") ||
+				version.contains("1.12");
+		
+		portalMaterial = isLegacyServer ? Material.matchMaterial("PORTAL") : Material.NETHER_PORTAL;
+	}
+	
 	private void loadConfig() {
 		
 		reloadConfig();
@@ -164,7 +185,7 @@ public final class NetherView extends JavaPlugin {
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
-		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler), this);
+		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler, portalMaterial), this);
 	}
 	
 	private void checkForUpdates() {

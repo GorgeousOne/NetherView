@@ -1,7 +1,7 @@
 package threedtests;
 
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

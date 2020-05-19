@@ -56,7 +56,7 @@ public class ViewingFrustum {
 	private void createFarPlaneRect(double frustumLength) {
 		
 		Vector nearPlaneOrigin = nearPlaneRect.getMin();
-		Vector nearPlaneNormal = nearPlaneRect.getPlaneNormal();
+		Vector nearPlaneNormal = nearPlaneRect.getNormal();
 		Vector viewPointFacing = viewPoint.clone().subtract(nearPlaneOrigin);
 		
 		//calculate a vector representing the distance between near plane and far plane

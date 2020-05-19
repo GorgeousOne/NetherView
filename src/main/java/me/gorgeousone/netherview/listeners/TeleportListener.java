@@ -4,6 +4,7 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.FacingUtils;
+import me.gorgeousone.netherview.portal.PortalLocator;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -40,7 +41,7 @@ public class TeleportListener implements Listener {
 		if (!main.canViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
 			return;
 		
-		Block portalBlock = getNearbyPortalBlock(from);
+		Block portalBlock = PortalLocator.getNearbyPortalBlock(to);
 		
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null)
@@ -57,7 +58,11 @@ public class TeleportListener implements Listener {
 			if (portal.isLinked())
 				return;
 				
-			Block counterPortalBlock = getNearbyPortalBlock(to);
+			Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
+			
+			if(counterPortalBlock == null)
+				return;
+			
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
 			if (counterPortal == null)
@@ -72,26 +77,5 @@ public class TeleportListener implements Listener {
 		}catch (IllegalArgumentException | IllegalStateException ex) {
 			player.sendMessage(ex.getMessage());
 		}
-	}
-	
-	/**
-	 * Finds the portal block a player might have touched at the location or the blocks next to it
-	 * (players in creative mode often teleport to the nether before their location appears to be inside a portal).
-	 */
-	private Block getNearbyPortalBlock(Location location) {
-		
-		Block block = location.getBlock();
-		
-		if (block.getType() == Material.NETHER_PORTAL)
-			return block;
-		
-		for (BlockFace face : FacingUtils.getAxesFaces()) {
-			Block neighbor = block.getRelative(face);
-			
-			if (neighbor.getType() == Material.NETHER_PORTAL)
-				return neighbor;
-		}
-		
-		return null;
 	}
 }

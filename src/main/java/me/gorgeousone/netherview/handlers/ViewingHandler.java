@@ -11,7 +11,7 @@ import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.viewfrustum.ViewingFrustum;
 import me.gorgeousone.netherview.viewfrustum.ViewingFrustumFactory;
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;

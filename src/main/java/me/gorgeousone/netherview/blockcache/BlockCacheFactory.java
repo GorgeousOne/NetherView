@@ -10,7 +10,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import me.gorgeousone.netherview.blocktype.BlockType;
-import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import java.util.AbstractMap;
@@ -26,8 +25,8 @@ public class BlockCacheFactory {
 		viewDist += 2;
 		
 		AxisAlignedRect portalRect = portal.getPortalRect();
-		Vector portalFacing = portalRect.getPlaneNormal();
-		Vector widthFacing = portalRect.getWidthFacing();
+		Vector portalFacing = portalRect.getNormal();
+		Vector widthFacing = portalRect.getCrossNormal();
 		
 		//the view distance in blocks to the front shall be greater than at the sides
 		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
@@ -236,11 +235,11 @@ public class BlockCacheFactory {
 		
 		switch (world.getEnvironment()) {
 			case NORMAL:
-				return BlockType.match("BLUE_ICE", new MaterialData(Material.LEGACY_STAINED_CLAY, (byte) 0));
+				return BlockType.match("BLUE_ICE", "STAINED_CLAY", (byte) 0);
 			case NETHER:
-				return BlockType.match("RED_CONCRETE", new MaterialData(Material.LEGACY_STAINED_CLAY, (byte) 14));
+				return BlockType.match("RED_CONCRETE", "STAINED_CLAY", (byte) 14);
 			case THE_END:
-				return BlockType.match("BLACK_CONCRETE", new MaterialData(Material.LEGACY_STAINED_CLAY, (byte) 11));
+				return BlockType.match("BLACK_CONCRETE", "STAINED_CLAY", (byte) 11);
 			default:
 				return null;
 		}

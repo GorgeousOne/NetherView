@@ -3,7 +3,7 @@ package me.gorgeousone.netherview.blockcache;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.World;
 
 import java.util.HashMap;

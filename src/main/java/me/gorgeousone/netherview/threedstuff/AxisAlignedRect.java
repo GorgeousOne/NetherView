@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.threedstuff;
 
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.util.Vector;
 
 /**
@@ -15,9 +15,6 @@ public class AxisAlignedRect {
 	private Plane plane;
 	
 	public AxisAlignedRect(Axis axis, Vector pos, double width, double height) {
-		
-		if (axis == Axis.Y)
-			throw new IllegalArgumentException("Why would you want to use Axis.Y for a portal rectangle?");
 		
 		this.axis = axis;
 		this.pos = pos.clone();
@@ -91,23 +88,15 @@ public class AxisAlignedRect {
 	/**
 	 * Returns a normal vector for the plane of the rectangle.
 	 */
-	public Vector getPlaneNormal() {
-		return plane.getNormal();
+	public Vector getNormal() {
+		return axis.getNormal();
 	}
 	
 	/**
 	 * Returns a vector 90° to the plane normal vector
 	 */
-	public Vector getWidthFacing() {
-		
-		switch (axis) {
-			case X:
-				return new Vector(1, 0, 0);
-			case Z:
-				return new Vector(0, 0, 1);
-			default:
-				throw new IllegalArgumentException("Portals can only face in x or z direction.");
-		}
+	public Vector getCrossNormal() {
+		return axis.getCrossNormal();
 	}
 	
 	@Override

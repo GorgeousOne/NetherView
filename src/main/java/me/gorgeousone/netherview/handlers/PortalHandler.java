@@ -8,7 +8,7 @@ import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -86,9 +86,6 @@ public class PortalHandler {
 	
 	public Portal getPortalByBlock(Block portalBlock) {
 		
-		if (portalBlock.getType() != Material.NETHER_PORTAL)
-			return null;
-		
 		for (Portal portal : getPortals(portalBlock.getWorld())) {
 			if (portal.getPortalBlocks().contains(portalBlock))
 				return portal;
@@ -149,18 +146,18 @@ public class PortalHandler {
 		BlockCache cache2 = counterPortal.getBackCache();
 		
 		//the projections caches are switching positions because of to the rotation transform
-		ProjectionCache copy1 = new ProjectionCache(portal, cache2, linkTransform);
-		ProjectionCache copy2 = new ProjectionCache(portal, cache1, linkTransform);
+		ProjectionCache projection1 = new ProjectionCache(portal, cache2, linkTransform);
+		ProjectionCache projection2 = new ProjectionCache(portal, cache1, linkTransform);
 		
-		portal.setLinkedTo(counterPortal, new AbstractMap.SimpleEntry<>(copy1, copy2));
+		portal.setLinkedTo(counterPortal, new AbstractMap.SimpleEntry<>(projection1, projection2));
 		
 		linkedPortals.putIfAbsent(counterPortal, new HashSet<>());
 		linkedPortals.get(counterPortal).add(portal);
 		
 		linkedProjections.putIfAbsent(cache1, new HashSet<>());
 		linkedProjections.putIfAbsent(cache2, new HashSet<>());
-		linkedProjections.get(cache1).add(copy2);
-		linkedProjections.get(cache2).add(copy1);
+		linkedProjections.get(cache1).add(projection2);
+		linkedProjections.get(cache2).add(projection1);
 	}
 	
 	public Set<ProjectionCache> getLinkedProjections(BlockCache cache) {
