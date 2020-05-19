@@ -5,6 +5,7 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
@@ -15,7 +16,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -32,7 +32,7 @@ public class ViewingHandler {
 	
 	private Map<UUID, Portal> viewedPortals;
 	private Map<UUID, ProjectionCache> viewedProjections;
-	private Map<UUID, Map<BlockVec, BlockData>> playerViewSessions;
+	private Map<UUID, Map<BlockVec, BlockType>> playerViewSessions;
 	
 	public ViewingHandler(NetherView main, PortalHandler portalHandler) {
 		
@@ -54,7 +54,7 @@ public class ViewingHandler {
 		playerViewSessions.clear();
 	}
 	
-	public Map<BlockVec, BlockData> getViewSession(Player player) {
+	public Map<BlockVec, BlockType> getViewSession(Player player) {
 		
 		UUID uuid = player.getUniqueId();
 		
@@ -145,7 +145,7 @@ public class ViewingHandler {
 		viewedPortals.put(player.getUniqueId(), portal);
 		viewedProjections.put(player.getUniqueId(), projection);
 		
-		Map<BlockVec, BlockData> visibleBlocks = new HashMap<>();
+		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
 		if (displayFrustum) {
 			visibleBlocks.putAll(getBlocksInFrustum(projection, playerFrustum));
@@ -153,16 +153,16 @@ public class ViewingHandler {
 		
 		if (hidePortalBlocks) {
 			for (Block portalBlock : portal.getPortalBlocks()) {
-				visibleBlocks.put(new BlockVec(portalBlock), Material.AIR.createBlockData());
+				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
 			}
 		}
 		
 		displayBlocks(player, visibleBlocks);
 	}
 	
-	//	private Map<BlockVec, BlockData> getAllBlocks(ProjectionCache cache) {
+	//	private Map<BlockVec, BlockType> getAllBlocks(ProjectionCache cache) {
 	//
-	//		Map<BlockVec, BlockData> allBlocks = new HashSet<>();
+	//		Map<BlockVec, BlockType> allBlocks = new HashSet<>();
 	//
 	//		BlockVec min = cache.getMin();
 	//		BlockVec max = cache.getMax();
@@ -171,7 +171,7 @@ public class ViewingHandler {
 	//			for (int y = min.getY(); y <= max.getY(); y++) {
 	//				for (int z = min.getZ(); z <= max.getZ(); z++) {
 	//
-	//					BlockData copy = cache.getCopyAt(new BlockVec(x, y, z));
+	//					BlockType copy = cache.getCopyAt(new BlockVec(x, y, z));
 	//
 	//					if (copy != null)
 	//						allBlocks.add(copy);
@@ -182,9 +182,9 @@ public class ViewingHandler {
 	//		return allBlocks;
 	//	}
 	
-	private Map<BlockVec, BlockData> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
+	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
 		
-		Map<BlockVec, BlockData> blocksInFrustum = new HashMap<>();
+		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
 		BlockVec min = projection.getMin();
 		BlockVec max = projection.getMax();
@@ -231,17 +231,17 @@ public class ViewingHandler {
 	/**
 	 * Forwards the changes made in a block cache to all the linked projections. This also live-updates what the players see
 	 */
-	public void updateProjections(BlockCache cache, Map<BlockVec, BlockData> updatedCopies) {
+	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedCopies) {
 		
 		for (ProjectionCache projection : portalHandler.getLinkedProjections(cache)) {
 			
-			Map<BlockVec, BlockData> projectionUpdates = new HashMap<>();
+			Map<BlockVec, BlockType> projectionUpdates = new HashMap<>();
 			
-			for (Map.Entry<BlockVec, BlockData> entry : updatedCopies.entrySet()) {
+			for (Map.Entry<BlockVec, BlockType> entry : updatedCopies.entrySet()) {
 				
 				Transform blockTransform = projection.getTransform();
 				BlockVec projectionBlockPos = blockTransform.transformVec(entry.getKey().clone());
-				BlockData projectionBlockData = blockTransform.rotateData(entry.getValue().clone());
+				BlockType projectionBlockData = entry.getValue().clone().rotate(blockTransform.getQuarterTurns());
 				
 				projection.updateCopy(projectionBlockPos, projectionBlockData);
 				projectionUpdates.put(projectionBlockPos, projectionBlockData);
@@ -260,17 +260,17 @@ public class ViewingHandler {
 						portal.getPortalRect(),
 						projection.getCacheLength());
 				
-				Map<BlockVec, BlockData> blocksInFrustum = new HashMap<>();
-				Map<BlockVec, BlockData> viewSession = getViewSession(player);
+				Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
+				Map<BlockVec, BlockType> viewSession = getViewSession(player);
 				
-				for (Map.Entry<BlockVec, BlockData> entry : projectionUpdates.entrySet()) {
+				for (Map.Entry<BlockVec, BlockType> entry : projectionUpdates.entrySet()) {
 					
 					BlockVec blockPos = entry.getKey();
-					BlockData blockData = entry.getValue();
+					BlockType blockType = entry.getValue();
 					
 					if (playerFrustum.containsBlock(blockPos.toVector())) {
-						blocksInFrustum.put(blockPos, blockData);
-						viewSession.put(blockPos, blockData);
+						blocksInFrustum.put(blockPos, blockType);
+						viewSession.put(blockPos, blockType);
 					}
 				}
 				
@@ -288,11 +288,11 @@ public class ViewingHandler {
 	//		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
 	//	}
 	
-	private void displayBlocks(Player player, Map<BlockVec, BlockData> blocksToDisplay) {
+	private void displayBlocks(Player player, Map<BlockVec, BlockType> blocksToDisplay) {
 
-		Map<BlockVec, BlockData> viewSession = getViewSession(player);
+		Map<BlockVec, BlockType> viewSession = getViewSession(player);
 		
-		Map<BlockVec, BlockData> removedBlocks = new HashMap<>();
+		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
 		Iterator<BlockVec> iterator = viewSession.keySet().iterator();
 		
 		while (iterator.hasNext()) {

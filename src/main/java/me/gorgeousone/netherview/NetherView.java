@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview;
 
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
@@ -54,6 +55,9 @@ public final class NetherView extends JavaPlugin {
 		loadConfigData();
 		registerListeners();
 		checkForUpdates();
+		
+		System.out.println("I TELL YOU WHAT: " + getServer().getBukkitVersion());
+		BlockType.configureVersion(getServer().getBukkitVersion());
 	}
 	
 	@Override

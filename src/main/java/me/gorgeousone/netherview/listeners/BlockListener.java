@@ -17,7 +17,7 @@ import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -63,7 +63,7 @@ public class BlockListener implements Listener {
 						
 						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
 						BlockVec blockPosVec = new BlockVec(blockPos);
-						Map<BlockVec, BlockData> viewSession = viewingHandler.getViewSession(player);
+						Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
 						
 						if (viewSession.containsKey(blockPosVec)) {
 							event.getPacket().getBlockData().write(0, WrappedBlockData.createData(viewSession.get(blockPosVec)));
@@ -91,7 +91,7 @@ public class BlockListener implements Listener {
 		}
 	}
 	
-	private void updateBlockCaches(Block block, BlockData newBlockData, boolean blockWasOccluding) {
+	private void updateBlockCaches(Block block, BlockType newBlockData, boolean blockWasOccluding) {
 		
 		World blockWorld = block.getWorld();
 		
@@ -105,7 +105,7 @@ public class BlockListener implements Listener {
 			if (!cache.contains(blockPos))
 				continue;
 			
-			Map<BlockVec, BlockData> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
+			Map<BlockVec, BlockType> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
 			
 			if (!updatedCopies.isEmpty())
 				viewingHandler.updateProjections(cache, updatedCopies);
@@ -123,7 +123,7 @@ public class BlockListener implements Listener {
 		if (!viewingHandler.hasViewSession(player))
 			return;
 		
-		Map<BlockVec, BlockData> viewSession = viewingHandler.getViewSession(player);
+		Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
 		BlockVec blockPos = new BlockVec(event.getClickedBlock());
 		
 		if (viewSession.containsKey(blockPos))
@@ -168,7 +168,7 @@ public class BlockListener implements Listener {
 		Block block = event.getBlock();
 		Material blockType = block.getType();
 		
-		updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
+		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		
 		if (blockType == Material.OBSIDIAN || blockType == Material.NETHER_PORTAL)
 			removeDamagedPortals(block);
@@ -178,14 +178,14 @@ public class BlockListener implements Listener {
 	public void onBlockPlace(BlockPlaceEvent event) {
 		
 		Block block = event.getBlock();
-		updateBlockCaches(block, block.getBlockData(), false);
+		updateBlockCaches(block, BlockType.of(block), false);
 		
 		Player player = event.getPlayer();
 		
 		if (!viewingHandler.hasViewSession(player))
 			return;
 		
-		Map<BlockVec, BlockData> viewSession = viewingHandler.getViewSession(player);
+		Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
 		BlockVec blockPos = new BlockVec(block);
 		
 		if (viewSession.containsKey(blockPos))
@@ -201,7 +201,7 @@ public class BlockListener implements Listener {
 		}
 		
 		for (Block block : event.blockList())
-			updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
+			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -213,25 +213,25 @@ public class BlockListener implements Listener {
 		}
 		
 		for (Block block : event.blockList())
-			updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
+			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 	}
 	
 	//water, lava, dragon eggs
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockSpill(BlockFromToEvent event) {
 		Block block = event.getToBlock();
-		updateBlockCaches(block, event.getBlock().getBlockData(), false);
+		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBurn(BlockBurnEvent event) {
 		Block block = event.getBlock();
-		updateBlockCaches(block, Material.AIR.createBlockData(), block.getType().isOccluding());
+		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 	}
 	
 	private void onAnyGrowEvent(BlockGrowEvent event) {
 		Block block = event.getBlock();
-		updateBlockCaches(block, event.getNewState().getBlockData(), block.getType().isOccluding());
+		updateBlockCaches(block, BlockType.of(event.getNewState()), block.getType().isOccluding());
 	}
 	
 	//pumpkin/melon growing
@@ -256,13 +256,14 @@ public class BlockListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockFade(BlockFadeEvent event) {
 		Block block = event.getBlock();
-		updateBlockCaches(block, event.getNewState().getBlockData(), block.getType().isOccluding());
+		updateBlockCaches(block, BlockType.of(event.getNewState()), block.getType().isOccluding());
 	}
 	
 	//falling sand and maybe endermen (actually also sheeps but that doesn't work)
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityChangeBlock(EntityChangeBlockEvent event) {
 		Block block = event.getBlock();
-		updateBlockCaches(block, event.getBlockData(), false);
+		//TODO check what 1.8 uses instead of event.getBlockData()
+		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
 	}
 }

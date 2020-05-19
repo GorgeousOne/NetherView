@@ -3,13 +3,14 @@ package me.gorgeousone.netherview.blockcache;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.threedstuff.FacingUtils;
+import me.gorgeousone.netherview.FacingUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
+import me.gorgeousone.netherview.blocktype.BlockType;
+import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import java.util.AbstractMap;
@@ -75,8 +76,8 @@ public class BlockCacheFactory {
 		if (maxX < minX || maxY < minY || maxZ < minZ)
 			throw new IllegalArgumentException("Cannot create a BlockCache smaller than 1 block.");
 		
-		BlockData[][][] copiedBlocks = new BlockData[maxX - minX][maxY - minY][maxZ - minZ];
-		BlockData cacheBorderBlock = getCacheBorderBlock(cacheWorld);
+		BlockType[][][] copiedBlocks = new BlockType[maxX - minX][maxY - minY][maxZ - minZ];
+		BlockType cacheBorderBlock = getCacheBorderBlock(cacheWorld);
 		
 		for (int x = minX; x < maxX; x++) {
 			for (int y = minY; y < maxY; y++) {
@@ -87,14 +88,14 @@ public class BlockCacheFactory {
 					if (!isVisible(block))
 						continue;
 					
-					BlockData blockData;
+					BlockType blockType;
 					
 					if (isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing))
-						blockData = cacheBorderBlock.clone();
+						blockType = cacheBorderBlock.clone();
 					else
-						blockData = block.getBlockData();
+						blockType = BlockType.of(block);;
 					
-					copiedBlocks[x - minX][y - minY][z - minZ] = blockData;
+					copiedBlocks[x - minX][y - minY][z - minZ] = blockType;
 				}
 			}
 		}
@@ -107,23 +108,22 @@ public class BlockCacheFactory {
 	 *
 	 * @return all block copies that were affected and updated in the process.
 	 */
-	public static Map<BlockVec, BlockData> updateBlockInCache(
+	public static Map<BlockVec, BlockType> updateBlockInCache(
 			BlockCache cache,
 			Block changedBlock,
-			BlockData newBlockData,
+			BlockType newBlockData,
 			boolean blockWasOccluding) {
 		
-		Map<BlockVec, BlockData> changedBlocks = new HashMap<>();
+		Map<BlockVec, BlockType> changedBlocks = new HashMap<>();
 		BlockVec blockPos = new BlockVec(changedBlock);
-		Material newMaterial = newBlockData.getMaterial();
 		
 		if (cache.isBorder(blockPos))
 			return changedBlocks;
 		
-		BlockData oldBlockData = cache.getBlockDataAt(blockPos);
+		BlockType oldBlockData = cache.getBlockTypeAt(blockPos);
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
-		if (blockWasOccluding == newMaterial.isOccluding()) {
+		if (blockWasOccluding == newBlockData.isOccluding()) {
 			
 			//check if the block was visible (simply listed in the array) before
 			if (oldBlockData != null) {
@@ -136,18 +136,18 @@ public class BlockCacheFactory {
 		World cacheWorld = cache.getWorld();
 		
 		if (oldBlockData == null) {
-			oldBlockData = cacheWorld.getBlockAt(
+			oldBlockData = BlockType.of(cacheWorld.getBlockAt(
 					blockPos.getX(),
 					blockPos.getY(),
-					blockPos.getZ()).getBlockData();
+					blockPos.getZ()));
 			
-			cache.setBlockDataAt(blockPos, oldBlockData);
+			cache.setBlockTypeAt(blockPos, oldBlockData);
 		}
 		
 		changedBlocks.put(blockPos, newBlockData);
 		
 		//hide other block copies that are now covered by this occluding block
-		if (newMaterial.isOccluding()) {
+		if (newBlockData.isOccluding()) {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
@@ -158,7 +158,7 @@ public class BlockCacheFactory {
 				if (!cache.isBlockNowVisible(touchingBlockPos)) {
 					cache.removeBlockDataAt(touchingBlockPos);
 					//TODO dont send air, just remove the fake block
-					changedBlocks.put(touchingBlockPos, Material.AIR.createBlockData());
+					changedBlocks.put(touchingBlockPos, BlockType.of(Material.AIR));
 				}
 			}
 			
@@ -171,8 +171,8 @@ public class BlockCacheFactory {
 				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos))
 					continue;
 				
-				BlockData touchingBlockData = touchingBlockPos.toLocation(cacheWorld).getBlock().getBlockData();
-				cache.setBlockDataAt(touchingBlockPos, touchingBlockData);
+				BlockType touchingBlockData = BlockType.of(touchingBlockPos.toLocation(cacheWorld).getBlock());
+				cache.setBlockTypeAt(touchingBlockPos, touchingBlockData);
 				changedBlocks.put(touchingBlockPos, touchingBlockData);
 			}
 		}
@@ -232,15 +232,15 @@ public class BlockCacheFactory {
 		return false;
 	}
 	
-	private static BlockData getCacheBorderBlock(World world) {
+	private static BlockType getCacheBorderBlock(World world) {
 		
 		switch (world.getEnvironment()) {
 			case NORMAL:
-				return Material.BLUE_ICE.createBlockData();
+				return BlockType.match("BLUE_ICE", new MaterialData(Material.LEGACY_STAINED_CLAY, (byte) 0));
 			case NETHER:
-				return Material.RED_CONCRETE.createBlockData();
+				return BlockType.match("RED_CONCRETE", new MaterialData(Material.LEGACY_STAINED_CLAY, (byte) 14));
 			case THE_END:
-				return Material.BLACK_CONCRETE.createBlockData();
+				return BlockType.match("BLACK_CONCRETE", new MaterialData(Material.LEGACY_STAINED_CLAY, (byte) 11));
 			default:
 				return null;
 		}

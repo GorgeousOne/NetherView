@@ -7,10 +7,10 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
@@ -19,40 +19,40 @@ import java.util.Map;
 
 public class DisplayUtils {
 	
-	public static void removeFakeBlocks(Player player, Map<BlockVec, BlockData> blockCopies) {
+	public static void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
 		World playerWorld = player.getWorld();
-		Map<BlockVec, BlockData> updatedBlockCopies = new HashMap<>();
+		Map<BlockVec, BlockType> updatedBlockCopies = new HashMap<>();
 		
 		for (BlockVec blockPos : blockCopies.keySet())
-			updatedBlockCopies.put(blockPos.clone(), blockPos.toBlock(playerWorld).getBlockData());
+			updatedBlockCopies.put(blockPos.clone(), BlockType.of(blockPos.toBlock(playerWorld)));
 		
 		displayFakeBlocks(player, updatedBlockCopies);
 	}
 	
-	public static void displayFakeBlocks(Player player, Map<BlockVec, BlockData> blockCopies) {
+	public static void displayFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
 		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
 		
 		World playerWorld = player.getWorld();
-		Map<BlockVec, Map<BlockVec, BlockData>> sortedBlockData = getSortedByChunks(blockCopies);
+		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockTypes = getSortedByChunks(blockCopies);
 		
-		for (Map.Entry<BlockVec, Map<BlockVec, BlockData>> chunkEntry : sortedBlockData.entrySet()) {
+		for (Map.Entry<BlockVec, Map<BlockVec, BlockType>> chunkEntry : sortedBlockTypes.entrySet()) {
 			
 			BlockVec chunkPos = chunkEntry.getKey();
-			Map<BlockVec, BlockData> chunkBlockData = chunkEntry.getValue();
+			Map<BlockVec, BlockType> chunkBlockTypes = chunkEntry.getValue();
 			
 			//create an empty multi block change packet
 			PacketContainer fakeBlocksPacket = protocolManager.createPacket(PacketType.Play.Server.MULTI_BLOCK_CHANGE);
 			fakeBlocksPacket.getChunkCoordIntPairs().write(0, new ChunkCoordIntPair(chunkPos.getX(), chunkPos.getZ()));
 			
-			MultiBlockChangeInfo[] blockInfo = new MultiBlockChangeInfo[chunkBlockData.size()];
+			MultiBlockChangeInfo[] blockInfo = new MultiBlockChangeInfo[chunkBlockTypes.size()];
 			int i = 0;
 			
-			for (Map.Entry<BlockVec, BlockData> entry : chunkBlockData.entrySet()) {
+			for (Map.Entry<BlockVec, BlockType> entry : chunkBlockTypes.entrySet()) {
 				
 				Location blockLoc = entry.getKey().toLocation(playerWorld);
-				blockInfo[i] = new MultiBlockChangeInfo(blockLoc, WrappedBlockData.createData(entry.getValue()));
+				blockInfo[i] = new MultiBlockChangeInfo(blockLoc, entry.getValue().getWrapped());
 				i++;
 			}
 			
@@ -66,11 +66,11 @@ public class DisplayUtils {
 		}
 	}
 	
-	private static Map<BlockVec, Map<BlockVec, BlockData>> getSortedByChunks(Map<BlockVec, BlockData> blockCopies) {
+	private static Map<BlockVec, Map<BlockVec, BlockType>> getSortedByChunks(Map<BlockVec, BlockType> blockCopies) {
 		
-		Map<BlockVec, Map<BlockVec, BlockData>> sortedBlockCopies = new HashMap<>();
+		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockCopies = new HashMap<>();
 		
-		for (Map.Entry<BlockVec, BlockData> entry : blockCopies.entrySet()) {
+		for (Map.Entry<BlockVec, BlockType> entry : blockCopies.entrySet()) {
 			
 			BlockVec blockPos = entry.getKey();
 			BlockVec chunkPos = new BlockVec(blockPos.getX() >> 4, 0, blockPos.getZ() >> 4);

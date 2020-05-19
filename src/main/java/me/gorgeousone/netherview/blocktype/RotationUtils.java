@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.threedstuff;
+package me.gorgeousone.netherview.blocktype;
 
 import org.bukkit.block.BlockFace;
 
@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class FacingUtils {
+public class RotationUtils {
 	
 	private static List<BlockFace> rotationFaces = new ArrayList<>(Arrays.asList(
 			BlockFace.NORTH_WEST,
@@ -41,25 +41,5 @@ public class FacingUtils {
 		int positiveTurns = (quarterTurns % 4 + 4);
 		int rotatedFaceIndex = (rotationFaces.indexOf(face) + positiveTurns * 4) % rotationFaces.size();
 		return rotationFaces.get(rotatedFaceIndex);
-	}
-	
-	public static BlockFace[] getAxesFaces() {
-		return new BlockFace[]{
-				BlockFace.UP,
-				BlockFace.DOWN,
-				BlockFace.WEST,
-				BlockFace.EAST,
-				BlockFace.SOUTH,
-				BlockFace.NORTH};
-	}
-	
-	public static BlockVec[] getAxesBlockVecs() {
-		return new BlockVec[]{
-				new BlockVec(1, 0, 0),
-				new BlockVec(0, 1, 0),
-				new BlockVec(0, 0, 1),
-				new BlockVec(-1, 0, 0),
-				new BlockVec(0, -1, 0),
-				new BlockVec(0, 0, -1)};
 	}
 }

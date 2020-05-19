@@ -3,7 +3,7 @@ package me.gorgeousone.netherview.listeners;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.FacingUtils;
+import me.gorgeousone.netherview.FacingUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
