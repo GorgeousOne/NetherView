@@ -1,9 +1,9 @@
-package me.gorgeousone.netherview.viewfrustum;
+package me.gorgeousone.netherview.threedstuff.viewfrustum;
 
+import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.Line;
-import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -29,7 +29,7 @@ public final class ViewingFrustumFactory {
 		//side effects are blocks slightly sticking out at the sides when standing further away
 		Vector threshold = portalRect.getCrossNormal();
 		threshold.setY(1);
-		threshold.multiply(0.1);
+		threshold.multiply(0.15);
 		
 		Vector viewingRectMin = maxViewingRect.getMin().subtract(threshold);
 		Vector viewingRectMax = maxViewingRect.getMax().add(threshold);
@@ -87,9 +87,10 @@ public final class ViewingFrustumFactory {
 		double rectWidth = portalAxis == Axis.X ? viewingRectSize.getX() : viewingRectSize.getZ();
 		double rectHeight = viewingRectSize.getY();
 		
-		//the new contracted rect that is left for seeing through:
-		AxisAlignedRect actualViewingRect = new AxisAlignedRect(maxViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
+		if (rectWidth < 0)
+			return null;
 		
+		AxisAlignedRect actualViewingRect = new AxisAlignedRect(maxViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
 		return new ViewingFrustum(viewPoint, actualViewingRect, frustumLength);
 	}
 	

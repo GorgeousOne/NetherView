@@ -64,7 +64,7 @@ public class AquaticBlockType extends BlockType {
 			
 			Rotatable rotatable = (Rotatable) blockData;
 			rotatable.setRotation(RotationUtils.getRotatedFace(rotatable.getRotation(), quarterTurns));
-		
+			
 			//e.g. fences
 		} else if (blockData instanceof MultipleFacing) {
 			

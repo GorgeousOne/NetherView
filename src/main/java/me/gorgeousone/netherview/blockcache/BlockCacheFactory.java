@@ -1,15 +1,16 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.FacingUtils;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.FacingUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import me.gorgeousone.netherview.blocktype.BlockType;
 import org.bukkit.util.Vector;
 
 import java.util.AbstractMap;
@@ -31,7 +32,6 @@ public class BlockCacheFactory {
 		//the view distance in blocks to the front shall be greater than at the sides
 		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
 		int frontViewDist = minPortalExtent + viewDist;
-		
 		int sideViewDist = (int) Math.ceil(viewDist / 1.618d);
 		
 		Vector cacheCorner1 = portalRect.getMin();
@@ -92,7 +92,7 @@ public class BlockCacheFactory {
 					if (isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing))
 						blockType = cacheBorderBlock.clone();
 					else
-						blockType = BlockType.of(block);;
+						blockType = BlockType.of(block);
 					
 					copiedBlocks[x - minX][y - minY][z - minZ] = blockType;
 				}
@@ -119,14 +119,15 @@ public class BlockCacheFactory {
 		if (cache.isBorder(blockPos))
 			return changedBlocks;
 		
-		BlockType oldBlockData = cache.getBlockTypeAt(blockPos);
+		BlockType oldBlockType = cache.getBlockTypeAt(blockPos);
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
 		if (blockWasOccluding == newBlockData.isOccluding()) {
-			
+			Bukkit.broadcastMessage("same occlusion");
 			//check if the block was visible (simply listed in the array) before
-			if (oldBlockData != null) {
-				changedBlocks.put(blockPos, oldBlockData);
+			if (oldBlockType != null) {
+				Bukkit.broadcastMessage("single replacement");
+				changedBlocks.put(blockPos, oldBlockType);
 			}
 			
 			return changedBlocks;
@@ -134,13 +135,13 @@ public class BlockCacheFactory {
 		
 		World cacheWorld = cache.getWorld();
 		
-		if (oldBlockData == null) {
-			oldBlockData = BlockType.of(cacheWorld.getBlockAt(
+		if (oldBlockType == null) {
+			oldBlockType = BlockType.of(cacheWorld.getBlockAt(
 					blockPos.getX(),
 					blockPos.getY(),
 					blockPos.getZ()));
 			
-			cache.setBlockTypeAt(blockPos, oldBlockData);
+			cache.setBlockTypeAt(blockPos, oldBlockType);
 		}
 		
 		changedBlocks.put(blockPos, newBlockData);

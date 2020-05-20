@@ -5,13 +5,13 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.viewfrustum.ViewingFrustum;
-import me.gorgeousone.netherview.viewfrustum.ViewingFrustumFactory;
-import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewingFrustum;
+import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewingFrustumFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -147,14 +147,13 @@ public class ViewingHandler {
 		
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
-		if (displayFrustum) {
+		if (playerFrustum != null && displayFrustum) {
 			visibleBlocks.putAll(getBlocksInFrustum(projection, playerFrustum));
 		}
 		
 		if (hidePortalBlocks) {
-			for (Block portalBlock : portal.getPortalBlocks()) {
+			for (Block portalBlock : portal.getPortalBlocks())
 				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
-			}
 		}
 		
 		displayBlocks(player, visibleBlocks);
@@ -220,7 +219,7 @@ public class ViewingHandler {
 					BlockVec blockPos = new BlockVec(x, y, z);
 					
 					if (frustum.contains(blockPos.toVector()))
-						blocksInFrustum.putAll(projection.getCopiesAround(new BlockVec(x, y, z)));
+						blocksInFrustum.putAll(projection.getBlockTypesAround(new BlockVec(x, y, z)));
 				}
 			}
 		}
@@ -243,7 +242,7 @@ public class ViewingHandler {
 				BlockVec projectionBlockPos = blockTransform.transformVec(entry.getKey().clone());
 				BlockType projectionBlockData = entry.getValue().clone().rotate(blockTransform.getQuarterTurns());
 				
-				projection.updateCopy(projectionBlockPos, projectionBlockData);
+				projection.setBlockTypeAt(projectionBlockPos, projectionBlockData);
 				projectionUpdates.put(projectionBlockPos, projectionBlockData);
 			}
 			
@@ -279,17 +278,9 @@ public class ViewingHandler {
 		}
 	}
 	
-	//	private void displayFrustum(Player player, ViewingFrustum frustum) {
-	//
-	//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-	//		World world = player.getWorld();
-	//
-	//		player.spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-	//		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-	//	}
 	
 	private void displayBlocks(Player player, Map<BlockVec, BlockType> blocksToDisplay) {
-
+		
 		Map<BlockVec, BlockType> viewSession = getViewSession(player);
 		
 		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
@@ -318,19 +309,22 @@ public class ViewingHandler {
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
 	
-	//	private void displayFrustum(Player player, ViewingFrustum frustum) {
-	//
-	//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-	//		AxisAlignedRect farPlane = frustum.getFarPlaneRect();
-	//		World world = player.getWorld();
-	//
-	//		player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-	//		player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-	//
-	//		player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMin().toLocation(world), 0, 0, 0, 0);
-	//		player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMax().toLocation(world), 0, 0, 0, 0);
-	//	}
-	
+//	private void displayFrustum(Player player, ViewingFrustum frustum) {
+//
+//		try {
+//			AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
+//			AxisAlignedRect farPlane = frustum.getFarPlaneRect();
+//			World world = player.getWorld();
+//
+//			player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
+//			player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
+//
+//			player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMin().toLocation(world), 0, 0, 0, 0);
+//			player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMax().toLocation(world), 0, 0, 0, 0);
+//
+//		} catch (Exception ignored) {}
+//	}
+
 	public void removePortal(Portal portal) {
 		
 		Set<Portal> affectedPortals = portalHandler.getLinkedPortals(portal);

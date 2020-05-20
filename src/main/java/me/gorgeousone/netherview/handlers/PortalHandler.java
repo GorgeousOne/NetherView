@@ -5,13 +5,13 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.blocktype.Axis;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
@@ -52,6 +52,12 @@ public class PortalHandler {
 		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
 		addPortal(portal);
 		
+		if (main.isDebugModeEnabled()) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Portal located at "
+			                        + portal.getWorld().getName() + ", "
+			                        + new BlockVec(portal.getLocation()).toString());
+		}
+		
 		return portal;
 	}
 	
@@ -64,20 +70,28 @@ public class PortalHandler {
 	
 	public void removePortal(Portal portal) {
 		
+		if (main.isDebugModeEnabled()) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Removing portal at located at "
+			                        + portal.getWorld().getName() + ", "
+			                        + new BlockVec(portal.getLocation()).toString());
+		}
+		
+		if (portal.isLinked()) {
+			Portal counterPortal = portal.getCounterPortal();
+			linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
+			linkedProjections.get(counterPortal.getBackCache()).remove(portal.getFrontProjection());
+		}
+		
 		if (linkedPortals.containsKey(portal)) {
+			
+			if (main.isDebugModeEnabled())
+				Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Un-linking " + linkedPortals.get(portal).size() + " other portals.");
 			
 			for (Portal linkedPortal : linkedPortals.get(portal))
 				linkedPortal.unlink();
 			
 			linkedProjections.remove(portal.getFrontCache());
 			linkedProjections.remove(portal.getBackCache());
-		}
-		
-		if (portal.isLinked()) {
-			
-			Portal counterPortal = portal.getCounterPortal();
-			linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
-			linkedProjections.get(counterPortal.getBackCache()).remove(portal.getFrontProjection());
 		}
 		
 		linkedPortals.remove(portal);
@@ -99,7 +113,7 @@ public class PortalHandler {
 	}
 	
 	public Set<Portal> getLinkedPortals(Portal portal) {
-		return linkedPortals.getOrDefault(portal, new HashSet<>());
+		return new HashSet<>(linkedPortals.getOrDefault(portal, new HashSet<>()));
 	}
 	
 	public Portal getNearestLinkedPortal(Location playerLoc) {
@@ -138,7 +152,7 @@ public class PortalHandler {
 	public void linkPortalTo(Portal portal, Portal counterPortal) {
 		
 		if (!counterPortal.equalsInSize(portal))
-			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are dissimilar in size, it is difficult to get a clear view...");
+			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are not the same size, it is difficult to get a clear view...");
 		
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
 		
@@ -158,6 +172,13 @@ public class PortalHandler {
 		linkedProjections.putIfAbsent(cache2, new HashSet<>());
 		linkedProjections.get(cache1).add(projection2);
 		linkedProjections.get(cache2).add(projection1);
+		
+		if (main.isDebugModeEnabled()) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Linked portal from "
+			                        + portal.getWorld().getName() + " to portal at "
+			                        + counterPortal.getWorld().getName() + ", "
+			                        + new BlockVec(counterPortal.getLocation()).toString());
+		}
 	}
 	
 	public Set<ProjectionCache> getLinkedProjections(BlockCache cache) {

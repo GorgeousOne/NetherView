@@ -1,21 +1,13 @@
 package me.gorgeousone.netherview.updatechecks;
 
-import com.google.common.base.Preconditions;
-import com.google.common.io.Resources;
-import com.google.common.net.HttpHeaders;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
-import java.util.SortedMap;
 import java.util.function.BiConsumer;
 
 public class UpdateCheck {
@@ -67,7 +59,7 @@ public class UpdateCheck {
 	
 	private VersionResponse compareVersionStrings(String fetchedVersion) {
 		
-		if(fetchedVersion.equals(currentVersion))
+		if (fetchedVersion.equals(currentVersion))
 			return VersionResponse.LATEST;
 		
 		String[] currentDigits = currentVersion.split("\\.");
@@ -81,14 +73,14 @@ public class UpdateCheck {
 				
 				int currentDigit = Integer.parseInt(currentDigits[i]);
 				int fetchedDigit = Integer.parseInt(fetchedDigits[i]);
-
+				
 				if (fetchedDigit > currentDigit)
 					return VersionResponse.FOUND_NEW;
 				else if (fetchedDigit < currentDigit)
 					return VersionResponse.LATEST;
 			}
 			
-		}catch (NumberFormatException ex) {
+		} catch (NumberFormatException ex) {
 			return VersionResponse.LATEST;
 		}
 		

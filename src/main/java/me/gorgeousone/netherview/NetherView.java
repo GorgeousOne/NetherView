@@ -27,7 +27,7 @@ import java.util.logging.Level;
 
 public final class NetherView extends JavaPlugin {
 	
-	private static final int resourceId =  78885;
+	private static final int resourceId = 78885;
 	
 	public final static String VIEW_PERM = "netherview.viewportals";
 	public final static String LINK_PERM = "netherview.linkportals";
@@ -48,24 +48,27 @@ public final class NetherView extends JavaPlugin {
 	private boolean hidePortalBlocks;
 	private boolean cancelTeleportWhenLinking;
 	
+	private boolean isDebugModeEnabled;
+	
 	@Override
 	public void onEnable() {
 		
 		new Metrics(this, 7571);
-
+		
 		loadServerVersion();
 		BlockType.configureVersion(isLegacyServer);
 		PortalLocator.configureVersion(portalMaterial);
 		
+		loadConfig();
+		loadConfigData();
+		
 		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
 		
-		loadConfig();
-		loadConfigData();
 		registerListeners();
 		checkForUpdates();
 		
-		System.out.println("I TELL YOU WHAT: " + getServer().getBukkitVersion());
+		PortalLocator.setDebugModeEnabled(isDebugModeEnabled);
 	}
 	
 	@Override
@@ -81,6 +84,8 @@ public final class NetherView extends JavaPlugin {
 		loadConfig();
 		loadConfigData();
 		checkForUpdates();
+		
+		PortalLocator.setDebugModeEnabled(isDebugModeEnabled);
 	}
 	
 	public int getPortalProjectionDist() {
@@ -105,6 +110,10 @@ public final class NetherView extends JavaPlugin {
 	
 	public boolean canBeViewed(World world) {
 		return viewableOnlyWorlds.contains(world.getUID());
+	}
+	
+	public boolean isDebugModeEnabled() {
+		return isDebugModeEnabled;
 	}
 	
 	@Override
@@ -152,6 +161,7 @@ public final class NetherView extends JavaPlugin {
 		
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
+		isDebugModeEnabled = getConfig().getBoolean("debug-mode", false);
 		
 		worldsWithProjectingPortals = new HashSet<>();
 		viewableOnlyWorlds = new HashSet<>();
@@ -192,17 +202,17 @@ public final class NetherView extends JavaPlugin {
 		
 		new UpdateCheck(this, resourceId).handleResponse((versionResponse, newVersion) -> {
 			
-			if(versionResponse == VersionResponse.FOUND_NEW) {
-			
+			if (versionResponse == VersionResponse.FOUND_NEW) {
+				
 				for (Player player : Bukkit.getOnlinePlayers()) {
 					if (player.isOp())
 						player.sendMessage("A new version of NetherView is available: " + ChatColor.LIGHT_PURPLE + newVersion);
 				}
 				
 				getLogger().info("A new version of NetherView is available: " + newVersion);
-			
-			}else if(versionResponse == VersionResponse.UNAVAILABLE) {
-					getLogger().info("Unable to check for new versions...");
+				
+			} else if (versionResponse == VersionResponse.UNAVAILABLE) {
+				getLogger().info("Unable to check for new versions...");
 			}
 		}).check();
 	}

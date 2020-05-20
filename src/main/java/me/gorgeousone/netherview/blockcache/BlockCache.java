@@ -1,9 +1,9 @@
 package me.gorgeousone.netherview.blockcache;
 
-import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.FacingUtils;
-import org.bukkit.World;
 import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
+import org.bukkit.World;
 import org.bukkit.util.Vector;
 
 public class BlockCache {

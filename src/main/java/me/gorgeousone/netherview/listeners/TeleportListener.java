@@ -3,14 +3,11 @@ package me.gorgeousone.netherview.listeners;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.FacingUtils;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -41,27 +38,35 @@ public class TeleportListener implements Listener {
 		if (!main.canViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
 			return;
 		
-		Block portalBlock = PortalLocator.getNearbyPortalBlock(to);
+		Player player = event.getPlayer();
+		Block portalBlock = PortalLocator.getNearbyPortalBlock(from);
 		
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
-		if (portalBlock == null)
+		if (portalBlock == null) {
+			if (main.isDebugModeEnabled()) {
+				player.sendMessage(ChatColor.DARK_GRAY + "Debug: No start portal block found");
+			}
 			return;
+		}
 		
-		Player player = event.getPlayer();
 		Portal portal = portalHandler.getPortalByBlock(portalBlock);
 		
 		try {
-		
-			if(portal == null)
+			
+			if (portal == null)
 				portal = portalHandler.addPortalStructure(portalBlock);
 			
 			if (portal.isLinked())
 				return;
-				
+			
 			Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
 			
-			if(counterPortalBlock == null)
+			if (counterPortalBlock == null) {
+				if (main.isDebugModeEnabled()) {
+					player.sendMessage(ChatColor.DARK_GRAY + "Debug: No destination portal block found");
+				}
 				return;
+			}
 			
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
@@ -74,7 +79,7 @@ public class TeleportListener implements Listener {
 			if (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinking())
 				event.setCancelled(true);
 			
-		}catch (IllegalArgumentException | IllegalStateException ex) {
+		} catch (IllegalArgumentException | IllegalStateException ex) {
 			player.sendMessage(ex.getMessage());
 		}
 	}

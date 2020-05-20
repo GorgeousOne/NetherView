@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.viewfrustum;
+package me.gorgeousone.netherview.threedstuff.viewfrustum;
 
 import me.gorgeousone.netherview.threedstuff.Line;
 import org.bukkit.util.Vector;

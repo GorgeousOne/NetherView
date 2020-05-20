@@ -3,10 +3,6 @@ package me.gorgeousone.netherview;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.block.BlockFace;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class FacingUtils {
 	
 	public static BlockFace[] getAxesFaces() {

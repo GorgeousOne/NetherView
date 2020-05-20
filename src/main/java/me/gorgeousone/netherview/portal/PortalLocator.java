@@ -1,9 +1,10 @@
 package me.gorgeousone.netherview.portal;
 
 import me.gorgeousone.netherview.FacingUtils;
+import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.blocktype.Axis;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,9 +20,14 @@ import java.util.Set;
 public class PortalLocator {
 	
 	private static Material PORTAL_MATERIAL;
+	private static boolean isDebugModeEnabled;
 	
 	public static void configureVersion(Material portalMaterial) {
 		PortalLocator.PORTAL_MATERIAL = portalMaterial;
+	}
+	
+	public static void setDebugModeEnabled(boolean isDebugModeEnabled) {
+		PortalLocator.isDebugModeEnabled = isDebugModeEnabled;
 	}
 	
 	/**
@@ -72,7 +78,7 @@ public class PortalLocator {
 	private static AxisAlignedRect getPortalRect(Block portalBlock) {
 		
 		MaterialData data = portalBlock.getState().getData();
-		Axis portalAxis = data.getData() == 1 ? Axis.X : Axis.Z;
+		Axis portalAxis = data.getData() == 2 ? Axis.Z : Axis.X;
 		
 		Vector position = new Vector(
 				portalBlock.getX(),
@@ -164,10 +170,10 @@ public class PortalLocator {
 			for (int y = portalMinY; y < portalMaxY; y++) {
 				for (int z = portalMinZ; z < portalMaxZ; z++) {
 					
-					//only check the frame blocks that are at the border of this "flat cuboid"
+					//only check for obsidian frame blocks that are at the border of this "flat cuboid"
 					if (y > portalMinY && y < portalMaxY - 1 &&
-					    (portalAxis == Axis.X ? x > portalMinX : z > portalMinZ) &&
-					    (portalAxis == Axis.X ? x < portalMaxX - 1 : z < portalMaxZ - 1))
+					    (portalAxis == Axis.X ? (x > portalMinX) : (z > portalMinZ)) &&
+					    (portalAxis == Axis.X ? (x < portalMaxX - 1) : (z < portalMaxZ - 1)))
 						continue;
 					
 					Block portalBlock = world.getBlockAt(x, y, z);
@@ -175,6 +181,14 @@ public class PortalLocator {
 					if (portalBlock.getType() == Material.OBSIDIAN) {
 						frameBlocks.add(portalBlock);
 					} else {
+						
+						if (isDebugModeEnabled) {
+							Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Block at "
+							                        + portalBlock.getWorld().getName() + ", "
+							                        + new BlockVec(portalBlock).toString()
+							                        + " is not out of " + Material.OBSIDIAN.name());
+						}
+						
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "Something about this portal frame seems to be incomplete...");
 					}
 				}

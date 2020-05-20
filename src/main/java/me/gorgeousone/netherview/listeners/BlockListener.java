@@ -6,18 +6,19 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import me.gorgeousone.netherview.blocktype.BlockType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -26,6 +27,7 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+
 import java.util.HashSet;
 import java.util.Map;
 
@@ -69,7 +71,7 @@ public class BlockListener implements Listener {
 						Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
 						
 						if (viewSession.containsKey(blockPosVec)) {
-							event.getPacket().getBlockData().write(0, WrappedBlockData.createData(viewSession.get(blockPosVec)));
+							event.getPacket().getBlockData().write(0, viewSession.get(blockPosVec).getWrapped());
 						}
 					}
 				}
@@ -109,6 +111,7 @@ public class BlockListener implements Listener {
 				continue;
 			
 			Map<BlockVec, BlockType> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
+			Bukkit.broadcastMessage(ChatColor.GRAY + "" + updatedCopies.size() + " ups");
 			
 			if (!updatedCopies.isEmpty())
 				viewingHandler.updateProjections(cache, updatedCopies);
@@ -117,11 +120,6 @@ public class BlockListener implements Listener {
 	
 	@EventHandler
 	public void onBlockInteract(PlayerInteractEvent event) {
-		
-		if(event.getPlayer().isSneaking()) {
-			Block blok = event.getClickedBlock();
-			event.getPlayer().sendMessage(blok.getType().name() + ", " + blok.getData());
-		}
 		
 		if (event.getAction() != Action.LEFT_CLICK_BLOCK)
 			return;
@@ -138,44 +136,13 @@ public class BlockListener implements Listener {
 			event.setCancelled(true);
 	}
 	
-//	@EventHandler
-//	public void onInteract(PlayerInteractEvent event) {
-//
-//		Action action = event.getAction();
-//
-//		if(action != Action.LEFT_CLICK_BLOCK && action != Action.RIGHT_CLICK_BLOCK)
-//			return;
-//
-//		Player player = event.getPlayer();
-//
-//		if (!viewingHandler.hasViewSession(player))
-//			return;
-//
-//		Set<BlockCopy> viewSession = viewingHandler.getViewSession(player);
-//		BlockCopy clickedBlock = new BlockCopy(event.getClickedBlock());
-//
-//		if (viewSession.contains(clickedBlock)) {
-//			new BukkitRunnable() {
-//				@Override
-//				public void run() {
-//
-//					for(BlockCopy copy : viewSession) {
-//						if(copy.equals(clickedBlock)) {
-//							viewingHandler.displayBlockCopy(player, copy);
-//							return;
-//						}
-//					}
-//				}
-//			}.runTask(main);
-//		}
-//	}
-	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
 		
 		Block block = event.getBlock();
 		Material blockType = block.getType();
 		
+		event.getPlayer().sendMessage("break");
 		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		
 		if (blockType == Material.OBSIDIAN || blockType == portalMaterial)
@@ -204,7 +171,7 @@ public class BlockListener implements Listener {
 	public void onBlockExplode(BlockExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			if(block.getType() == portalMaterial)
+			if (block.getType() == portalMaterial)
 				removeDamagedPortals(block);
 		}
 		

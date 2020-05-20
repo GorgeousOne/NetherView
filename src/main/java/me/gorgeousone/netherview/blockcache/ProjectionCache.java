@@ -1,9 +1,9 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.World;
 
 import java.util.HashMap;
@@ -69,7 +69,7 @@ public class ProjectionCache {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
-	public BlockType getCopyAt(BlockVec loc) {
+	public BlockType getBlockTypeAt(BlockVec loc) {
 		
 		if (!contains(loc))
 			return null;
@@ -80,7 +80,15 @@ public class ProjectionCache {
 				[loc.getZ() - min.getZ()];
 	}
 	
-	public Map<BlockVec, BlockType> getCopiesAround(BlockVec blockCorner) {
+	public void setBlockTypeAt(BlockVec blockPos, BlockType newBlockData) {
+		
+		blockCopies
+				[blockPos.getX() - min.getX()]
+				[blockPos.getY() - min.getY()]
+				[blockPos.getZ() - min.getZ()] = newBlockData;
+	}
+	
+	public Map<BlockVec, BlockType> getBlockTypesAround(BlockVec blockCorner) {
 		
 		Map<BlockVec, BlockType> blocksAroundCorner = new HashMap<>();
 		
@@ -89,21 +97,13 @@ public class ProjectionCache {
 			if (!contains(blockPos))
 				continue;
 			
-			BlockType blockType = getCopyAt(blockPos);
+			BlockType blockType = getBlockTypeAt(blockPos);
 			
 			if (blockType != null)
 				blocksAroundCorner.put(blockPos, blockType.clone());
 		}
 		
 		return blocksAroundCorner;
-	}
-	
-	public void updateCopy(BlockVec blockPos, BlockType newBlockData) {
-		
-		blockCopies
-				[blockPos.getX() - min.getX()]
-				[blockPos.getY() - min.getY()]
-				[blockPos.getZ() - min.getZ()] = newBlockData;
 	}
 	
 	private void createBlockCopies(BlockCache sourceCache) {

@@ -87,62 +87,62 @@ public class Transform {
 		
 	}
 	
-//	public BlockType rotateData(BlockType blockType) {
-//
-//		if (isRotY0Deg())
-//			return blockType;
-//
-//		int rotInQuarterTurns = getRotationInQuarterTurns();
-//
-//		if (blockType instanceof Orientable) {
-//
-//			if (isRotY180Deg())
-//				return blockType;
-//
-//			Orientable orientable = (Orientable) blockType;
-//
-//			if (orientable.getAxis() != Axis.Y)
-//				orientable.setAxis(orientable.getAxis() == Axis.X ? Axis.Z : Axis.X);
-//
-//		} else if (blockType instanceof Directional) {
-//
-//			Directional directional = (Directional) blockType;
-//			directional.setFacing(FacingUtils.getRotatedFace(directional.getFacing(), rotInQuarterTurns));
-//
-//		} else if (blockType instanceof Rotatable) {
-//
-//			Rotatable rotatable = (Rotatable) blockType;
-//			rotatable.setRotation(FacingUtils.getRotatedFace(rotatable.getRotation(), rotInQuarterTurns));
-//
-//		} else if (blockType instanceof MultipleFacing) {
-//
-//			MultipleFacing multiFacing = (MultipleFacing) blockType;
-//			Map<BlockFace, Boolean> facings = new HashMap<>();
-//
-//			for (BlockFace face : multiFacing.getAllowedFaces()) {
-//				if (FacingUtils.isRotatableFace(face))
-//					facings.put(face, multiFacing.hasFace(face));
-//			}
-//
-//			for (BlockFace face : facings.keySet())
-//				multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), facings.get(face));
-//
-//		} else if (blockType instanceof RedstoneWire) {
-//
-//			RedstoneWire wire = (RedstoneWire) blockType;
-//			Map<BlockFace, RedstoneWire.Connection> connections = new HashMap<>();
-//
-//			for (BlockFace face : wire.getAllowedFaces()) {
-//				if (FacingUtils.isRotatableFace(face))
-//					connections.put(face, wire.getFace(face));
-//			}
-//
-//			for (BlockFace face : connections.keySet())
-//				wire.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), connections.get(face));
-//		}
-//
-//		return blockType;
-//	}
+	//	public BlockType rotateData(BlockType blockType) {
+	//
+	//		if (isRotY0Deg())
+	//			return blockType;
+	//
+	//		int rotInQuarterTurns = getRotationInQuarterTurns();
+	//
+	//		if (blockType instanceof Orientable) {
+	//
+	//			if (isRotY180Deg())
+	//				return blockType;
+	//
+	//			Orientable orientable = (Orientable) blockType;
+	//
+	//			if (orientable.getAxis() != Axis.Y)
+	//				orientable.setAxis(orientable.getAxis() == Axis.X ? Axis.Z : Axis.X);
+	//
+	//		} else if (blockType instanceof Directional) {
+	//
+	//			Directional directional = (Directional) blockType;
+	//			directional.setFacing(FacingUtils.getRotatedFace(directional.getFacing(), rotInQuarterTurns));
+	//
+	//		} else if (blockType instanceof Rotatable) {
+	//
+	//			Rotatable rotatable = (Rotatable) blockType;
+	//			rotatable.setRotation(FacingUtils.getRotatedFace(rotatable.getRotation(), rotInQuarterTurns));
+	//
+	//		} else if (blockType instanceof MultipleFacing) {
+	//
+	//			MultipleFacing multiFacing = (MultipleFacing) blockType;
+	//			Map<BlockFace, Boolean> facings = new HashMap<>();
+	//
+	//			for (BlockFace face : multiFacing.getAllowedFaces()) {
+	//				if (FacingUtils.isRotatableFace(face))
+	//					facings.put(face, multiFacing.hasFace(face));
+	//			}
+	//
+	//			for (BlockFace face : facings.keySet())
+	//				multiFacing.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), facings.get(face));
+	//
+	//		} else if (blockType instanceof RedstoneWire) {
+	//
+	//			RedstoneWire wire = (RedstoneWire) blockType;
+	//			Map<BlockFace, RedstoneWire.Connection> connections = new HashMap<>();
+	//
+	//			for (BlockFace face : wire.getAllowedFaces()) {
+	//				if (FacingUtils.isRotatableFace(face))
+	//					connections.put(face, wire.getFace(face));
+	//			}
+	//
+	//			for (BlockFace face : connections.keySet())
+	//				wire.setFace(FacingUtils.getRotatedFace(face, rotInQuarterTurns), connections.get(face));
+	//		}
+	//
+	//		return blockType;
+	//	}
 	
 	public int getQuarterTurns() {
 		

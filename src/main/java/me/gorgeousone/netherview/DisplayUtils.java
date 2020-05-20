@@ -6,7 +6,6 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Location;

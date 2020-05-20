@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview.blocktype;
 
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Rail;
 
 import java.util.ArrayList;
 import java.util.Arrays;

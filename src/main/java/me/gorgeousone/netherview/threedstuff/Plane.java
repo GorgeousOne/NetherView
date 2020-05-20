@@ -29,13 +29,15 @@ public class Plane {
 		if (point == null)
 			return false;
 		
-		Vector subtract = getOrigin().subtract(point);
-		return Math.abs(getNormal().dot(subtract)) < 0.0001;
+		Vector relPoint = getOrigin().subtract(point);
+		return Math.abs(getNormal().dot(relPoint)) < 0.0001;
 	}
 	
 	public Vector getIntersection(Line line) {
 		
-		double d = getOrigin().subtract(line.getOrigin()).dot(getNormal()) / line.getDirection().dot(getNormal());
+		Vector normal = getNormal();
+		
+		double d = getOrigin().subtract(line.getOrigin()).dot(normal) / line.getDirection().dot(normal);
 		Vector intersection = line.getPoint(d);
 		
 		return contains(intersection) ? intersection : null;
