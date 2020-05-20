@@ -55,6 +55,10 @@ public class ViewingHandler {
 		playerViewSessions.clear();
 	}
 	
+	public ProjectionCache getViewedCache(Player player) {
+		return viewedProjections.get(player.getUniqueId());
+	}
+	
 	public Map<BlockVec, BlockType> getViewSession(Player player) {
 		
 		UUID uuid = player.getUniqueId();

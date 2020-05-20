@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview;
+package me.gorgeousone.netherview.bstats;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

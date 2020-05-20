@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview;
 
 import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
 import me.gorgeousone.netherview.commmands.EnableDebugCommand;
@@ -43,8 +44,7 @@ public final class NetherView extends JavaPlugin {
 	private PortalHandler portalHandler;
 	private ViewingHandler viewingHandler;
 	
-	private Set<UUID> worldsWithProjectingPortals;
-	private Set<UUID> viewableOnlyWorlds;
+	private Set<UUID> portalViewWorlds;
 	
 	private int portalProjectionDist;
 	private int portalDisplayRangeSquared;
@@ -72,8 +72,6 @@ public final class NetherView extends JavaPlugin {
 		registerCommands();
 		registerListeners();
 		checkForUpdates();
-		
-		PortalLocator.setDebugModeEnabled(debugMessagesEnabled);
 	}
 	
 	@Override
@@ -89,8 +87,16 @@ public final class NetherView extends JavaPlugin {
 		loadConfig();
 		loadConfigData();
 		checkForUpdates();
+	}
+	
+	public void setDebugMessagesEnabled(boolean state) {
 		
-		PortalLocator.setDebugModeEnabled(debugMessagesEnabled);
+		if (state != debugMessagesEnabled) {
+			
+			debugMessagesEnabled = state;
+			getConfig().set("debug-messages", debugMessagesEnabled);
+			PortalLocator.setDebugMessagesEnabled(debugMessagesEnabled);
+		}
 	}
 	
 	public int getPortalProjectionDist() {
@@ -109,15 +115,11 @@ public final class NetherView extends JavaPlugin {
 		return cancelTeleportWhenLinking;
 	}
 	
-	public boolean canViewOtherWorlds(World world) {
-		return worldsWithProjectingPortals.contains(world.getUID());
+	public boolean canCreatePortalsViews(World world) {
+		return portalViewWorlds.contains(world.getUID());
 	}
 	
-	public boolean canBeViewed(World world) {
-		return viewableOnlyWorlds.contains(world.getUID());
-	}
-	
-	public boolean isDebugMessagesEnabled() {
+	public boolean debugMessagesEnabled() {
 		return debugMessagesEnabled;
 	}
 	
@@ -161,25 +163,10 @@ public final class NetherView extends JavaPlugin {
 		
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
-		debugMessagesEnabled = getConfig().getBoolean("debug-messages", false);
 		
-		worldsWithProjectingPortals = new HashSet<>();
-		viewableOnlyWorlds = new HashSet<>();
+		portalViewWorlds = new HashSet<>();
 		
-		List<String> worldNames = getConfig().getStringList("worlds-with-projecting-portals");
-		
-		for (String worldName : worldNames) {
-			
-			World world = Bukkit.getWorld(worldName);
-			
-			if (world == null) {
-				getLogger().log(Level.WARNING, "Could not find world " + worldName + ".");
-			} else {
-				worldsWithProjectingPortals.add(world.getUID());
-			}
-		}
-		
-		worldNames = getConfig().getStringList("viewable-worlds");
+		List<String> worldNames = getConfig().getStringList("portal-view-worlds");
 		
 		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
@@ -187,9 +174,11 @@ public final class NetherView extends JavaPlugin {
 			if (world == null) {
 				getLogger().log(Level.WARNING, "Could not find world " + worldName + ".");
 			} else {
-				viewableOnlyWorlds.add(world.getUID());
+				portalViewWorlds.add(world.getUID());
 			}
 		}
+		
+		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages", false));
 	}
 	
 	public void registerListeners() {
@@ -218,13 +207,5 @@ public final class NetherView extends JavaPlugin {
 				getLogger().info("Unable to check for new versions...");
 			}
 		}).check();
-	}
-	
-	public void enableDebugMessages(boolean b) {
-		this.debugMessagesEnabled = b;
-	}
-	
-	public Set<UUID> getWorldsWithPortals() {
-		return worldsWithProjectingPortals;
 	}
 }

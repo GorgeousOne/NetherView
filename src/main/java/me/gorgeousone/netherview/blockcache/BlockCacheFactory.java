@@ -28,17 +28,17 @@ public class BlockCacheFactory {
 		Vector widthFacing = portalRect.getCrossNormal();
 		
 		//the view distance in blocks to the front shall be greater than at the sides
-		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
-		int frontViewDist = minPortalExtent + viewDist;
-		int sideViewDist = (int) Math.ceil(viewDist / 1.618d);
+		int frontViewDist = viewDist;
+		int horizontalViewDist = (int) Math.max(2, viewDist - portalRect.width()) / 2;
+		int verticalViewDist = (int) Math.max(2, viewDist - portalRect.height()) / 2;
 		
 		Vector cacheCorner1 = portalRect.getMin();
-		cacheCorner1.subtract(new Vector(0, sideViewDist, 0));
-		cacheCorner1.subtract(widthFacing.clone().multiply(sideViewDist));
+		cacheCorner1.subtract(new Vector(0, verticalViewDist, 0));
+		cacheCorner1.subtract(widthFacing.clone().multiply(horizontalViewDist));
 		
 		Vector cacheCorner2 = portalRect.getMax();
-		cacheCorner2.add(new Vector(0, sideViewDist, 0));
-		cacheCorner2.add(widthFacing.clone().multiply(sideViewDist));
+		cacheCorner2.add(new Vector(0, verticalViewDist, 0));
+		cacheCorner2.add(widthFacing.clone().multiply(horizontalViewDist));
 		
 		BlockCache front = copyBlocksInBounds(
 				cacheCorner1.clone().add(portalFacing),

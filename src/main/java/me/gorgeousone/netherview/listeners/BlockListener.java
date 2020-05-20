@@ -9,6 +9,7 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
@@ -40,6 +41,7 @@ public class BlockListener implements Listener {
 	                     PortalHandler portalHandler,
 	                     ViewingHandler viewingHandler,
 	                     Material portalMaterial) {
+		
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.viewingHandler = viewingHandler;
@@ -68,6 +70,13 @@ public class BlockListener implements Listener {
 						
 						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
 						BlockVec blockPosVec = new BlockVec(blockPos);
+						
+						ProjectionCache projection = viewingHandler.getViewedCache(player);
+						
+						if (!projection.contains(blockPosVec)) {
+							return;
+						}
+						
 						Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
 						
 						if (viewSession.containsKey(blockPosVec)) {
@@ -82,7 +91,7 @@ public class BlockListener implements Listener {
 		
 		World blockWorld = block.getWorld();
 		
-		if (!main.canBeViewed(blockWorld)) {
+		if (!portalHandler.hasPortals(blockWorld)) {
 			return;
 		}
 		
@@ -101,7 +110,7 @@ public class BlockListener implements Listener {
 		
 		World blockWorld = block.getWorld();
 		
-		if (!main.canBeViewed(blockWorld)) {
+		if (!portalHandler.hasPortals(blockWorld)) {
 			return;
 		}
 		

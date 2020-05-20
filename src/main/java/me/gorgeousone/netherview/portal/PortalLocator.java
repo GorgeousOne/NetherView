@@ -20,14 +20,14 @@ import java.util.Set;
 public class PortalLocator {
 	
 	private static Material PORTAL_MATERIAL;
-	private static boolean isDebugModeEnabled;
+	private static boolean debugMessagesEnabled;
 	
 	public static void configureVersion(Material portalMaterial) {
 		PortalLocator.PORTAL_MATERIAL = portalMaterial;
 	}
 	
-	public static void setDebugModeEnabled(boolean isDebugModeEnabled) {
-		PortalLocator.isDebugModeEnabled = isDebugModeEnabled;
+	public static void setDebugMessagesEnabled(boolean isDebugModeEnabled) {
+		PortalLocator.debugMessagesEnabled = isDebugModeEnabled;
 	}
 	
 	/**
@@ -99,6 +99,10 @@ public class PortalLocator {
 			width = getPortalExtent(portalBlock, BlockFace.SOUTH).getZ() - position.getBlockZ() + 1;
 		}
 		
+		if(width > 21 || height > 21) {
+			throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");
+		}
+		
 		//translate the portalRect towards the middle of the block;
 		AxisAlignedRect portalRect = new AxisAlignedRect(portalAxis, position, width, height);
 		portalRect.translate(portalRect.getPlane().getNormal().multiply(0.5));
@@ -124,7 +128,11 @@ public class PortalLocator {
 			blockIterator = nextBlock;
 		}
 		
-		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears to be of extraordinary size!");
+		if (debugMessagesEnabled) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Detection stopped after exceeding 21 portal blocks into " + facing.name() + " at " + new BlockVec(blockIterator).toString());
+		}
+		
+		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");
 	}
 	
 	/**
@@ -142,8 +150,14 @@ public class PortalLocator {
 					
 					if (portalBlock.getType() == PORTAL_MATERIAL) {
 						portalBlocks.add(portalBlock);
+					
 					} else {
-						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal seems to be malformed, yet intact. Mysterious...");
+						
+						if(debugMessagesEnabled) {
+							Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Portal block expected at " + new BlockVec(x, y, z).toString());
+						}
+						
+						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is not rectangular, yet intact. Mysterious...");
 					}
 				}
 			}
@@ -186,7 +200,7 @@ public class PortalLocator {
 						frameBlocks.add(portalBlock);
 					} else {
 						
-						if (isDebugModeEnabled) {
+						if (debugMessagesEnabled) {
 							Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Block at "
 							                        + portalBlock.getWorld().getName() + ", "
 							                        + new BlockVec(portalBlock).toString()

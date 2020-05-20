@@ -35,7 +35,7 @@ public class PlayerMoveListener implements Listener {
 		
 		World playerWorld = player.getWorld();
 		
-		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canViewOtherWorlds(playerWorld)) {
+		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canCreatePortalsViews(playerWorld)) {
 			return;
 		}
 		

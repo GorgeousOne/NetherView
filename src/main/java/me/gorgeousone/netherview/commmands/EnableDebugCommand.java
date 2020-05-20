@@ -22,6 +22,6 @@ public class EnableDebugCommand extends ArgCommand {
 	
 	@Override
 	protected void onCommand(CommandSender sender, ArgValue[] arguments) {
-		main.enableDebugMessages(arguments[0].getBoolean());
+		main.setDebugMessagesEnabled(arguments[0].getBoolean());
 	}
 }

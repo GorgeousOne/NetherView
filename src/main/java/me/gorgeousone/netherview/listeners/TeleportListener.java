@@ -4,6 +4,8 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -33,10 +35,10 @@ public class TeleportListener implements Listener {
 			return;
 		}
 		
-		Location to = event.getTo();
 		Location from = event.getFrom();
+		Location to = event.getTo();
 		
-		if (!main.canViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld())) {
+		if (!main.canCreatePortalsViews(from.getWorld())) {
 			return;
 		}
 		
@@ -45,8 +47,8 @@ public class TeleportListener implements Listener {
 		
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null) {
-			if (main.isDebugMessagesEnabled()) {
-				player.sendMessage(ChatColor.DARK_GRAY + "Debug: No start portal block found");
+			if (main.debugMessagesEnabled()) {
+				Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: No portal found at starting point " + new BlockVec(from).toString());
 			}
 			return;
 		}
@@ -66,8 +68,8 @@ public class TeleportListener implements Listener {
 			Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
 			
 			if (counterPortalBlock == null) {
-				if (main.isDebugMessagesEnabled()) {
-					player.sendMessage(ChatColor.DARK_GRAY + "Debug: No destination portal block found");
+				if (main.debugMessagesEnabled()) {
+					player.sendMessage(ChatColor.DARK_GRAY + "Debug: No portal found at destination point " + new BlockVec(to).toString());
 				}
 				return;
 			}

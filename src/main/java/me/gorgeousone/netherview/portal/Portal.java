@@ -21,6 +21,7 @@ public class Portal {
 	private Set<Block> portalBlocks;
 	private Set<Block> frameBlocks;
 	
+	//bounds containing all portal blocks including frame
 	private BlockVec min;
 	private BlockVec max;
 	
@@ -124,5 +125,10 @@ public class Portal {
 	
 	public ProjectionCache getBackProjection() {
 		return projectionCaches.getValue();
+	}
+	
+	@Override
+	public String toString() {
+		return world.getName() + ", " + min.toString();
 	}
 }

@@ -51,10 +51,8 @@ public class PortalHandler {
 		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
 		addPortal(portal);
 		
-		if (main.isDebugMessagesEnabled()) {
-			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Portal located at "
-			                        + portal.getWorld().getName() + ", "
-			                        + new BlockVec(portal.getLocation()).toString());
+		if (main.debugMessagesEnabled()) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Portal located at " + portal.toString());
 		}
 		
 		return portal;
@@ -69,10 +67,8 @@ public class PortalHandler {
 	
 	public void removePortal(Portal portal) {
 		
-		if (main.isDebugMessagesEnabled()) {
-			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Removing portal at located at "
-			                        + portal.getWorld().getName() + ", "
-			                        + new BlockVec(portal.getLocation()).toString());
+		if (main.debugMessagesEnabled()) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Removing portal at " + portal.toString());
 		}
 		
 		if (portal.isLinked()) {
@@ -83,7 +79,7 @@ public class PortalHandler {
 		
 		if (linkedPortals.containsKey(portal)) {
 			
-			if (main.isDebugMessagesEnabled()) {
+			if (main.debugMessagesEnabled()) {
 				Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Un-linking " + linkedPortals.get(portal).size() + " other portals.");
 			}
 			
@@ -113,6 +109,10 @@ public class PortalHandler {
 		return worldsWithPortals.getOrDefault(world.getUID(), new HashSet<>());
 	}
 	
+	public boolean hasPortals(World world) {
+		return worldsWithPortals.containsKey(world.getUID());
+	}
+	
 	public Set<Portal> getLinkedPortals(Portal portal) {
 		return new HashSet<>(linkedPortals.getOrDefault(portal, new HashSet<>()));
 	}
@@ -121,7 +121,7 @@ public class PortalHandler {
 		
 		World playerWorld = playerLoc.getWorld();
 		
-		if (!main.canViewOtherWorlds(playerWorld)) {
+		if (!main.canCreatePortalsViews(playerWorld)) {
 			return null;
 		}
 		
@@ -150,8 +150,11 @@ public class PortalHandler {
 		Set<BlockCache> caches = new HashSet<>();
 		
 		for (Portal portal : getPortals(world)) {
-			caches.add(portal.getFrontCache());
-			caches.add(portal.getBackCache());
+			
+			if(portal.areCachesLoaded()) {
+				caches.add(portal.getFrontCache());
+				caches.add(portal.getBackCache());
+			}
 		}
 		
 		return caches;
@@ -160,6 +163,12 @@ public class PortalHandler {
 	public void linkPortalTo(Portal portal, Portal counterPortal) {
 		
 		if (!counterPortal.equalsInSize(portal)) {
+			
+			if (main.debugMessagesEnabled()) {
+				Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Cannot connect portal with size "
+				                        + (int) portal.getPortalRect().width() + "x" + (int) portal.getPortalRect().height() + " to portal of size "
+                                        + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
+			}
 			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are not the same size, it is difficult to get a clear view...");
 		}
 		
@@ -186,11 +195,10 @@ public class PortalHandler {
 		linkedProjections.get(cache1).add(projection2);
 		linkedProjections.get(cache2).add(projection1);
 		
-		if (main.isDebugMessagesEnabled()) {
+		if (main.debugMessagesEnabled()) {
 			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Linked portal from "
-			                        + portal.getWorld().getName() + " to portal at "
-			                        + counterPortal.getWorld().getName() + ", "
-			                        + new BlockVec(counterPortal.getLocation()).toString());
+			                        + portal.toString() + " to portal at "
+			                        + counterPortal.toString());
 		}
 	}
 	
