@@ -146,12 +146,13 @@ public class Transform {
 	
 	public int getQuarterTurns() {
 		
-		if (isRotY90DegLeft())
+		if (isRotY90DegLeft()) {
 			return 3;
-		else if (isRotY180Deg())
+		} else if (isRotY180Deg()) {
 			return 2;
-		else if (isRotY90DegRight())
+		} else if (isRotY90DegRight()) {
 			return 1;
+		}
 		
 		return 0;
 	}

@@ -29,13 +29,15 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR)
+		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
 			return;
+		}
 		
 		World playerWorld = player.getWorld();
 		
-		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canViewOtherWorlds(playerWorld))
+		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canViewOtherWorlds(playerWorld)) {
 			return;
+		}
 		
 		Location from = event.getFrom();
 		Location to = event.getTo();
@@ -51,8 +53,9 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (player.getGameMode() == GameMode.SPECTATOR)
+		if (player.getGameMode() == GameMode.SPECTATOR) {
 			return;
+		}
 		
 		World.Environment worldType = player.getWorld().getEnvironment();
 		
@@ -69,7 +72,8 @@ public class PlayerMoveListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
-		if (event.getNewGameMode() == GameMode.SPECTATOR)
+		if (event.getNewGameMode() == GameMode.SPECTATOR) {
 			viewingHandler.hideViewSession(event.getPlayer());
+		}
 	}
 }

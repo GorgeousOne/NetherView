@@ -47,8 +47,9 @@ public class ViewingHandler {
 	public void reset() {
 		
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (hasViewSession(player))
+			if (hasViewSession(player)) {
 				hideViewSession(player);
+			}
 		}
 		
 		playerViewSessions.clear();
@@ -84,7 +85,7 @@ public class ViewingHandler {
 	
 	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
 		
-		Portal portal = portalHandler.getNearestLinkedPortal(playerEyeLoc);
+		Portal portal = portalHandler.getNearestPortal(playerEyeLoc, true);
 		
 		if (portal == null) {
 			hideViewSession(player);
@@ -136,8 +137,9 @@ public class ViewingHandler {
 	                            boolean displayFrustum,
 	                            boolean hidePortalBlocks) {
 		
-		if (!portal.isLinked())
+		if (!portal.isLinked()) {
 			return;
+		}
 		
 		ProjectionCache projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
@@ -196,20 +198,24 @@ public class ViewingHandler {
 			double newMinX = Math.min(nearPlaneRect.getMin().getX(), farPlaneRect.getMin().getX());
 			double newMaxX = Math.max(nearPlaneRect.getMax().getX(), farPlaneRect.getMax().getX());
 			
-			if (newMinX > min.getX())
+			if (newMinX > min.getX()) {
 				min.setX((int) Math.floor(newMinX));
-			if (newMaxX < max.getX())
+			}
+			if (newMaxX < max.getX()) {
 				max.setX((int) Math.ceil(newMaxX));
+			}
 			
 		} else {
 			
 			double newMinZ = Math.min(nearPlaneRect.getMin().getZ(), farPlaneRect.getMin().getZ());
 			double newMaxZ = Math.max(nearPlaneRect.getMax().getZ(), farPlaneRect.getMax().getZ());
 			
-			if (newMinZ > min.getZ())
+			if (newMinZ > min.getZ()) {
 				min.setZ((int) Math.floor(newMinZ));
-			if (newMaxZ < max.getZ())
+			}
+			if (newMaxZ < max.getZ()) {
 				max.setZ((int) Math.ceil(newMaxZ));
+			}
 		}
 		
 		for (int x = min.getX(); x <= max.getX(); x++) {
@@ -218,8 +224,9 @@ public class ViewingHandler {
 					
 					BlockVec blockPos = new BlockVec(x, y, z);
 					
-					if (frustum.contains(blockPos.toVector()))
+					if (frustum.contains(blockPos.toVector())) {
 						blocksInFrustum.putAll(projection.getBlockTypesAround(new BlockVec(x, y, z)));
+					}
 				}
 			}
 		}
@@ -240,16 +247,18 @@ public class ViewingHandler {
 				
 				Transform blockTransform = projection.getTransform();
 				BlockVec projectionBlockPos = blockTransform.transformVec(entry.getKey().clone());
-				BlockType projectionBlockData = entry.getValue().clone().rotate(blockTransform.getQuarterTurns());
+				BlockType projectionBlockType = entry.getValue().clone().rotate(blockTransform.getQuarterTurns());
 				
-				projection.setBlockTypeAt(projectionBlockPos, projectionBlockData);
-				projectionUpdates.put(projectionBlockPos, projectionBlockData);
+				projection.setBlockTypeAt(projectionBlockPos, projectionBlockType);
+				projectionUpdates.put(projectionBlockPos, projectionBlockType);
 			}
 			
+			//TODO stop iterating same players for each projection?
 			for (UUID playerID : viewedProjections.keySet()) {
 				
-				if (viewedProjections.get(playerID) != projection)
+				if (viewedProjections.get(playerID) != projection) {
 					continue;
+				}
 				
 				Portal portal = viewedPortals.get(playerID);
 				Player player = Bukkit.getPlayer(playerID);
@@ -259,6 +268,10 @@ public class ViewingHandler {
 						portal.getPortalRect(),
 						projection.getCacheLength());
 				
+				if (playerFrustum == null) {
+					continue;
+				}
+				
 				Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 				Map<BlockVec, BlockType> viewSession = getViewSession(player);
 				
@@ -266,6 +279,10 @@ public class ViewingHandler {
 					
 					BlockVec blockPos = entry.getKey();
 					BlockType blockType = entry.getValue();
+					
+					if (blockType == null) {
+						blockType = BlockType.of(blockPos.toBlock(player.getWorld()));
+					}
 					
 					if (playerFrustum.containsBlock(blockPos.toVector())) {
 						blocksInFrustum.put(blockPos, blockType);
@@ -300,15 +317,16 @@ public class ViewingHandler {
 		
 		while (iterator.hasNext()) {
 			
-			if (viewSession.containsKey(iterator.next()))
+			if (viewSession.containsKey(iterator.next())) {
 				iterator.remove();
+			}
 		}
 		
 		viewSession.putAll(blocksToDisplay);
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
-	
+
 //	private void displayFrustum(Player player, ViewingFrustum frustum) {
 //
 //		try {
@@ -324,7 +342,7 @@ public class ViewingHandler {
 //
 //		} catch (Exception ignored) {}
 //	}
-
+	
 	public void removePortal(Portal portal) {
 		
 		Set<Portal> affectedPortals = portalHandler.getLinkedPortals(portal);
@@ -336,8 +354,9 @@ public class ViewingHandler {
 			
 			Map.Entry<UUID, Portal> playerView = iter.next();
 			
-			if (!affectedPortals.contains(playerView.getValue()))
+			if (!affectedPortals.contains(playerView.getValue())) {
 				continue;
+			}
 			
 			iter.remove();
 			hideViewSession(Bukkit.getPlayer(playerView.getKey()));

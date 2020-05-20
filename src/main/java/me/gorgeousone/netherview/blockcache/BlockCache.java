@@ -54,8 +54,9 @@ public class BlockCache {
 	 */
 	public boolean isBorder(BlockVec loc) {
 		
-		if (loc.getY() == min.getY() || loc.getY() == max.getY() - 1)
+		if (loc.getY() == min.getY() || loc.getY() == max.getY() - 1) {
 			return true;
+		}
 		
 		int x = loc.getX();
 		int z = loc.getZ();
@@ -66,26 +67,31 @@ public class BlockCache {
 		int maxZ = max.getZ() - 1;
 		
 		if (facing.getZ() != 0) {
-			if (x == minX || x == maxX)
+			if (x == minX || x == maxX) {
 				return true;
+			}
 		} else if (z == minZ || z == maxZ) {
 			return true;
 		}
 		
-		if (facing.getX() == 1)
+		if (facing.getX() == 1) {
 			return x == maxX;
-		if (facing.getX() == -1)
+		}
+		if (facing.getX() == -1) {
 			return x == minX;
-		if (facing.getZ() == 1)
+		}
+		if (facing.getZ() == 1) {
 			return z == maxZ;
-		else
+		} else {
 			return z == minZ;
+		}
 	}
 	
 	public BlockType getBlockTypeAt(BlockVec blockPos) {
 		
-		if (!contains(blockPos))
+		if (!contains(blockPos)) {
 			return null;
+		}
 		
 		return blockCopies
 				[blockPos.getX() - min.getX()]
@@ -95,8 +101,9 @@ public class BlockCache {
 	
 	public void setBlockTypeAt(BlockVec blockPos, BlockType blockType) {
 		
-		if (isBorder(blockPos))
+		if (isBorder(blockPos)) {
 			blockType = borderBlock.clone();
+		}
 		
 		blockCopies
 				[blockPos.getX() - min.getX()]
@@ -127,13 +134,15 @@ public class BlockCache {
 			
 			BlockVec touchingBlockPos = blockPos.clone().add(facing);
 			
-			if (!contains(touchingBlockPos))
+			if (!contains(touchingBlockPos)) {
 				continue;
+			}
 			
 			BlockType touchingBlock = getBlockTypeAt(touchingBlockPos);
 			
-			if (touchingBlock != null && !touchingBlock.isOccluding())
+			if (touchingBlock != null && !touchingBlock.isOccluding()) {
 				return true;
+			}
 		}
 		
 		//TODO check if block is directly in front of the portal.

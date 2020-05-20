@@ -5,9 +5,7 @@ import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -72,8 +70,9 @@ public class BlockCacheFactory {
 		int maxY = cacheMax.getBlockY();
 		int maxZ = cacheMax.getBlockZ();
 		
-		if (maxX < minX || maxY < minY || maxZ < minZ)
+		if (maxX < minX || maxY < minY || maxZ < minZ) {
 			throw new IllegalArgumentException("Cannot create a BlockCache smaller than 1 block.");
+		}
 		
 		BlockType[][][] copiedBlocks = new BlockType[maxX - minX][maxY - minY][maxZ - minZ];
 		BlockType cacheBorderBlock = getCacheBorderBlock(cacheWorld);
@@ -84,15 +83,17 @@ public class BlockCacheFactory {
 					
 					Block block = new Location(cacheWorld, x, y, z).getBlock();
 					
-					if (!isVisible(block))
+					if (!isVisible(block)) {
 						continue;
+					}
 					
 					BlockType blockType;
 					
-					if (isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing))
+					if (isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing)) {
 						blockType = cacheBorderBlock.clone();
-					else
+					} else {
 						blockType = BlockType.of(block);
+					}
 					
 					copiedBlocks[x - minX][y - minY][z - minZ] = blockType;
 				}
@@ -116,26 +117,23 @@ public class BlockCacheFactory {
 		Map<BlockVec, BlockType> changedBlocks = new HashMap<>();
 		BlockVec blockPos = new BlockVec(changedBlock);
 		
-		if (cache.isBorder(blockPos))
+		if (cache.isBorder(blockPos)) {
 			return changedBlocks;
+		}
 		
 		BlockType oldBlockType = cache.getBlockTypeAt(blockPos);
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
 		if (blockWasOccluding == newBlockData.isOccluding()) {
-			Bukkit.broadcastMessage("same occlusion");
-			//check if the block was visible (simply listed in the array) before
-			if (oldBlockType != null) {
-				Bukkit.broadcastMessage("single replacement");
-				changedBlocks.put(blockPos, oldBlockType);
-			}
 			
+			changedBlocks.put(blockPos, newBlockData);
 			return changedBlocks;
 		}
 		
 		World cacheWorld = cache.getWorld();
 		
 		if (oldBlockType == null) {
+			
 			oldBlockType = BlockType.of(cacheWorld.getBlockAt(
 					blockPos.getX(),
 					blockPos.getY(),
@@ -147,29 +145,28 @@ public class BlockCacheFactory {
 		changedBlocks.put(blockPos, newBlockData);
 		
 		//hide other block copies that are now covered by this occluding block
+		//they don't need to be redisplayed
 		if (newBlockData.isOccluding()) {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+				
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
 				
-				if (!cache.contains(touchingBlockPos))
-					continue;
-				
-				if (!cache.isBlockNowVisible(touchingBlockPos)) {
+				if (cache.contains(touchingBlockPos) && !cache.isBlockNowVisible(touchingBlockPos)) {
 					cache.removeBlockDataAt(touchingBlockPos);
-					//TODO dont send air, just remove the fake block
-					changedBlocks.put(touchingBlockPos, BlockType.of(Material.AIR));
 				}
 			}
 			
-			//re-add fake blocks that are revealed by the new transparent block
+		//re-add fake blocks that are revealed by the new transparent block
 		} else {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+				
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
 				
-				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos))
+				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos)) {
 					continue;
+				}
 				
 				BlockType touchingBlockData = BlockType.of(touchingBlockPos.toLocation(cacheWorld).getBlock());
 				cache.setBlockTypeAt(touchingBlockPos, touchingBlockData);
@@ -201,12 +198,14 @@ public class BlockCacheFactory {
 			int maxX, int maxY, int maxZ,
 			Vector cacheFacing) {
 		
-		if (y == minY || y == maxY - 1)
+		if (y == minY || y == maxY - 1) {
 			return true;
+		}
 		
 		if (cacheFacing.getZ() != 0) {
-			if (x == minX || x == maxX - 1)
+			if (x == minX || x == maxX - 1) {
 				return true;
+			}
 		} else if (z == minZ || z == maxZ - 1) {
 			return true;
 		}
@@ -225,8 +224,9 @@ public class BlockCacheFactory {
 	public static boolean isVisible(Block block) {
 		
 		for (BlockFace face : FacingUtils.getAxesFaces()) {
-			if (!block.getRelative(face).getType().isOccluding())
+			if (!block.getRelative(face).getType().isOccluding()) {
 				return true;
+			}
 		}
 		
 		return false;

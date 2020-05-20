@@ -29,21 +29,23 @@ public class TeleportListener implements Listener {
 	public void onPortalTravel(PlayerTeleportEvent event) {
 		
 		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL ||
-		    !event.getPlayer().hasPermission(NetherView.LINK_PERM))
+		    !event.getPlayer().hasPermission(NetherView.LINK_PERM)) {
 			return;
+		}
 		
 		Location to = event.getTo();
 		Location from = event.getFrom();
 		
-		if (!main.canViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld()))
+		if (!main.canViewOtherWorlds(from.getWorld()) || !main.canBeViewed(to.getWorld())) {
 			return;
+		}
 		
 		Player player = event.getPlayer();
 		Block portalBlock = PortalLocator.getNearbyPortalBlock(from);
 		
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null) {
-			if (main.isDebugModeEnabled()) {
+			if (main.isDebugMessagesEnabled()) {
 				player.sendMessage(ChatColor.DARK_GRAY + "Debug: No start portal block found");
 			}
 			return;
@@ -53,16 +55,18 @@ public class TeleportListener implements Listener {
 		
 		try {
 			
-			if (portal == null)
+			if (portal == null) {
 				portal = portalHandler.addPortalStructure(portalBlock);
+			}
 			
-			if (portal.isLinked())
+			if (portal.isLinked()) {
 				return;
+			}
 			
 			Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
 			
 			if (counterPortalBlock == null) {
-				if (main.isDebugModeEnabled()) {
+				if (main.isDebugMessagesEnabled()) {
 					player.sendMessage(ChatColor.DARK_GRAY + "Debug: No destination portal block found");
 				}
 				return;
@@ -70,14 +74,16 @@ public class TeleportListener implements Listener {
 			
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
-			if (counterPortal == null)
+			if (counterPortal == null) {
 				counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
+			}
 			
 			portalHandler.linkPortalTo(portal, counterPortal);
 			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
 			
-			if (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinking())
+			if (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinking()) {
 				event.setCancelled(true);
+			}
 			
 		} catch (IllegalArgumentException | IllegalStateException ex) {
 			player.sendMessage(ex.getMessage());

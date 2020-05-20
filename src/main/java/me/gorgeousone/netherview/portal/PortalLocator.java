@@ -38,14 +38,16 @@ public class PortalLocator {
 		
 		Block block = location.getBlock();
 		
-		if (block.getType() == PORTAL_MATERIAL)
+		if (block.getType() == PORTAL_MATERIAL) {
 			return block;
+		}
 		
 		for (BlockFace face : FacingUtils.getAxesFaces()) {
 			Block neighbor = block.getRelative(face);
 			
-			if (neighbor.getType() == PORTAL_MATERIAL)
+			if (neighbor.getType() == PORTAL_MATERIAL) {
 				return neighbor;
+			}
 		}
 		
 		return null;
@@ -115,8 +117,9 @@ public class PortalLocator {
 			
 			Block nextBlock = blockIterator.getRelative(facing);
 			
-			if (nextBlock.getType() != PORTAL_MATERIAL)
+			if (nextBlock.getType() != PORTAL_MATERIAL) {
 				return blockIterator;
+			}
 			
 			blockIterator = nextBlock;
 		}
@@ -173,8 +176,9 @@ public class PortalLocator {
 					//only check for obsidian frame blocks that are at the border of this "flat cuboid"
 					if (y > portalMinY && y < portalMaxY - 1 &&
 					    (portalAxis == Axis.X ? (x > portalMinX) : (z > portalMinZ)) &&
-					    (portalAxis == Axis.X ? (x < portalMaxX - 1) : (z < portalMaxZ - 1)))
+					    (portalAxis == Axis.X ? (x < portalMaxX - 1) : (z < portalMaxZ - 1))) {
 						continue;
+					}
 					
 					Block portalBlock = world.getBlockAt(x, y, z);
 					

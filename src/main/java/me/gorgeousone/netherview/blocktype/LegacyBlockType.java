@@ -34,16 +34,18 @@ public class LegacyBlockType extends BlockType {
 	@Override
 	public BlockType rotate(int quarterTurns) {
 		
-		if (quarterTurns == 0)
+		if (quarterTurns == 0) {
 			return this;
+		}
 		
 		if (materialData instanceof Directional) {
 			
 			Directional directional = (Directional) materialData;
 			BlockFace facing = directional.getFacing();
 			
-			if (RotationUtils.isRotatableFace(facing))
+			if (RotationUtils.isRotatableFace(facing)) {
 				directional.setFacingDirection(RotationUtils.getRotatedFace(directional.getFacing(), quarterTurns));
+			}
 		}
 		
 		//TODO find out if other blocks need to be rotated with their byte data

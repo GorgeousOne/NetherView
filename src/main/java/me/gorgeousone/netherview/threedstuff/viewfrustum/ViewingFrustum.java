@@ -44,8 +44,9 @@ public class ViewingFrustum {
 			for (int dy = 0; dy <= 1; dy++) {
 				for (int dz = 0; dz <= 1; dz++) {
 					
-					if (contains(blockPos.clone().add(new Vector(dy, dy, dz))))
+					if (contains(blockPos.clone().add(new Vector(dy, dy, dz)))) {
 						return true;
+					}
 				}
 			}
 		}

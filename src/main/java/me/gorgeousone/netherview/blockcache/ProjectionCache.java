@@ -29,10 +29,11 @@ public class ProjectionCache {
 		
 		createBlockCopies(sourceCache);
 		
-		if (portal.getAxis() == Axis.X)
+		if (portal.getAxis() == Axis.X) {
 			cacheLength = blockCopies[0][0].length;
-		else
+		} else {
 			cacheLength = blockCopies.length;
+		}
 	}
 	
 	public Portal getPortal() {
@@ -71,8 +72,9 @@ public class ProjectionCache {
 	
 	public BlockType getBlockTypeAt(BlockVec loc) {
 		
-		if (!contains(loc))
+		if (!contains(loc)) {
 			return null;
+		}
 		
 		return blockCopies
 				[loc.getX() - min.getX()]
@@ -94,13 +96,15 @@ public class ProjectionCache {
 		
 		for (BlockVec blockPos : getAllCornerLocs(blockCorner)) {
 			
-			if (!contains(blockPos))
+			if (!contains(blockPos)) {
 				continue;
+			}
 			
 			BlockType blockType = getBlockTypeAt(blockPos);
 			
-			if (blockType != null)
+			if (blockType != null) {
 				blocksAroundCorner.put(blockPos, blockType.clone());
+			}
 		}
 		
 		return blocksAroundCorner;
@@ -133,8 +137,9 @@ public class ProjectionCache {
 					BlockVec blockPos = new BlockVec(x, y, z);
 					BlockType blockType = sourceCache.getBlockTypeAt(blockPos);
 					
-					if (blockType == null)
+					if (blockType == null) {
 						continue;
+					}
 					
 					BlockType rotatedData = blockType.clone().rotate(blockTransform.getQuarterTurns());
 					BlockVec newBlockPos = blockTransform.transformVec(blockPos);

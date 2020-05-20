@@ -87,8 +87,9 @@ public final class ViewingFrustumFactory {
 		double rectWidth = portalAxis == Axis.X ? viewingRectSize.getX() : viewingRectSize.getZ();
 		double rectHeight = viewingRectSize.getY();
 		
-		if (rectWidth < 0)
+		if (rectWidth < 0) {
 			return null;
+		}
 		
 		AxisAlignedRect actualViewingRect = new AxisAlignedRect(maxViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
 		return new ViewingFrustum(viewPoint, actualViewingRect, frustumLength);

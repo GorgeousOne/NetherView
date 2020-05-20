@@ -14,8 +14,6 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -58,13 +56,15 @@ public class BlockListener implements Listener {
 					@Override
 					public void onPacketSending(PacketEvent event) {
 						
-						if (event.isCancelled() || event.getPacketType() != PacketType.Play.Server.BLOCK_CHANGE)
+						if (event.isCancelled() || event.getPacketType() != PacketType.Play.Server.BLOCK_CHANGE) {
 							return;
+						}
 						
 						Player player = event.getPlayer();
 						
-						if (!viewingHandler.hasViewSession(player))
+						if (!viewingHandler.hasViewSession(player)) {
 							return;
+						}
 						
 						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
 						BlockVec blockPosVec = new BlockVec(blockPos);
@@ -82,8 +82,9 @@ public class BlockListener implements Listener {
 		
 		World blockWorld = block.getWorld();
 		
-		if (!main.canBeViewed(blockWorld))
+		if (!main.canBeViewed(blockWorld)) {
 			return;
+		}
 		
 		BlockVec blockLoc = new BlockVec(block);
 		
@@ -96,44 +97,49 @@ public class BlockListener implements Listener {
 		}
 	}
 	
-	private void updateBlockCaches(Block block, BlockType newBlockData, boolean blockWasOccluding) {
+	private void updateBlockCaches(Block block, BlockType newBlockType, boolean blockWasOccluding) {
 		
 		World blockWorld = block.getWorld();
 		
-		if (!main.canBeViewed(blockWorld))
+		if (!main.canBeViewed(blockWorld)) {
 			return;
+		}
 		
 		BlockVec blockPos = new BlockVec(block);
 		
 		for (BlockCache cache : portalHandler.getBlockCaches(blockWorld)) {
 			
-			if (!cache.contains(blockPos))
+			if (!cache.contains(blockPos)) {
 				continue;
+			}
 			
-			Map<BlockVec, BlockType> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockData, blockWasOccluding);
-			Bukkit.broadcastMessage(ChatColor.GRAY + "" + updatedCopies.size() + " ups");
+			Map<BlockVec, BlockType> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockType, blockWasOccluding);
 			
-			if (!updatedCopies.isEmpty())
+			if (!updatedCopies.isEmpty()) {
 				viewingHandler.updateProjections(cache, updatedCopies);
+			}
 		}
 	}
 	
 	@EventHandler
 	public void onBlockInteract(PlayerInteractEvent event) {
 		
-		if (event.getAction() != Action.LEFT_CLICK_BLOCK)
+		if (event.getAction() != Action.LEFT_CLICK_BLOCK) {
 			return;
+		}
 		
 		Player player = event.getPlayer();
 		
-		if (!viewingHandler.hasViewSession(player))
+		if (!viewingHandler.hasViewSession(player)) {
 			return;
+		}
 		
 		Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
 		BlockVec blockPos = new BlockVec(event.getClickedBlock());
 		
-		if (viewSession.containsKey(blockPos))
+		if (viewSession.containsKey(blockPos)) {
 			event.setCancelled(true);
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -142,11 +148,11 @@ public class BlockListener implements Listener {
 		Block block = event.getBlock();
 		Material blockType = block.getType();
 		
-		event.getPlayer().sendMessage("break");
 		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		
-		if (blockType == Material.OBSIDIAN || blockType == portalMaterial)
+		if (blockType == Material.OBSIDIAN || blockType == portalMaterial) {
 			removeDamagedPortals(block);
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -157,22 +163,25 @@ public class BlockListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewingHandler.hasViewSession(player))
+		if (!viewingHandler.hasViewSession(player)) {
 			return;
+		}
 		
 		Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
 		BlockVec blockPos = new BlockVec(block);
 		
-		if (viewSession.containsKey(blockPos))
+		if (viewSession.containsKey(blockPos)) {
 			event.setCancelled(true);
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockExplode(BlockExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			if (block.getType() == portalMaterial)
+			if (block.getType() == portalMaterial) {
 				removeDamagedPortals(block);
+			}
 		}
 		
 		for (Block block : event.blockList())
@@ -183,8 +192,9 @@ public class BlockListener implements Listener {
 	public void onBlockExplode(EntityExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			if (block.getType() == portalMaterial)
+			if (block.getType() == portalMaterial) {
 				removeDamagedPortals(block);
+			}
 		}
 		
 		for (Block block : event.blockList())

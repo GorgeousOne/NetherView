@@ -42,8 +42,9 @@ public class UpdateCheck {
 				InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + resourceId).openStream();
 				Scanner scanner = new Scanner(inputStream);
 				
-				if (!scanner.hasNext())
+				if (!scanner.hasNext()) {
 					return;
+				}
 				
 				String fetchedVersion = scanner.next();
 				VersionResponse response = compareVersionStrings(fetchedVersion);
@@ -59,8 +60,9 @@ public class UpdateCheck {
 	
 	private VersionResponse compareVersionStrings(String fetchedVersion) {
 		
-		if (fetchedVersion.equals(currentVersion))
+		if (fetchedVersion.equals(currentVersion)) {
 			return VersionResponse.LATEST;
+		}
 		
 		String[] currentDigits = currentVersion.split("\\.");
 		String[] fetchedDigits = fetchedVersion.split("\\.");
@@ -74,10 +76,11 @@ public class UpdateCheck {
 				int currentDigit = Integer.parseInt(currentDigits[i]);
 				int fetchedDigit = Integer.parseInt(fetchedDigits[i]);
 				
-				if (fetchedDigit > currentDigit)
+				if (fetchedDigit > currentDigit) {
 					return VersionResponse.FOUND_NEW;
-				else if (fetchedDigit < currentDigit)
+				} else if (fetchedDigit < currentDigit) {
 					return VersionResponse.LATEST;
+				}
 			}
 			
 		} catch (NumberFormatException ex) {

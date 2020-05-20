@@ -49,10 +49,9 @@ public class PortalHandler {
 	public Portal addPortalStructure(Block portalBlock) {
 		
 		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
-		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
 		addPortal(portal);
 		
-		if (main.isDebugModeEnabled()) {
+		if (main.isDebugMessagesEnabled()) {
 			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Portal located at "
 			                        + portal.getWorld().getName() + ", "
 			                        + new BlockVec(portal.getLocation()).toString());
@@ -70,7 +69,7 @@ public class PortalHandler {
 	
 	public void removePortal(Portal portal) {
 		
-		if (main.isDebugModeEnabled()) {
+		if (main.isDebugMessagesEnabled()) {
 			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Removing portal at located at "
 			                        + portal.getWorld().getName() + ", "
 			                        + new BlockVec(portal.getLocation()).toString());
@@ -84,8 +83,9 @@ public class PortalHandler {
 		
 		if (linkedPortals.containsKey(portal)) {
 			
-			if (main.isDebugModeEnabled())
+			if (main.isDebugMessagesEnabled()) {
 				Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Un-linking " + linkedPortals.get(portal).size() + " other portals.");
+			}
 			
 			for (Portal linkedPortal : linkedPortals.get(portal))
 				linkedPortal.unlink();
@@ -101,8 +101,9 @@ public class PortalHandler {
 	public Portal getPortalByBlock(Block portalBlock) {
 		
 		for (Portal portal : getPortals(portalBlock.getWorld())) {
-			if (portal.getPortalBlocks().contains(portalBlock))
+			if (portal.getPortalBlocks().contains(portalBlock)) {
 				return portal;
+			}
 		}
 		
 		return null;
@@ -116,15 +117,22 @@ public class PortalHandler {
 		return new HashSet<>(linkedPortals.getOrDefault(portal, new HashSet<>()));
 	}
 	
-	public Portal getNearestLinkedPortal(Location playerLoc) {
+	public Portal getNearestPortal(Location playerLoc, boolean mustBeLinked) {
+		
+		World playerWorld = playerLoc.getWorld();
+		
+		if (!main.canViewOtherWorlds(playerWorld)) {
+			return null;
+		}
 		
 		Portal nearestPortal = null;
 		double minDist = -1;
 		
 		for (Portal portal : getPortals(playerLoc.getWorld())) {
 			
-			if (!portal.isLinked())
+			if (mustBeLinked && !portal.isLinked()) {
 				continue;
+			}
 			
 			double dist = portal.getLocation().distanceSquared(playerLoc);
 			
@@ -151,10 +159,15 @@ public class PortalHandler {
 	
 	public void linkPortalTo(Portal portal, Portal counterPortal) {
 		
-		if (!counterPortal.equalsInSize(portal))
+		if (!counterPortal.equalsInSize(portal)) {
 			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are not the same size, it is difficult to get a clear view...");
+		}
 		
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
+		
+		if (!counterPortal.areCachesLoaded()) {
+			counterPortal.setBlockCaches(BlockCacheFactory.createBlockCaches(counterPortal, main.getPortalProjectionDist()));
+		}
 		
 		BlockCache cache1 = counterPortal.getFrontCache();
 		BlockCache cache2 = counterPortal.getBackCache();
@@ -173,7 +186,7 @@ public class PortalHandler {
 		linkedProjections.get(cache1).add(projection2);
 		linkedProjections.get(cache2).add(projection1);
 		
-		if (main.isDebugModeEnabled()) {
+		if (main.isDebugMessagesEnabled()) {
 			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Linked portal from "
 			                        + portal.getWorld().getName() + " to portal at "
 			                        + counterPortal.getWorld().getName() + ", "
@@ -201,10 +214,11 @@ public class PortalHandler {
 			linkTransform.setRotY180Deg();
 			int portalBlockWidth = (int) portal.getPortalRect().width() - 1;
 			
-			if (counterPortal.getAxis() == Axis.X)
+			if (counterPortal.getAxis() == Axis.X) {
 				linkTransform.translate(new BlockVec(portalBlockWidth, 0, 0));
-			else
+			} else {
 				linkTransform.translate(new BlockVec(0, 0, portalBlockWidth));
+			}
 			
 		} else if (counterPortal.getAxis() == Axis.X) {
 			linkTransform.setRotY90DegRight();

@@ -6,4 +6,4 @@ worlds-with-projecting-portals:
   - world
 viewable-worlds:
   - world_nether
-debug-mode: false
+debug-messages: false

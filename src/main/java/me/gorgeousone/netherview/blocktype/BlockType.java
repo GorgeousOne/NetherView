@@ -30,10 +30,11 @@ public abstract class BlockType {
 		
 		Material material = Material.matchMaterial(materialName);
 		
-		if (material == null)
+		if (material == null) {
 			return new LegacyBlockType(new MaterialData(Material.valueOf(alternativeMat), data));
-		else
+		} else {
 			return BlockType.of(material);
+		}
 	}
 	
 	public abstract BlockType rotate(int quarterTurns);

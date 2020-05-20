@@ -39,19 +39,22 @@ public class AquaticBlockType extends BlockType {
 	@Override
 	public BlockType rotate(int quarterTurns) {
 		
-		if (quarterTurns == 0)
+		if (quarterTurns == 0) {
 			return this;
+		}
 		
 		//e.g. logs
 		if (blockData instanceof Orientable) {
 			
-			if (quarterTurns == 2)
+			if (quarterTurns == 2) {
 				return this;
+			}
 			
 			Orientable orientable = (Orientable) blockData;
 			
-			if (orientable.getAxis() != Axis.Y)
+			if (orientable.getAxis() != Axis.Y) {
 				orientable.setAxis(orientable.getAxis() == Axis.X ? Axis.Z : Axis.X);
+			}
 			
 			//e.g. furnaces, hoppers
 		} else if (blockData instanceof Directional) {
@@ -72,8 +75,9 @@ public class AquaticBlockType extends BlockType {
 			Map<BlockFace, Boolean> facings = new HashMap<>();
 			
 			for (BlockFace face : multiFacing.getAllowedFaces()) {
-				if (RotationUtils.isRotatableFace(face))
+				if (RotationUtils.isRotatableFace(face)) {
 					facings.put(face, multiFacing.hasFace(face));
+				}
 			}
 			
 			for (BlockFace face : facings.keySet())
@@ -85,8 +89,9 @@ public class AquaticBlockType extends BlockType {
 			Map<BlockFace, RedstoneWire.Connection> connections = new HashMap<>();
 			
 			for (BlockFace face : wire.getAllowedFaces()) {
-				if (RotationUtils.isRotatableFace(face))
+				if (RotationUtils.isRotatableFace(face)) {
 					connections.put(face, wire.getFace(face));
+				}
 			}
 			
 			for (BlockFace face : connections.keySet())

@@ -119,8 +119,12 @@ public class BlockVec {
 	
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof BlockVec)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof BlockVec)) {
+			return false;
+		}
 		BlockVec otherVec = (BlockVec) o;
 		return x == otherVec.x &&
 		       y == otherVec.y &&

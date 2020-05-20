@@ -106,6 +106,10 @@ public class Portal {
 		this.blockCaches = blockCaches;
 	}
 	
+	public boolean areCachesLoaded() {
+		return blockCaches != null;
+	}
+	
 	public BlockCache getFrontCache() {
 		return blockCaches.getKey();
 	}

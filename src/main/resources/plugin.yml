@@ -7,8 +7,8 @@ main: me.gorgeousone.netherview.NetherView
 depend: [ProtocolLib]
 
 commands:
-  nvreload:
-    description: /<command>
+  netherview:
+    aliases: [nv]
 
 permissions:
   netherview.viewportals:

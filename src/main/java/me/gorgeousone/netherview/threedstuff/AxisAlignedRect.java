@@ -19,10 +19,11 @@ public class AxisAlignedRect {
 		this.axis = axis;
 		this.pos = pos.clone();
 		
-		if (axis == Axis.X)
+		if (axis == Axis.X) {
 			plane = new Plane(pos, new Vector(0, 0, 1));
-		else
+		} else {
 			plane = new Plane(pos, new Vector(1, 0, 0));
+		}
 		
 		setSize(width, height);
 	}
@@ -72,8 +73,9 @@ public class AxisAlignedRect {
 		
 		double pointY = pointInPlane.getY();
 		
-		if (pointY < min.getY() || pointY > max.getY())
+		if (pointY < min.getY() || pointY > max.getY()) {
 			return false;
+		}
 		
 		if (axis == Axis.X) {
 			double pointX = pointInPlane.getX();

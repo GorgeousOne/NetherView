@@ -1,6 +1,12 @@
 package me.gorgeousone.netherview;
 
 import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
+import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
+import me.gorgeousone.netherview.commmands.EnableDebugCommand;
+import me.gorgeousone.netherview.commmands.ListPortalsCommand;
+import me.gorgeousone.netherview.commmands.PortalInfoCommand;
+import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
@@ -13,8 +19,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,7 +35,7 @@ public final class NetherView extends JavaPlugin {
 	
 	public final static String VIEW_PERM = "netherview.viewportals";
 	public final static String LINK_PERM = "netherview.linkportals";
-	public final static String RELOAD_PERM = "netherview.reload";
+	public final static String OPERATE_PERM = "netherview.operate";
 	
 	private boolean isLegacyServer;
 	private Material portalMaterial;
@@ -48,7 +52,7 @@ public final class NetherView extends JavaPlugin {
 	private boolean hidePortalBlocks;
 	private boolean cancelTeleportWhenLinking;
 	
-	private boolean isDebugModeEnabled;
+	private boolean debugMessagesEnabled;
 	
 	@Override
 	public void onEnable() {
@@ -65,10 +69,11 @@ public final class NetherView extends JavaPlugin {
 		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
 		
+		registerCommands();
 		registerListeners();
 		checkForUpdates();
 		
-		PortalLocator.setDebugModeEnabled(isDebugModeEnabled);
+		PortalLocator.setDebugModeEnabled(debugMessagesEnabled);
 	}
 	
 	@Override
@@ -76,7 +81,7 @@ public final class NetherView extends JavaPlugin {
 		viewingHandler.reset();
 	}
 	
-	private void reload() {
+	public void reload() {
 		
 		portalHandler.reset();
 		viewingHandler.reset();
@@ -85,7 +90,7 @@ public final class NetherView extends JavaPlugin {
 		loadConfigData();
 		checkForUpdates();
 		
-		PortalLocator.setDebugModeEnabled(isDebugModeEnabled);
+		PortalLocator.setDebugModeEnabled(debugMessagesEnabled);
 	}
 	
 	public int getPortalProjectionDist() {
@@ -112,26 +117,21 @@ public final class NetherView extends JavaPlugin {
 		return viewableOnlyWorlds.contains(world.getUID());
 	}
 	
-	public boolean isDebugModeEnabled() {
-		return isDebugModeEnabled;
+	public boolean isDebugMessagesEnabled() {
+		return debugMessagesEnabled;
 	}
 	
-	@Override
-	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+	private void registerCommands() {
 		
-		if ("nvreload".equals(command.getName())) {
-			
-			if (sender.hasPermission(RELOAD_PERM)) {
-				reload();
-				sender.sendMessage(ChatColor.DARK_RED + "[" + ChatColor.DARK_PURPLE + "NV" + ChatColor.DARK_RED + "]" + ChatColor.LIGHT_PURPLE + " Reloaded config settings.");
-				
-			} else {
-				sender.sendMessage(ChatColor.RED + "You do not have the permission for this command!");
-			}
-			
-			return true;
-		}
-		return false;
+		ParentCommand netherViewCommand = new ParentCommand("netherview", OPERATE_PERM, false, "just tab");
+		netherViewCommand.addChild(new ReloadCommand(netherViewCommand, this));
+		netherViewCommand.addChild(new EnableDebugCommand(netherViewCommand, this));
+		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, this, portalHandler));
+		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, portalHandler));
+		
+		
+		CommandHandler cmdHandler = new CommandHandler(this);
+		cmdHandler.registerCommand(netherViewCommand);
 	}
 	
 	private void loadServerVersion() {
@@ -161,7 +161,7 @@ public final class NetherView extends JavaPlugin {
 		
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
-		isDebugModeEnabled = getConfig().getBoolean("debug-mode", false);
+		debugMessagesEnabled = getConfig().getBoolean("debug-messages", false);
 		
 		worldsWithProjectingPortals = new HashSet<>();
 		viewableOnlyWorlds = new HashSet<>();
@@ -172,10 +172,11 @@ public final class NetherView extends JavaPlugin {
 			
 			World world = Bukkit.getWorld(worldName);
 			
-			if (world == null)
+			if (world == null) {
 				getLogger().log(Level.WARNING, "Could not find world " + worldName + ".");
-			else
+			} else {
 				worldsWithProjectingPortals.add(world.getUID());
+			}
 		}
 		
 		worldNames = getConfig().getStringList("viewable-worlds");
@@ -183,10 +184,11 @@ public final class NetherView extends JavaPlugin {
 		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
 			
-			if (world == null)
+			if (world == null) {
 				getLogger().log(Level.WARNING, "Could not find world " + worldName + ".");
-			else
+			} else {
 				viewableOnlyWorlds.add(world.getUID());
+			}
 		}
 	}
 	
@@ -205,8 +207,9 @@ public final class NetherView extends JavaPlugin {
 			if (versionResponse == VersionResponse.FOUND_NEW) {
 				
 				for (Player player : Bukkit.getOnlinePlayers()) {
-					if (player.isOp())
+					if (player.isOp()) {
 						player.sendMessage("A new version of NetherView is available: " + ChatColor.LIGHT_PURPLE + newVersion);
+					}
 				}
 				
 				getLogger().info("A new version of NetherView is available: " + newVersion);
@@ -215,5 +218,13 @@ public final class NetherView extends JavaPlugin {
 				getLogger().info("Unable to check for new versions...");
 			}
 		}).check();
+	}
+	
+	public void enableDebugMessages(boolean b) {
+		this.debugMessagesEnabled = b;
+	}
+	
+	public Set<UUID> getWorldsWithPortals() {
+		return worldsWithProjectingPortals;
 	}
 }

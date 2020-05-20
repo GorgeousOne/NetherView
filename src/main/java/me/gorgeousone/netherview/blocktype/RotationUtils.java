@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.blocktype;
 
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Rail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,8 +35,9 @@ public class RotationUtils {
 	
 	public static BlockFace getRotatedFace(BlockFace face, int quarterTurns) {
 		
-		if (!rotationFaces.contains(face))
+		if (!rotationFaces.contains(face)) {
 			return null;
+		}
 		
 		int positiveTurns = (quarterTurns % 4 + 4);
 		int rotatedFaceIndex = (rotationFaces.indexOf(face) + positiveTurns * 4) % rotationFaces.size();
