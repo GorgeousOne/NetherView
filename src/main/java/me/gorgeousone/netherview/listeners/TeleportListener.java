@@ -39,6 +39,10 @@ public class TeleportListener implements Listener {
 		Location to = event.getTo();
 		
 		if (!main.canCreatePortalsViews(from.getWorld())) {
+			
+			if (main.debugMessagesEnabled()) {
+				Bukkit.broadcastMessage(ChatColor.GRAY + "Debug: World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
+			}
 			return;
 		}
 		

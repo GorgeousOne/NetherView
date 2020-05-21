@@ -15,6 +15,7 @@ import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ListPortalsCommand extends ArgCommand {
 	
@@ -46,10 +47,11 @@ public class ListPortalsCommand extends ArgCommand {
 			return;
 		}
 		
-		sender.sendMessage("Portals in world '" + worldName + "':");
+		Set<Portal> portalSet = portalHandler.getPortals(world);
+		sender.sendMessage(ChatColor.GRAY + "" + portalSet.size() + " portal(s) listed for world '" + worldName + "':");
 		
 		for (Portal portal : portalHandler.getPortals(world)) {
-			sender.sendMessage(ChatColor.GRAY + "- " + portal.toString());
+			sender.sendMessage(ChatColor.GRAY + "- " + portal.toWhiteString());
 		}
 	}
 	

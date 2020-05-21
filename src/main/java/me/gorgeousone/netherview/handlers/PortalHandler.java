@@ -151,7 +151,7 @@ public class PortalHandler {
 		
 		for (Portal portal : getPortals(world)) {
 			
-			if(portal.areCachesLoaded()) {
+			if (portal.areCachesLoaded()) {
 				caches.add(portal.getFrontCache());
 				caches.add(portal.getBackCache());
 			}
@@ -175,6 +175,7 @@ public class PortalHandler {
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
 		
 		if (!counterPortal.areCachesLoaded()) {
+			long start = System.currentTimeMillis();
 			counterPortal.setBlockCaches(BlockCacheFactory.createBlockCaches(counterPortal, main.getPortalProjectionDist()));
 		}
 		

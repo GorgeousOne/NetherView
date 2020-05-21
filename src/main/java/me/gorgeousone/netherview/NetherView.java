@@ -13,11 +13,13 @@ import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
+import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -44,20 +46,20 @@ public final class NetherView extends JavaPlugin {
 	private PortalHandler portalHandler;
 	private ViewingHandler viewingHandler;
 	
-	private Set<UUID> portalViewWorlds;
+	private Set<UUID> worldsWithPortalViewing;
 	
 	private int portalProjectionDist;
 	private int portalDisplayRangeSquared;
 	
 	private boolean hidePortalBlocks;
 	private boolean cancelTeleportWhenLinking;
-	
 	private boolean debugMessagesEnabled;
 	
 	@Override
 	public void onEnable() {
 		
-		new Metrics(this, 7571);
+		Metrics metrics = new Metrics(this, 7571);
+		registerPortalsOnlineChart(metrics);
 		
 		loadServerVersion();
 		BlockType.configureVersion(isLegacyServer);
@@ -89,14 +91,17 @@ public final class NetherView extends JavaPlugin {
 		checkForUpdates();
 	}
 	
-	public void setDebugMessagesEnabled(boolean state) {
+	public boolean setDebugMessagesEnabled(boolean state) {
 		
-		if (state != debugMessagesEnabled) {
+		if (debugMessagesEnabled != state) {
 			
 			debugMessagesEnabled = state;
 			getConfig().set("debug-messages", debugMessagesEnabled);
 			PortalLocator.setDebugMessagesEnabled(debugMessagesEnabled);
+			return true;
 		}
+		
+		return false;
 	}
 	
 	public int getPortalProjectionDist() {
@@ -116,7 +121,7 @@ public final class NetherView extends JavaPlugin {
 	}
 	
 	public boolean canCreatePortalsViews(World world) {
-		return portalViewWorlds.contains(world.getUID());
+		return worldsWithPortalViewing.contains(world.getUID());
 	}
 	
 	public boolean debugMessagesEnabled() {
@@ -164,9 +169,9 @@ public final class NetherView extends JavaPlugin {
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
 		
-		portalViewWorlds = new HashSet<>();
+		worldsWithPortalViewing = new HashSet<>();
 		
-		List<String> worldNames = getConfig().getStringList("portal-view-worlds");
+		List<String> worldNames = getConfig().getStringList("worlds-with-portal-viewing");
 		
 		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
@@ -174,7 +179,7 @@ public final class NetherView extends JavaPlugin {
 			if (world == null) {
 				getLogger().log(Level.WARNING, "Could not find world " + worldName + ".");
 			} else {
-				portalViewWorlds.add(world.getUID());
+				worldsWithPortalViewing.add(world.getUID());
 			}
 		}
 		
@@ -207,5 +212,25 @@ public final class NetherView extends JavaPlugin {
 				getLogger().info("Unable to check for new versions...");
 			}
 		}).check();
+	}
+	
+	private void registerPortalsOnlineChart(Metrics metrics) {
+		
+		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> {
+			
+			int portalsOnlineCount = 0;
+			
+			for (World world : Bukkit.getWorlds()) {
+				for (Portal portal : portalHandler.getPortals(world)) {
+					
+					Location portalLoc = portal.getLocation();
+					
+					if (world.isChunkLoaded(portalLoc.getBlockX() >> 4, portalLoc.getBlockZ() >> 4)) {
+						portalsOnlineCount++;
+					}
+				}
+			}
+			return portalsOnlineCount;
+		}));
 	}
 }

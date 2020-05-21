@@ -100,7 +100,7 @@ public class PortalLocator {
 		}
 		
 		if(width > 21 || height > 21) {
-			throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");
+			throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is bigger than possible in vanilla minecraft!");
 		}
 		
 		//translate the portalRect towards the middle of the block;

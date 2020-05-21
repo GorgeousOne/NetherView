@@ -5,6 +5,8 @@ import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -130,5 +132,9 @@ public class Portal {
 	@Override
 	public String toString() {
 		return world.getName() + ", " + min.toString();
+	}
+	
+	public String toWhiteString() {
+		return ChatColor.RESET + toString();
 	}
 }

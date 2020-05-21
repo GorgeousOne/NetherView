@@ -2,7 +2,7 @@ portal-projection-view-distance: 8
 portal-display-range: 32
 hide-portal-blocks: false
 cancel-teleport-when-linking-portals: true
-portal-view-worlds:
+worlds-with-portal-viewing:
   - world
   - world_nether
 debug-messages: false
