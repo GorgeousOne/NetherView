@@ -24,7 +24,7 @@ public class ListPortalsCommand extends ArgCommand {
 	
 	public ListPortalsCommand(ParentCommand parent, NetherView main, PortalHandler portalHandler) {
 		
-		super("listportals", null, false, parent);
+		super("listportals", NetherView.INFO_PERM, false, parent);
 		addArg(new Argument("world", ArgType.STRING));
 		
 		this.main = main;

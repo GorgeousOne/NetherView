@@ -129,7 +129,7 @@ public class PortalLocator {
 		}
 		
 		if (debugMessagesEnabled) {
-			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Detection stopped after exceeding 21 portal blocks into " + facing.name() + " at " + new BlockVec(blockIterator).toString());
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Detection stopped after exceeding 21 portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
 		}
 		
 		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");

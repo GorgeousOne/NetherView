@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 public class ParentCommand extends BasicCommand {
@@ -17,7 +16,11 @@ public class ParentCommand extends BasicCommand {
 		this(name, permission, isPlayerRequired, childrenType, null);
 	}
 	
-	public ParentCommand(String name, String permission, boolean isPlayerRequired, String childrenType, ParentCommand parent) {
+	public ParentCommand(String name,
+	                     String permission,
+	                     boolean isPlayerRequired,
+	                     String childrenType,
+	                     ParentCommand parent) {
 		super(name, permission, isPlayerRequired, parent);
 		
 		this.childrenType = "<" + childrenType + ">";
@@ -54,26 +57,45 @@ public class ParentCommand extends BasicCommand {
 	@Override
 	public List<String> getTabList(CommandSender sender, String[] arguments) {
 		
+		List<String> tabList = new ArrayList<>();
+		
+		//create a tab list of the children commands
 		if (arguments.length == 1) {
-			List<String> tabList = new LinkedList<>();
 			
 			for (BasicCommand child : getChildren()) {
 				
-				if(child.isPlayerRequired() && !(sender instanceof Player))
+				if (child.isPlayerRequired() && !(sender instanceof Player)) {
 					continue;
-
-				tabList.add(child.getName());
+				}
+				
+				String subPermission = child.getPermission();
+				
+				if (subPermission == null || sender.hasPermission(subPermission)) {
+					tabList.add(child.getName());
+				}
 			}
+			
 			return tabList;
 		}
 		
+		//forwards the task of creating a tab list to a child commands
 		for (BasicCommand child : getChildren()) {
 			
-			if (child.matches(arguments[0]))
+			if (!child.matches(arguments[0]))
+				continue;
+			
+			if (child.isPlayerRequired() && !(sender instanceof Player)) {
+				continue;
+			}
+			
+			String subPermission = getPermission();
+			
+			if (subPermission == null || sender.hasPermission(subPermission)) {
 				return child.getTabList(sender, Arrays.copyOfRange(arguments, 1, arguments.length));
+			}
 		}
 		
-		return new LinkedList<>();
+		return tabList;
 	}
 	
 	@Override

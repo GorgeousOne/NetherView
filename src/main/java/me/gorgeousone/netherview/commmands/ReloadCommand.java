@@ -12,7 +12,7 @@ public class ReloadCommand extends BasicCommand {
 	
 	public ReloadCommand(ParentCommand parent, NetherView main) {
 		
-		super("reload", null, false, parent);
+		super("reload", NetherView.RELOAD_PERM, false, parent);
 		this.main = main;
 	}
 	
