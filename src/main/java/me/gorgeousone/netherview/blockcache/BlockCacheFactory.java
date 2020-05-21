@@ -1,15 +1,14 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.FacingUtils;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 import java.util.AbstractMap;
@@ -25,22 +24,21 @@ public class BlockCacheFactory {
 		viewDist += 2;
 		
 		AxisAlignedRect portalRect = portal.getPortalRect();
-		Vector portalFacing = portalRect.getPlaneNormal();
-		Vector widthFacing = portalRect.getWidthFacing();
+		Vector portalFacing = portalRect.getNormal();
+		Vector widthFacing = portalRect.getCrossNormal();
 		
 		//the view distance in blocks to the front shall be greater than at the sides
-		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
-		int frontViewDist = minPortalExtent + viewDist;
-		
-		int sideViewDist = (int) Math.ceil(viewDist / 1.618d);
+		int frontViewDist = viewDist;
+		int horizontalViewDist = (int) Math.max(2, viewDist - portalRect.width()) / 2;
+		int verticalViewDist = (int) Math.max(2, viewDist - portalRect.height()) / 2;
 		
 		Vector cacheCorner1 = portalRect.getMin();
-		cacheCorner1.subtract(new Vector(0, sideViewDist, 0));
-		cacheCorner1.subtract(widthFacing.clone().multiply(sideViewDist));
+		cacheCorner1.subtract(new Vector(0, verticalViewDist, 0));
+		cacheCorner1.subtract(widthFacing.clone().multiply(horizontalViewDist));
 		
 		Vector cacheCorner2 = portalRect.getMax();
-		cacheCorner2.add(new Vector(0, sideViewDist, 0));
-		cacheCorner2.add(widthFacing.clone().multiply(sideViewDist));
+		cacheCorner2.add(new Vector(0, verticalViewDist, 0));
+		cacheCorner2.add(widthFacing.clone().multiply(horizontalViewDist));
 		
 		BlockCache front = copyBlocksInBounds(
 				cacheCorner1.clone().add(portalFacing),
@@ -72,11 +70,12 @@ public class BlockCacheFactory {
 		int maxY = cacheMax.getBlockY();
 		int maxZ = cacheMax.getBlockZ();
 		
-		if (maxX < minX || maxY < minY || maxZ < minZ)
+		if (maxX < minX || maxY < minY || maxZ < minZ) {
 			throw new IllegalArgumentException("Cannot create a BlockCache smaller than 1 block.");
+		}
 		
-		BlockData[][][] copiedBlocks = new BlockData[maxX - minX][maxY - minY][maxZ - minZ];
-		BlockData cacheBorderBlock = getCacheBorderBlock(cacheWorld);
+		BlockType[][][] copiedBlocks = new BlockType[maxX - minX][maxY - minY][maxZ - minZ];
+		BlockType cacheBorderBlock = getCacheBorderBlock(cacheWorld);
 		
 		for (int x = minX; x < maxX; x++) {
 			for (int y = minY; y < maxY; y++) {
@@ -84,17 +83,19 @@ public class BlockCacheFactory {
 					
 					Block block = new Location(cacheWorld, x, y, z).getBlock();
 					
-					if (!isVisible(block))
+					if (!isVisible(block)) {
 						continue;
+					}
 					
-					BlockData blockData;
+					BlockType blockType;
 					
-					if (isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing))
-						blockData = cacheBorderBlock.clone();
-					else
-						blockData = block.getBlockData();
+					if (isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing)) {
+						blockType = cacheBorderBlock.clone();
+					} else {
+						blockType = BlockType.of(block);
+					}
 					
-					copiedBlocks[x - minX][y - minY][z - minZ] = blockData;
+					copiedBlocks[x - minX][y - minY][z - minZ] = blockType;
 				}
 			}
 		}
@@ -107,72 +108,68 @@ public class BlockCacheFactory {
 	 *
 	 * @return all block copies that were affected and updated in the process.
 	 */
-	public static Map<BlockVec, BlockData> updateBlockInCache(
+	public static Map<BlockVec, BlockType> updateBlockInCache(
 			BlockCache cache,
 			Block changedBlock,
-			BlockData newBlockData,
+			BlockType newBlockData,
 			boolean blockWasOccluding) {
 		
-		Map<BlockVec, BlockData> changedBlocks = new HashMap<>();
+		Map<BlockVec, BlockType> changedBlocks = new HashMap<>();
 		BlockVec blockPos = new BlockVec(changedBlock);
-		Material newMaterial = newBlockData.getMaterial();
 		
-		if (cache.isBorder(blockPos))
+		if (cache.isBorder(blockPos)) {
 			return changedBlocks;
+		}
 		
-		BlockData oldBlockData = cache.getBlockDataAt(blockPos);
+		BlockType oldBlockType = cache.getBlockTypeAt(blockPos);
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
-		if (blockWasOccluding == newMaterial.isOccluding()) {
+		if (blockWasOccluding == newBlockData.isOccluding()) {
 			
-			//check if the block was visible (simply listed in the array) before
-			if (oldBlockData != null) {
-				changedBlocks.put(blockPos, oldBlockData);
-			}
-			
+			changedBlocks.put(blockPos, newBlockData);
 			return changedBlocks;
 		}
 		
 		World cacheWorld = cache.getWorld();
 		
-		if (oldBlockData == null) {
-			oldBlockData = cacheWorld.getBlockAt(
+		if (oldBlockType == null) {
+			
+			oldBlockType = BlockType.of(cacheWorld.getBlockAt(
 					blockPos.getX(),
 					blockPos.getY(),
-					blockPos.getZ()).getBlockData();
+					blockPos.getZ()));
 			
-			cache.setBlockDataAt(blockPos, oldBlockData);
+			cache.setBlockTypeAt(blockPos, oldBlockType);
 		}
 		
 		changedBlocks.put(blockPos, newBlockData);
 		
 		//hide other block copies that are now covered by this occluding block
-		if (newMaterial.isOccluding()) {
+		//they don't need to be redisplayed
+		if (newBlockData.isOccluding()) {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+				
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
 				
-				if (!cache.contains(touchingBlockPos))
-					continue;
-				
-				if (!cache.isBlockNowVisible(touchingBlockPos)) {
+				if (cache.contains(touchingBlockPos) && !cache.isBlockNowVisible(touchingBlockPos)) {
 					cache.removeBlockDataAt(touchingBlockPos);
-					//TODO dont send air, just remove the fake block
-					changedBlocks.put(touchingBlockPos, Material.AIR.createBlockData());
 				}
 			}
 			
-			//re-add fake blocks that are revealed by the new transparent block
+		//re-add fake blocks that are revealed by the new transparent block
 		} else {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+				
 				BlockVec touchingBlockPos = blockPos.clone().add(facing);
 				
-				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos))
+				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos)) {
 					continue;
+				}
 				
-				BlockData touchingBlockData = touchingBlockPos.toLocation(cacheWorld).getBlock().getBlockData();
-				cache.setBlockDataAt(touchingBlockPos, touchingBlockData);
+				BlockType touchingBlockData = BlockType.of(touchingBlockPos.toLocation(cacheWorld).getBlock());
+				cache.setBlockTypeAt(touchingBlockPos, touchingBlockData);
 				changedBlocks.put(touchingBlockPos, touchingBlockData);
 			}
 		}
@@ -201,12 +198,14 @@ public class BlockCacheFactory {
 			int maxX, int maxY, int maxZ,
 			Vector cacheFacing) {
 		
-		if (y == minY || y == maxY - 1)
+		if (y == minY || y == maxY - 1) {
 			return true;
+		}
 		
 		if (cacheFacing.getZ() != 0) {
-			if (x == minX || x == maxX - 1)
+			if (x == minX || x == maxX - 1) {
 				return true;
+			}
 		} else if (z == minZ || z == maxZ - 1) {
 			return true;
 		}
@@ -225,22 +224,23 @@ public class BlockCacheFactory {
 	public static boolean isVisible(Block block) {
 		
 		for (BlockFace face : FacingUtils.getAxesFaces()) {
-			if (!block.getRelative(face).getType().isOccluding())
+			if (!block.getRelative(face).getType().isOccluding()) {
 				return true;
+			}
 		}
 		
 		return false;
 	}
 	
-	private static BlockData getCacheBorderBlock(World world) {
+	private static BlockType getCacheBorderBlock(World world) {
 		
 		switch (world.getEnvironment()) {
 			case NORMAL:
-				return Material.BLUE_ICE.createBlockData();
+				return BlockType.match("BLUE_ICE", "STAINED_CLAY", (byte) 0);
 			case NETHER:
-				return Material.RED_CONCRETE.createBlockData();
+				return BlockType.match("RED_CONCRETE", "STAINED_CLAY", (byte) 14);
 			case THE_END:
-				return Material.BLACK_CONCRETE.createBlockData();
+				return BlockType.match("BLACK_CONCRETE", "STAINED_CLAY", (byte) 11);
 			default:
 				return null;
 		}

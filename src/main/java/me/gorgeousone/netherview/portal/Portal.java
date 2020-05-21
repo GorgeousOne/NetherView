@@ -2,9 +2,11 @@ package me.gorgeousone.netherview.portal;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
+import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Axis;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -21,6 +23,7 @@ public class Portal {
 	private Set<Block> portalBlocks;
 	private Set<Block> frameBlocks;
 	
+	//bounds containing all portal blocks including frame
 	private BlockVec min;
 	private BlockVec max;
 	
@@ -106,6 +109,10 @@ public class Portal {
 		this.blockCaches = blockCaches;
 	}
 	
+	public boolean areCachesLoaded() {
+		return blockCaches != null;
+	}
+	
 	public BlockCache getFrontCache() {
 		return blockCaches.getKey();
 	}
@@ -120,5 +127,14 @@ public class Portal {
 	
 	public ProjectionCache getBackProjection() {
 		return projectionCaches.getValue();
+	}
+	
+	@Override
+	public String toString() {
+		return world.getName() + ", " + min.toString();
+	}
+	
+	public String toWhiteString() {
+		return ChatColor.RESET + toString();
 	}
 }

@@ -1,22 +1,22 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.FacingUtils;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.threedstuff.FacingUtils;
 import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 public class BlockCache {
 	
 	private World world;
-	private BlockData[][][] blockCopies;
+	private BlockType[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
 	
 	private Vector facing;
-	private BlockData borderBlock;
+	private BlockType borderBlock;
 	
-	public BlockCache(BlockVec offset, BlockData[][][] blockCopies, Vector facing, World world, BlockData borderBlock) {
+	public BlockCache(BlockVec offset, BlockType[][][] blockCopies, Vector facing, World world, BlockType borderBlock) {
 		
 		this.world = world;
 		this.blockCopies = blockCopies;
@@ -54,8 +54,9 @@ public class BlockCache {
 	 */
 	public boolean isBorder(BlockVec loc) {
 		
-		if (loc.getY() == min.getY() || loc.getY() == max.getY() - 1)
+		if (loc.getY() == min.getY() || loc.getY() == max.getY() - 1) {
 			return true;
+		}
 		
 		int x = loc.getX();
 		int z = loc.getZ();
@@ -66,26 +67,31 @@ public class BlockCache {
 		int maxZ = max.getZ() - 1;
 		
 		if (facing.getZ() != 0) {
-			if (x == minX || x == maxX)
+			if (x == minX || x == maxX) {
 				return true;
+			}
 		} else if (z == minZ || z == maxZ) {
 			return true;
 		}
 		
-		if (facing.getX() == 1)
+		if (facing.getX() == 1) {
 			return x == maxX;
-		if (facing.getX() == -1)
+		}
+		if (facing.getX() == -1) {
 			return x == minX;
-		if (facing.getZ() == 1)
+		}
+		if (facing.getZ() == 1) {
 			return z == maxZ;
-		else
+		} else {
 			return z == minZ;
+		}
 	}
 	
-	public BlockData getBlockDataAt(BlockVec blockPos) {
+	public BlockType getBlockTypeAt(BlockVec blockPos) {
 		
-		if (!contains(blockPos))
+		if (!contains(blockPos)) {
 			return null;
+		}
 		
 		return blockCopies
 				[blockPos.getX() - min.getX()]
@@ -93,15 +99,16 @@ public class BlockCache {
 				[blockPos.getZ() - min.getZ()];
 	}
 	
-	public void setBlockDataAt(BlockVec blockPos, BlockData blockData) {
+	public void setBlockTypeAt(BlockVec blockPos, BlockType blockType) {
 		
-		if (isBorder(blockPos))
-			blockData = borderBlock.clone();
+		if (isBorder(blockPos)) {
+			blockType = borderBlock.clone();
+		}
 		
 		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
-				[blockPos.getZ() - min.getZ()] = blockData;
+				[blockPos.getZ() - min.getZ()] = blockType;
 	}
 	
 	public void removeBlockDataAt(BlockVec blockPos) {
@@ -115,7 +122,7 @@ public class BlockCache {
 	 * Returns true if the block copy at the given position is listed as visible (when it's not null)
 	 */
 	public boolean isBlockListedVisible(BlockVec blockPos) {
-		return getBlockDataAt(blockPos) != null;
+		return getBlockTypeAt(blockPos) != null;
 	}
 	
 	/**
@@ -127,13 +134,15 @@ public class BlockCache {
 			
 			BlockVec touchingBlockPos = blockPos.clone().add(facing);
 			
-			if (!contains(touchingBlockPos))
+			if (!contains(touchingBlockPos)) {
 				continue;
+			}
 			
-			BlockData touchingBlock = getBlockDataAt(touchingBlockPos);
+			BlockType touchingBlock = getBlockTypeAt(touchingBlockPos);
 			
-			if (touchingBlock != null && !touchingBlock.getMaterial().isOccluding())
+			if (touchingBlock != null && !touchingBlock.isOccluding()) {
 				return true;
+			}
 		}
 		
 		//TODO check if block is directly in front of the portal.

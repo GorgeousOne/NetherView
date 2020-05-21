@@ -20,6 +20,10 @@ public class BlockVec {
 		this(block.getX(), block.getY(), block.getZ());
 	}
 	
+	public BlockVec(Location location) {
+		this(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+	}
+	
 	public BlockVec(Vector vector) {
 		this(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
 	}
@@ -115,8 +119,12 @@ public class BlockVec {
 	
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof BlockVec)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof BlockVec)) {
+			return false;
+		}
 		BlockVec otherVec = (BlockVec) o;
 		return x == otherVec.x &&
 		       y == otherVec.y &&
@@ -130,10 +138,10 @@ public class BlockVec {
 	
 	@Override
 	public String toString() {
-		return "BlockVec[" +
+		return "[" +
 		       "x=" + x +
-		       ", y=" + y +
-		       ", z=" + z +
+		       ",y=" + y +
+		       ",z=" + z +
 		       ']';
 	}
 }

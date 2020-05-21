@@ -5,17 +5,17 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.viewfrustum.ViewingFrustum;
-import me.gorgeousone.netherview.viewfrustum.ViewingFrustumFactory;
-import org.bukkit.Axis;
+import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewingFrustum;
+import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewingFrustumFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -32,7 +32,7 @@ public class ViewingHandler {
 	
 	private Map<UUID, Portal> viewedPortals;
 	private Map<UUID, ProjectionCache> viewedProjections;
-	private Map<UUID, Map<BlockVec, BlockData>> playerViewSessions;
+	private Map<UUID, Map<BlockVec, BlockType>> playerViewSessions;
 	
 	public ViewingHandler(NetherView main, PortalHandler portalHandler) {
 		
@@ -47,14 +47,19 @@ public class ViewingHandler {
 	public void reset() {
 		
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (hasViewSession(player))
+			if (hasViewSession(player)) {
 				hideViewSession(player);
+			}
 		}
 		
 		playerViewSessions.clear();
 	}
 	
-	public Map<BlockVec, BlockData> getViewSession(Player player) {
+	public ProjectionCache getViewedCache(Player player) {
+		return viewedProjections.get(player.getUniqueId());
+	}
+	
+	public Map<BlockVec, BlockType> getViewSession(Player player) {
 		
 		UUID uuid = player.getUniqueId();
 		
@@ -84,7 +89,7 @@ public class ViewingHandler {
 	
 	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
 		
-		Portal portal = portalHandler.getNearestLinkedPortal(playerEyeLoc);
+		Portal portal = portalHandler.getNearestPortal(playerEyeLoc, true);
 		
 		if (portal == null) {
 			hideViewSession(player);
@@ -136,8 +141,9 @@ public class ViewingHandler {
 	                            boolean displayFrustum,
 	                            boolean hidePortalBlocks) {
 		
-		if (!portal.isLinked())
+		if (!portal.isLinked()) {
 			return;
+		}
 		
 		ProjectionCache projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
@@ -145,24 +151,23 @@ public class ViewingHandler {
 		viewedPortals.put(player.getUniqueId(), portal);
 		viewedProjections.put(player.getUniqueId(), projection);
 		
-		Map<BlockVec, BlockData> visibleBlocks = new HashMap<>();
+		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
-		if (displayFrustum) {
+		if (playerFrustum != null && displayFrustum) {
 			visibleBlocks.putAll(getBlocksInFrustum(projection, playerFrustum));
 		}
 		
 		if (hidePortalBlocks) {
-			for (Block portalBlock : portal.getPortalBlocks()) {
-				visibleBlocks.put(new BlockVec(portalBlock), Material.AIR.createBlockData());
-			}
+			for (Block portalBlock : portal.getPortalBlocks())
+				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
 		}
 		
 		displayBlocks(player, visibleBlocks);
 	}
 	
-	//	private Map<BlockVec, BlockData> getAllBlocks(ProjectionCache cache) {
+	//	private Map<BlockVec, BlockType> getAllBlocks(ProjectionCache cache) {
 	//
-	//		Map<BlockVec, BlockData> allBlocks = new HashSet<>();
+	//		Map<BlockVec, BlockType> allBlocks = new HashSet<>();
 	//
 	//		BlockVec min = cache.getMin();
 	//		BlockVec max = cache.getMax();
@@ -171,7 +176,7 @@ public class ViewingHandler {
 	//			for (int y = min.getY(); y <= max.getY(); y++) {
 	//				for (int z = min.getZ(); z <= max.getZ(); z++) {
 	//
-	//					BlockData copy = cache.getCopyAt(new BlockVec(x, y, z));
+	//					BlockType copy = cache.getCopyAt(new BlockVec(x, y, z));
 	//
 	//					if (copy != null)
 	//						allBlocks.add(copy);
@@ -182,9 +187,9 @@ public class ViewingHandler {
 	//		return allBlocks;
 	//	}
 	
-	private Map<BlockVec, BlockData> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
+	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
 		
-		Map<BlockVec, BlockData> blocksInFrustum = new HashMap<>();
+		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
 		BlockVec min = projection.getMin();
 		BlockVec max = projection.getMax();
@@ -197,20 +202,24 @@ public class ViewingHandler {
 			double newMinX = Math.min(nearPlaneRect.getMin().getX(), farPlaneRect.getMin().getX());
 			double newMaxX = Math.max(nearPlaneRect.getMax().getX(), farPlaneRect.getMax().getX());
 			
-			if (newMinX > min.getX())
+			if (newMinX > min.getX()) {
 				min.setX((int) Math.floor(newMinX));
-			if (newMaxX < max.getX())
+			}
+			if (newMaxX < max.getX()) {
 				max.setX((int) Math.ceil(newMaxX));
+			}
 			
 		} else {
 			
 			double newMinZ = Math.min(nearPlaneRect.getMin().getZ(), farPlaneRect.getMin().getZ());
 			double newMaxZ = Math.max(nearPlaneRect.getMax().getZ(), farPlaneRect.getMax().getZ());
 			
-			if (newMinZ > min.getZ())
+			if (newMinZ > min.getZ()) {
 				min.setZ((int) Math.floor(newMinZ));
-			if (newMaxZ < max.getZ())
+			}
+			if (newMaxZ < max.getZ()) {
 				max.setZ((int) Math.ceil(newMaxZ));
+			}
 		}
 		
 		for (int x = min.getX(); x <= max.getX(); x++) {
@@ -219,8 +228,9 @@ public class ViewingHandler {
 					
 					BlockVec blockPos = new BlockVec(x, y, z);
 					
-					if (frustum.contains(blockPos.toVector()))
-						blocksInFrustum.putAll(projection.getCopiesAround(new BlockVec(x, y, z)));
+					if (frustum.contains(blockPos.toVector())) {
+						blocksInFrustum.putAll(projection.getBlockTypesAround(new BlockVec(x, y, z)));
+					}
 				}
 			}
 		}
@@ -231,26 +241,28 @@ public class ViewingHandler {
 	/**
 	 * Forwards the changes made in a block cache to all the linked projections. This also live-updates what the players see
 	 */
-	public void updateProjections(BlockCache cache, Map<BlockVec, BlockData> updatedCopies) {
+	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedCopies) {
 		
 		for (ProjectionCache projection : portalHandler.getLinkedProjections(cache)) {
 			
-			Map<BlockVec, BlockData> projectionUpdates = new HashMap<>();
+			Map<BlockVec, BlockType> projectionUpdates = new HashMap<>();
 			
-			for (Map.Entry<BlockVec, BlockData> entry : updatedCopies.entrySet()) {
+			for (Map.Entry<BlockVec, BlockType> entry : updatedCopies.entrySet()) {
 				
 				Transform blockTransform = projection.getTransform();
 				BlockVec projectionBlockPos = blockTransform.transformVec(entry.getKey().clone());
-				BlockData projectionBlockData = blockTransform.rotateData(entry.getValue().clone());
+				BlockType projectionBlockType = entry.getValue().clone().rotate(blockTransform.getQuarterTurns());
 				
-				projection.updateCopy(projectionBlockPos, projectionBlockData);
-				projectionUpdates.put(projectionBlockPos, projectionBlockData);
+				projection.setBlockTypeAt(projectionBlockPos, projectionBlockType);
+				projectionUpdates.put(projectionBlockPos, projectionBlockType);
 			}
 			
+			//TODO stop iterating same players for each projection?
 			for (UUID playerID : viewedProjections.keySet()) {
 				
-				if (viewedProjections.get(playerID) != projection)
+				if (viewedProjections.get(playerID) != projection) {
 					continue;
+				}
 				
 				Portal portal = viewedPortals.get(playerID);
 				Player player = Bukkit.getPlayer(playerID);
@@ -260,17 +272,25 @@ public class ViewingHandler {
 						portal.getPortalRect(),
 						projection.getCacheLength());
 				
-				Map<BlockVec, BlockData> blocksInFrustum = new HashMap<>();
-				Map<BlockVec, BlockData> viewSession = getViewSession(player);
+				if (playerFrustum == null) {
+					continue;
+				}
 				
-				for (Map.Entry<BlockVec, BlockData> entry : projectionUpdates.entrySet()) {
+				Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
+				Map<BlockVec, BlockType> viewSession = getViewSession(player);
+				
+				for (Map.Entry<BlockVec, BlockType> entry : projectionUpdates.entrySet()) {
 					
 					BlockVec blockPos = entry.getKey();
-					BlockData blockData = entry.getValue();
+					BlockType blockType = entry.getValue();
+					
+					if (blockType == null) {
+						blockType = BlockType.of(blockPos.toBlock(player.getWorld()));
+					}
 					
 					if (playerFrustum.containsBlock(blockPos.toVector())) {
-						blocksInFrustum.put(blockPos, blockData);
-						viewSession.put(blockPos, blockData);
+						blocksInFrustum.put(blockPos, blockType);
+						viewSession.put(blockPos, blockType);
 					}
 				}
 				
@@ -279,20 +299,12 @@ public class ViewingHandler {
 		}
 	}
 	
-	//	private void displayFrustum(Player player, ViewingFrustum frustum) {
-	//
-	//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-	//		World world = player.getWorld();
-	//
-	//		player.spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-	//		player.spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-	//	}
 	
-	private void displayBlocks(Player player, Map<BlockVec, BlockData> blocksToDisplay) {
-
-		Map<BlockVec, BlockData> viewSession = getViewSession(player);
+	private void displayBlocks(Player player, Map<BlockVec, BlockType> blocksToDisplay) {
 		
-		Map<BlockVec, BlockData> removedBlocks = new HashMap<>();
+		Map<BlockVec, BlockType> viewSession = getViewSession(player);
+		
+		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
 		Iterator<BlockVec> iterator = viewSession.keySet().iterator();
 		
 		while (iterator.hasNext()) {
@@ -309,27 +321,31 @@ public class ViewingHandler {
 		
 		while (iterator.hasNext()) {
 			
-			if (viewSession.containsKey(iterator.next()))
+			if (viewSession.containsKey(iterator.next())) {
 				iterator.remove();
+			}
 		}
 		
 		viewSession.putAll(blocksToDisplay);
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
-	
-	//	private void displayFrustum(Player player, ViewingFrustum frustum) {
-	//
-	//		AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-	//		AxisAlignedRect farPlane = frustum.getFarPlaneRect();
-	//		World world = player.getWorld();
-	//
-	//		player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-	//		player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-	//
-	//		player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMin().toLocation(world), 0, 0, 0, 0);
-	//		player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMax().toLocation(world), 0, 0, 0, 0);
-	//	}
+
+//	private void displayFrustum(Player player, ViewingFrustum frustum) {
+//
+//		try {
+//			AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
+//			AxisAlignedRect farPlane = frustum.getFarPlaneRect();
+//			World world = player.getWorld();
+//
+//			player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
+//			player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
+//
+//			player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMin().toLocation(world), 0, 0, 0, 0);
+//			player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMax().toLocation(world), 0, 0, 0, 0);
+//
+//		} catch (Exception ignored) {}
+//	}
 	
 	public void removePortal(Portal portal) {
 		
@@ -342,8 +358,9 @@ public class ViewingHandler {
 			
 			Map.Entry<UUID, Portal> playerView = iter.next();
 			
-			if (!affectedPortals.contains(playerView.getValue()))
+			if (!affectedPortals.contains(playerView.getValue())) {
 				continue;
+			}
 			
 			iter.remove();
 			hideViewSession(Bukkit.getPlayer(playerView.getKey()));

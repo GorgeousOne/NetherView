@@ -20,7 +20,8 @@ public class PlayerQuitListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (player.hasPermission(NetherView.VIEW_PERM))
+		if (player.hasPermission(NetherView.VIEW_PERM)) {
 			viewingHandler.removeVieSession(player);
+		}
 	}
 }

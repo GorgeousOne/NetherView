@@ -1,20 +1,57 @@
 package me.gorgeousone.netherview.portal;
 
+import me.gorgeousone.netherview.FacingUtils;
+import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Axis;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Orientable;
+import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class PortalLocator {
+	
+	private static Material PORTAL_MATERIAL;
+	private static boolean debugMessagesEnabled;
+	
+	public static void configureVersion(Material portalMaterial) {
+		PortalLocator.PORTAL_MATERIAL = portalMaterial;
+	}
+	
+	public static void setDebugMessagesEnabled(boolean isDebugModeEnabled) {
+		PortalLocator.debugMessagesEnabled = isDebugModeEnabled;
+	}
+	
+	/**
+	 * Finds the portal block a player might have touched at the location or the blocks next to it
+	 * (players in creative mode often teleport to the nether before their location appears to be inside a portal).
+	 */
+	public static Block getNearbyPortalBlock(Location location) {
+		
+		Block block = location.getBlock();
+		
+		if (block.getType() == PORTAL_MATERIAL) {
+			return block;
+		}
+		
+		for (BlockFace face : FacingUtils.getAxesFaces()) {
+			Block neighbor = block.getRelative(face);
+			
+			if (neighbor.getType() == PORTAL_MATERIAL) {
+				return neighbor;
+			}
+		}
+		
+		return null;
+	}
 	
 	public static Portal locatePortalStructure(Block portalBlock) {
 		
@@ -27,7 +64,7 @@ public class PortalLocator {
 		
 		Set<Block> innerBlocks = getInnerPortalBlocks(world, portalMin, portalMax);
 		
-		BlockVec frameExtent = new BlockVec(portalRect.getWidthFacing());
+		BlockVec frameExtent = new BlockVec(portalRect.getCrossNormal());
 		frameExtent.setY(1);
 		
 		portalMin.subtract(frameExtent);
@@ -42,8 +79,8 @@ public class PortalLocator {
 	 */
 	private static AxisAlignedRect getPortalRect(Block portalBlock) {
 		
-		Orientable portalData = (Orientable) portalBlock.getBlockData();
-		Axis portalAxis = portalData.getAxis();
+		MaterialData data = portalBlock.getState().getData();
+		Axis portalAxis = data.getData() == 2 ? Axis.Z : Axis.X;
 		
 		Vector position = new Vector(
 				portalBlock.getX(),
@@ -60,6 +97,10 @@ public class PortalLocator {
 		} else {
 			position.setZ(getPortalExtent(portalBlock, BlockFace.NORTH).getZ());
 			width = getPortalExtent(portalBlock, BlockFace.SOUTH).getZ() - position.getBlockZ() + 1;
+		}
+		
+		if(width > 21 || height > 21) {
+			throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is bigger than possible in vanilla minecraft!");
 		}
 		
 		//translate the portalRect towards the middle of the block;
@@ -80,13 +121,18 @@ public class PortalLocator {
 			
 			Block nextBlock = blockIterator.getRelative(facing);
 			
-			if (nextBlock.getType() != Material.NETHER_PORTAL)
+			if (nextBlock.getType() != PORTAL_MATERIAL) {
 				return blockIterator;
+			}
 			
 			blockIterator = nextBlock;
 		}
 		
-		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears to be of extraordinary size!");
+		if (debugMessagesEnabled) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Detection stopped after exceeding 21 portal blocks into " + facing.name() + " at " + new BlockVec(blockIterator).toString());
+		}
+		
+		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");
 	}
 	
 	/**
@@ -102,10 +148,16 @@ public class PortalLocator {
 					
 					Block portalBlock = world.getBlockAt(x, y, z);
 					
-					if (portalBlock.getType() == Material.NETHER_PORTAL) {
+					if (portalBlock.getType() == PORTAL_MATERIAL) {
 						portalBlocks.add(portalBlock);
+					
 					} else {
-						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal seems to be malformed, yet intact. Mysterious...");
+						
+						if(debugMessagesEnabled) {
+							Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Portal block expected at " + new BlockVec(x, y, z).toString());
+						}
+						
+						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is not rectangular, yet intact. Mysterious...");
 					}
 				}
 			}
@@ -135,17 +187,26 @@ public class PortalLocator {
 			for (int y = portalMinY; y < portalMaxY; y++) {
 				for (int z = portalMinZ; z < portalMaxZ; z++) {
 					
-					//only check the frame blocks that are at the border of this "flat cuboid"
+					//only check for obsidian frame blocks that are at the border of this "flat cuboid"
 					if (y > portalMinY && y < portalMaxY - 1 &&
-					    (portalAxis == Axis.X ? x > portalMinX : z > portalMinZ) &&
-					    (portalAxis == Axis.X ? x < portalMaxX - 1 : z < portalMaxZ - 1))
+					    (portalAxis == Axis.X ? (x > portalMinX) : (z > portalMinZ)) &&
+					    (portalAxis == Axis.X ? (x < portalMaxX - 1) : (z < portalMaxZ - 1))) {
 						continue;
+					}
 					
 					Block portalBlock = world.getBlockAt(x, y, z);
 					
 					if (portalBlock.getType() == Material.OBSIDIAN) {
 						frameBlocks.add(portalBlock);
 					} else {
+						
+						if (debugMessagesEnabled) {
+							Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Block at "
+							                        + portalBlock.getWorld().getName() + ", "
+							                        + new BlockVec(portalBlock).toString()
+							                        + " is not out of " + Material.OBSIDIAN.name());
+						}
+						
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "Something about this portal frame seems to be incomplete...");
 					}
 				}

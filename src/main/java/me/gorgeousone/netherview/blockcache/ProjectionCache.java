@@ -1,10 +1,10 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Axis;
 import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +16,7 @@ public class ProjectionCache {
 	private Portal portal;
 	private Transform blockTransform;
 	
-	private BlockData[][][] blockCopies;
+	private BlockType[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
 	
@@ -29,10 +29,11 @@ public class ProjectionCache {
 		
 		createBlockCopies(sourceCache);
 		
-		if (portal.getAxis() == Axis.X)
+		if (portal.getAxis() == Axis.X) {
 			cacheLength = blockCopies[0][0].length;
-		else
+		} else {
 			cacheLength = blockCopies.length;
+		}
 	}
 	
 	public Portal getPortal() {
@@ -69,10 +70,11 @@ public class ProjectionCache {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
-	public BlockData getCopyAt(BlockVec loc) {
+	public BlockType getBlockTypeAt(BlockVec loc) {
 		
-		if (!contains(loc))
+		if (!contains(loc)) {
 			return null;
+		}
 		
 		return blockCopies
 				[loc.getX() - min.getX()]
@@ -80,30 +82,32 @@ public class ProjectionCache {
 				[loc.getZ() - min.getZ()];
 	}
 	
-	public Map<BlockVec, BlockData> getCopiesAround(BlockVec blockCorner) {
-		
-		Map<BlockVec, BlockData> blocksAroundCorner = new HashMap<>();
-		
-		for (BlockVec blockPos : getAllCornerLocs(blockCorner)) {
-			
-			if (!contains(blockPos))
-				continue;
-			
-			BlockData blockData = getCopyAt(blockPos);
-			
-			if (blockData != null)
-				blocksAroundCorner.put(blockPos, blockData.clone());
-		}
-		
-		return blocksAroundCorner;
-	}
-	
-	public void updateCopy(BlockVec blockPos, BlockData newBlockData) {
+	public void setBlockTypeAt(BlockVec blockPos, BlockType newBlockData) {
 		
 		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
 				[blockPos.getZ() - min.getZ()] = newBlockData;
+	}
+	
+	public Map<BlockVec, BlockType> getBlockTypesAround(BlockVec blockCorner) {
+		
+		Map<BlockVec, BlockType> blocksAroundCorner = new HashMap<>();
+		
+		for (BlockVec blockPos : getAllCornerLocs(blockCorner)) {
+			
+			if (!contains(blockPos)) {
+				continue;
+			}
+			
+			BlockType blockType = getBlockTypeAt(blockPos);
+			
+			if (blockType != null) {
+				blocksAroundCorner.put(blockPos, blockType.clone());
+			}
+		}
+		
+		return blocksAroundCorner;
 	}
 	
 	private void createBlockCopies(BlockCache sourceCache) {
@@ -121,7 +125,7 @@ public class ProjectionCache {
 		int minY = min.getY();
 		int minZ = min.getZ();
 		
-		blockCopies = new BlockData
+		blockCopies = new BlockType
 				[max.getX() - minX]
 				[max.getY() - minY]
 				[max.getZ() - minZ];
@@ -131,12 +135,13 @@ public class ProjectionCache {
 				for (int z = sourceMin.getZ(); z < sourceMax.getZ(); z++) {
 					
 					BlockVec blockPos = new BlockVec(x, y, z);
-					BlockData blockData = sourceCache.getBlockDataAt(blockPos);
+					BlockType blockType = sourceCache.getBlockTypeAt(blockPos);
 					
-					if (blockData == null)
+					if (blockType == null) {
 						continue;
+					}
 					
-					BlockData rotatedData = blockTransform.rotateData(blockData.clone());
+					BlockType rotatedData = blockType.clone().rotate(blockTransform.getQuarterTurns());
 					BlockVec newBlockPos = blockTransform.transformVec(blockPos);
 					
 					blockCopies

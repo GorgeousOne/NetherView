@@ -5,13 +5,13 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Axis;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
@@ -49,8 +49,11 @@ public class PortalHandler {
 	public Portal addPortalStructure(Block portalBlock) {
 		
 		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
-		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
 		addPortal(portal);
+		
+		if (main.debugMessagesEnabled()) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Portal located at " + portal.toString());
+		}
 		
 		return portal;
 	}
@@ -64,7 +67,21 @@ public class PortalHandler {
 	
 	public void removePortal(Portal portal) {
 		
+		if (main.debugMessagesEnabled()) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Removing portal at " + portal.toString());
+		}
+		
+		if (portal.isLinked()) {
+			Portal counterPortal = portal.getCounterPortal();
+			linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
+			linkedProjections.get(counterPortal.getBackCache()).remove(portal.getFrontProjection());
+		}
+		
 		if (linkedPortals.containsKey(portal)) {
+			
+			if (main.debugMessagesEnabled()) {
+				Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Un-linking " + linkedPortals.get(portal).size() + " other portals.");
+			}
 			
 			for (Portal linkedPortal : linkedPortals.get(portal))
 				linkedPortal.unlink();
@@ -73,25 +90,16 @@ public class PortalHandler {
 			linkedProjections.remove(portal.getBackCache());
 		}
 		
-		if (portal.isLinked()) {
-			
-			Portal counterPortal = portal.getCounterPortal();
-			linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
-			linkedProjections.get(counterPortal.getBackCache()).remove(portal.getFrontProjection());
-		}
-		
 		linkedPortals.remove(portal);
 		getPortals(portal.getWorld()).remove(portal);
 	}
 	
 	public Portal getPortalByBlock(Block portalBlock) {
 		
-		if (portalBlock.getType() != Material.NETHER_PORTAL)
-			return null;
-		
 		for (Portal portal : getPortals(portalBlock.getWorld())) {
-			if (portal.getPortalBlocks().contains(portalBlock))
+			if (portal.getPortalBlocks().contains(portalBlock)) {
 				return portal;
+			}
 		}
 		
 		return null;
@@ -101,19 +109,30 @@ public class PortalHandler {
 		return worldsWithPortals.getOrDefault(world.getUID(), new HashSet<>());
 	}
 	
-	public Set<Portal> getLinkedPortals(Portal portal) {
-		return linkedPortals.getOrDefault(portal, new HashSet<>());
+	public boolean hasPortals(World world) {
+		return worldsWithPortals.containsKey(world.getUID());
 	}
 	
-	public Portal getNearestLinkedPortal(Location playerLoc) {
+	public Set<Portal> getLinkedPortals(Portal portal) {
+		return new HashSet<>(linkedPortals.getOrDefault(portal, new HashSet<>()));
+	}
+	
+	public Portal getNearestPortal(Location playerLoc, boolean mustBeLinked) {
+		
+		World playerWorld = playerLoc.getWorld();
+		
+		if (!main.canCreatePortalsViews(playerWorld)) {
+			return null;
+		}
 		
 		Portal nearestPortal = null;
 		double minDist = -1;
 		
 		for (Portal portal : getPortals(playerLoc.getWorld())) {
 			
-			if (!portal.isLinked())
+			if (mustBeLinked && !portal.isLinked()) {
 				continue;
+			}
 			
 			double dist = portal.getLocation().distanceSquared(playerLoc);
 			
@@ -131,8 +150,11 @@ public class PortalHandler {
 		Set<BlockCache> caches = new HashSet<>();
 		
 		for (Portal portal : getPortals(world)) {
-			caches.add(portal.getFrontCache());
-			caches.add(portal.getBackCache());
+			
+			if (portal.areCachesLoaded()) {
+				caches.add(portal.getFrontCache());
+				caches.add(portal.getBackCache());
+			}
 		}
 		
 		return caches;
@@ -140,27 +162,45 @@ public class PortalHandler {
 	
 	public void linkPortalTo(Portal portal, Portal counterPortal) {
 		
-		if (!counterPortal.equalsInSize(portal))
-			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are dissimilar in size, it is difficult to get a clear view...");
+		if (!counterPortal.equalsInSize(portal)) {
+			
+			if (main.debugMessagesEnabled()) {
+				Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Cannot connect portal with size "
+				                        + (int) portal.getPortalRect().width() + "x" + (int) portal.getPortalRect().height() + " to portal of size "
+                                        + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
+			}
+			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are not the same size, it is difficult to get a clear view...");
+		}
 		
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
+		
+		if (!counterPortal.areCachesLoaded()) {
+			long start = System.currentTimeMillis();
+			counterPortal.setBlockCaches(BlockCacheFactory.createBlockCaches(counterPortal, main.getPortalProjectionDist()));
+		}
 		
 		BlockCache cache1 = counterPortal.getFrontCache();
 		BlockCache cache2 = counterPortal.getBackCache();
 		
 		//the projections caches are switching positions because of to the rotation transform
-		ProjectionCache copy1 = new ProjectionCache(portal, cache2, linkTransform);
-		ProjectionCache copy2 = new ProjectionCache(portal, cache1, linkTransform);
+		ProjectionCache projection1 = new ProjectionCache(portal, cache2, linkTransform);
+		ProjectionCache projection2 = new ProjectionCache(portal, cache1, linkTransform);
 		
-		portal.setLinkedTo(counterPortal, new AbstractMap.SimpleEntry<>(copy1, copy2));
+		portal.setLinkedTo(counterPortal, new AbstractMap.SimpleEntry<>(projection1, projection2));
 		
 		linkedPortals.putIfAbsent(counterPortal, new HashSet<>());
 		linkedPortals.get(counterPortal).add(portal);
 		
 		linkedProjections.putIfAbsent(cache1, new HashSet<>());
 		linkedProjections.putIfAbsent(cache2, new HashSet<>());
-		linkedProjections.get(cache1).add(copy2);
-		linkedProjections.get(cache2).add(copy1);
+		linkedProjections.get(cache1).add(projection2);
+		linkedProjections.get(cache2).add(projection1);
+		
+		if (main.debugMessagesEnabled()) {
+			Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: Linked portal from "
+			                        + portal.toString() + " to portal at "
+			                        + counterPortal.toString());
+		}
 	}
 	
 	public Set<ProjectionCache> getLinkedProjections(BlockCache cache) {
@@ -183,10 +223,11 @@ public class PortalHandler {
 			linkTransform.setRotY180Deg();
 			int portalBlockWidth = (int) portal.getPortalRect().width() - 1;
 			
-			if (counterPortal.getAxis() == Axis.X)
+			if (counterPortal.getAxis() == Axis.X) {
 				linkTransform.translate(new BlockVec(portalBlockWidth, 0, 0));
-			else
+			} else {
 				linkTransform.translate(new BlockVec(0, 0, portalBlockWidth));
+			}
 			
 		} else if (counterPortal.getAxis() == Axis.X) {
 			linkTransform.setRotY90DegRight();

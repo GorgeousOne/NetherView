@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.viewfrustum;
+package me.gorgeousone.netherview.threedstuff.viewfrustum;
 
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.Line;
@@ -44,8 +44,9 @@ public class ViewingFrustum {
 			for (int dy = 0; dy <= 1; dy++) {
 				for (int dz = 0; dz <= 1; dz++) {
 					
-					if (contains(blockPos.clone().add(new Vector(dy, dy, dz))))
+					if (contains(blockPos.clone().add(new Vector(dy, dy, dz)))) {
 						return true;
+					}
 				}
 			}
 		}
@@ -56,7 +57,7 @@ public class ViewingFrustum {
 	private void createFarPlaneRect(double frustumLength) {
 		
 		Vector nearPlaneOrigin = nearPlaneRect.getMin();
-		Vector nearPlaneNormal = nearPlaneRect.getPlaneNormal();
+		Vector nearPlaneNormal = nearPlaneRect.getNormal();
 		Vector viewPointFacing = viewPoint.clone().subtract(nearPlaneOrigin);
 		
 		//calculate a vector representing the distance between near plane and far plane
