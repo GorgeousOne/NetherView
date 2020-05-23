@@ -17,3 +17,5 @@ permissions:
     default: op
   netherview.reload:
     default: op
+  netherview.info:
+    default: op

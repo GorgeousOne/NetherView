@@ -4,6 +4,7 @@ import me.gorgeousone.netherview.cmdframework.command.BasicCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -22,12 +23,23 @@ public class CommandCompleter implements TabCompleter {
 		for (BasicCommand command : cmdHandler.getCommands()) {
 			
 			if (command.matches(cmd.getName())) {
+				
 				List<String> tabList = new LinkedList<>();
+				String permission = cmd.getPermission();
+				
+				if (command.isPlayerRequired() && !(sender instanceof Player)) {
+					return tabList;
+				}
+				
+				if (permission != null && !sender.hasPermission(permission)) {
+					return tabList;
+				}
 				
 				for (String tab : command.getTabList(sender, args)) {
 					
-					if (tab.startsWith(args[args.length - 1]))
+					if (tab.startsWith(args[args.length - 1])) {
 						tabList.add(tab);
+					}
 				}
 				
 				return tabList;

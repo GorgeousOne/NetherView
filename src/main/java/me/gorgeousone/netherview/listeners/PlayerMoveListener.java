@@ -30,6 +30,11 @@ public class PlayerMoveListener implements Listener {
 		Player player = event.getPlayer();
 		
 		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
+			
+			if(viewingHandler.hasViewSession(player)) {
+				viewingHandler.hideViewSession(player);
+			}
+			
 			return;
 		}
 		

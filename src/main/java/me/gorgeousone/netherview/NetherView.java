@@ -38,7 +38,8 @@ public final class NetherView extends JavaPlugin {
 	
 	public final static String VIEW_PERM = "netherview.viewportals";
 	public final static String LINK_PERM = "netherview.linkportals";
-	public final static String OPERATE_PERM = "netherview.operate";
+	public final static String RELOAD_PERM = "netherview.reload";
+	public final static String INFO_PERM = "netherview.info";
 	
 	private boolean isLegacyServer;
 	private Material portalMaterial;
@@ -130,7 +131,7 @@ public final class NetherView extends JavaPlugin {
 	
 	private void registerCommands() {
 		
-		ParentCommand netherViewCommand = new ParentCommand("netherview", OPERATE_PERM, false, "just tab");
+		ParentCommand netherViewCommand = new ParentCommand("netherview", null, false, "just tab");
 		netherViewCommand.addChild(new ReloadCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new EnableDebugCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, this, portalHandler));

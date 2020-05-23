@@ -15,8 +15,8 @@ public class EnableDebugCommand extends ArgCommand {
 	
 	public EnableDebugCommand(ParentCommand parent, NetherView main) {
 		
-		super("enabledebug", null, false, parent);
-		addArg(new Argument("flag", ArgType.BOOLEAN));
+		super("debugmessages", NetherView.INFO_PERM, false, parent);
+		addArg(new Argument("true/false", ArgType.BOOLEAN));
 		
 		this.main = main;
 	}
@@ -28,9 +28,8 @@ public class EnableDebugCommand extends ArgCommand {
 		boolean stateChanged = main.setDebugMessagesEnabled(newState);
 		
 		if (stateChanged) {
-			sender.sendMessage(ChatColor.DARK_RED + "[" + ChatColor.DARK_PURPLE + "NV" + ChatColor.DARK_RED + "]" + ChatColor.LIGHT_PURPLE
-			                   + (newState ? " Enabled" : " Disabled") + " debug messages.");
+			sender.sendMessage(ChatColor.DARK_RED + "[" + ChatColor.DARK_PURPLE + "NV" + ChatColor.DARK_RED + "]"
+			                   + ChatColor.LIGHT_PURPLE + (newState ? " Enabled" : " Disabled") + " debug messages.");
 		}
-		
 	}
 }
