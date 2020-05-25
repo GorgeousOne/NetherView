@@ -38,6 +38,10 @@ public class TeleportListener implements Listener {
 		Location from = event.getFrom();
 		Location to = event.getTo();
 		
+		if(to == null) {
+			return;
+		}
+		
 		if (!main.canCreatePortalsViews(from.getWorld())) {
 			
 			if (main.debugMessagesEnabled()) {

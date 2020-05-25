@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview;
 
-import com.sun.org.glassfish.external.statistics.AverageRangeStatistic;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
@@ -65,6 +64,7 @@ public final class NetherView extends JavaPlugin {
 		
 		Metrics metrics = new Metrics(this, 7571);
 		registerPortalsOnlineChart(metrics);
+		registerTotalPortalsChart(metrics);
 		
 		loadServerVersion();
 		BlockType.configureVersion(isLegacyServer);
@@ -81,7 +81,6 @@ public final class NetherView extends JavaPlugin {
 		registerCommands();
 		registerListeners();
 		checkForUpdates();
-		
 	}
 	
 	@Override
@@ -92,11 +91,15 @@ public final class NetherView extends JavaPlugin {
 	
 	public void reload() {
 		
+		savePortalsToConfig();
+		
 		viewingHandler.reset();
-		portalHandler.resetCaches();
+		portalHandler.reset();
 		
 		loadConfig();
 		loadConfigData();
+		loadPortalsFromConfig();
+		
 		checkForUpdates();
 	}
 	
@@ -252,6 +255,20 @@ public final class NetherView extends JavaPlugin {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void registerTotalPortalsChart(Metrics metrics) {
+		
+		metrics.addCustomChart(new Metrics.SingleLineChart("total_portals", () -> {
+			
+			int portalCount = 0;
+			
+			for (World world : Bukkit.getWorlds()) {
+				portalCount += portalHandler.getPortals(world).size();
+			}
+			
+			return portalCount;
+		}));
 	}
 	
 	private void registerPortalsOnlineChart(Metrics metrics) {

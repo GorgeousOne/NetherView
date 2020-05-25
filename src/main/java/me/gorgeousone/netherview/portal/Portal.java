@@ -114,7 +114,6 @@ public class Portal {
 	}
 	
 	public void setBlockCaches(Map.Entry<BlockCache, BlockCache> blockCaches) {
-		Bukkit.broadcastMessage(toString() + " loading");
 		this.blockCaches = blockCaches;
 	}
 	

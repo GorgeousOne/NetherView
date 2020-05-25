@@ -181,28 +181,6 @@ public class ViewingHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
-	//	private Map<BlockVec, BlockType> getAllBlocks(ProjectionCache cache) {
-	//
-	//		Map<BlockVec, BlockType> allBlocks = new HashSet<>();
-	//
-	//		BlockVec min = cache.getMin();
-	//		BlockVec max = cache.getMax();
-	//
-	//		for (int x = min.getX(); x <= max.getX(); x++) {
-	//			for (int y = min.getY(); y <= max.getY(); y++) {
-	//				for (int z = min.getZ(); z <= max.getZ(); z++) {
-	//
-	//					BlockType copy = cache.getCopyAt(new BlockVec(x, y, z));
-	//
-	//					if (copy != null)
-	//						allBlocks.add(copy);
-	//				}
-	//			}
-	//		}
-	//
-	//		return allBlocks;
-	//	}
-	
 	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
 		
 		BlockVec min = projection.getMin();

@@ -43,14 +43,9 @@ public class PortalHandler {
 		linkedProjections = new HashMap<>();
 	}
 	
-	public void resetCaches() {
-	
-		for (UUID worldID : worldsWithPortals.keySet()) {
-			for (Portal portal : worldsWithPortals.get(worldID)) {
-				portal.clearCaches();
-			}
-		}
-		
+	public void reset() {
+		worldsWithPortals.clear();
+		linkedPortals.clear();
 		linkedProjections.clear();
 	}
 	
@@ -184,7 +179,7 @@ public class PortalHandler {
 		}
 		
 		//unlink the portal
-		if (portal.isLinked()) {
+		if (portal.isLinked() && portal.areProjectionsLoaded()) {
 			Portal counterPortal = portal.getCounterPortal();
 			linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
 			linkedProjections.get(counterPortal.getBackCache()).remove(portal.getFrontProjection());
@@ -254,7 +249,6 @@ public class PortalHandler {
 		//the projections caches are switching positions because of the transform
 		ProjectionCache projection1 = new ProjectionCache(portal, cache2, linkTransform);
 		ProjectionCache projection2 = new ProjectionCache(portal, cache1, linkTransform);
-		
 		portal.setProjectionCaches(new AbstractMap.SimpleEntry<>(projection1, projection2));
 		
 		linkedProjections.putIfAbsent(cache1, new HashSet<>());
@@ -264,6 +258,9 @@ public class PortalHandler {
 	}
 	
 	public void savePortals(FileConfiguration portalConfig) {
+		
+		portalConfig.set("portal-locations", null);
+		portalConfig.set("linked-portals", null);
 		
 		ConfigurationSection portalLocations = portalConfig.createSection("portal-locations");
 		ConfigurationSection portalLinks = portalConfig.createSection("linked-portals");
@@ -298,7 +295,11 @@ public class PortalHandler {
 			World worldWithPortals = Bukkit.getWorld(UUID.fromString(worldID));
 			
 			if (worldWithPortals == null) {
-				System.out.println("World with ID: '" + worldID + "' could not be found. Portals from this world will not be loaded.");
+				main.getLogger().warning("World with ID: '" + worldID + "' could not be found. Portals saved for this world will not be loaded.");
+				continue;
+			}
+			
+			if (!main.canCreatePortalsViews(worldWithPortals)) {
 				continue;
 			}
 			
@@ -311,7 +312,7 @@ public class PortalHandler {
 					addPortalStructure(worldWithPortals.getBlockAt(portalLoc.getX(), portalLoc.getY(), portalLoc.getZ()));
 					
 				}catch (IllegalArgumentException | IllegalStateException e) {
-					Bukkit.getConsoleSender().sendMessage("Unable to load portal at " + serializedBlockVec + ": " + e.getMessage());
+					main.getLogger().warning("Unable to load portal at " + worldWithPortals.getName() + ", " + serializedBlockVec + ": " + e.getMessage());
 				}
 			}
 		}
