@@ -5,6 +5,7 @@ import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,6 +13,7 @@ import org.bukkit.block.Block;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class Portal {
@@ -56,12 +58,12 @@ public class Portal {
 		return portalRect.getMin().toLocation(world);
 	}
 	
-	public Axis getAxis() {
-		return portalRect.getAxis();
-	}
-	
 	public AxisAlignedRect getPortalRect() {
 		return portalRect.clone();
+	}
+	
+	public Axis getAxis() {
+		return portalRect.getAxis();
 	}
 	
 	public Set<Block> getPortalBlocks() {
@@ -90,9 +92,8 @@ public class Portal {
 		return counterPortal;
 	}
 	
-	public void setLinkedTo(Portal counterPortal, Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
+	public void setLinkedTo(Portal counterPortal) {
 		this.counterPortal = counterPortal;
-		this.projectionCaches = projectionCaches;
 	}
 	
 	public void unlink() {
@@ -104,7 +105,16 @@ public class Portal {
 		return counterPortal != null;
 	}
 	
+	/**
+	 * removes own block projection caches. The link to another portal remains unchanged.
+	 */
+	public void clearCaches() {
+		blockCaches = null;
+		projectionCaches = null;
+	}
+	
 	public void setBlockCaches(Map.Entry<BlockCache, BlockCache> blockCaches) {
+		Bukkit.broadcastMessage(toString() + " loading");
 		this.blockCaches = blockCaches;
 	}
 	
@@ -120,6 +130,14 @@ public class Portal {
 		return blockCaches.getValue();
 	}
 	
+	public void setProjectionCaches(Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
+		this.projectionCaches = projectionCaches;
+	}
+	
+	public boolean areProjectionsLoaded() {
+		return projectionCaches != null;
+	}
+	
 	public ProjectionCache getFrontProjection() {
 		return projectionCaches.getKey();
 	}
@@ -130,10 +148,15 @@ public class Portal {
 	
 	@Override
 	public String toString() {
-		return world.getName() + ", " + min.toString();
+		return world.getName() + ", " + new BlockVec(getLocation()).toString();
 	}
 	
 	public String toWhiteString() {
 		return ChatColor.RESET + toString();
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(getLocation());
 	}
 }

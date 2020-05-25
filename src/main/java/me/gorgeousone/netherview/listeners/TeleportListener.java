@@ -41,7 +41,7 @@ public class TeleportListener implements Listener {
 		if (!main.canCreatePortalsViews(from.getWorld())) {
 			
 			if (main.debugMessagesEnabled()) {
-				Bukkit.broadcastMessage(ChatColor.GRAY + "Debug: World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
+				Bukkit.getConsoleSender().sendMessage(ChatColor.GRAY + "Debug: World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
 			}
 			return;
 		}
@@ -52,7 +52,7 @@ public class TeleportListener implements Listener {
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null) {
 			if (main.debugMessagesEnabled()) {
-				Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "Debug: No portal found at starting point " + new BlockVec(from).toString());
+				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Debug: No portal found at starting point " + new BlockVec(from).toString());
 			}
 			return;
 		}
@@ -91,8 +91,8 @@ public class TeleportListener implements Listener {
 				event.setCancelled(true);
 			}
 			
-		} catch (IllegalArgumentException | IllegalStateException ex) {
-			player.sendMessage(ex.getMessage());
+		} catch (IllegalArgumentException | IllegalStateException e) {
+			player.sendMessage(e.getMessage());
 		}
 	}
 }

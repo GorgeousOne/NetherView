@@ -55,7 +55,7 @@ public class ArgValue {
 					break;
 			}
 			
-		} catch (Exception ex) {
+		} catch (Exception e) {
 			throw new IllegalArgumentException(argumentTypeException.replace("%value%", value).replace("%type%", type.simpleName()));
 		}
 	}

@@ -83,7 +83,7 @@ public class UpdateCheck {
 				}
 			}
 			
-		} catch (NumberFormatException ex) {
+		} catch (NumberFormatException e) {
 			return VersionResponse.LATEST;
 		}
 		

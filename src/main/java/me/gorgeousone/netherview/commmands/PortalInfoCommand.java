@@ -42,7 +42,7 @@ public class PortalInfoCommand extends BasicCommand {
 			player.sendMessage(ChatColor.GRAY + "  is linked: false");
 		}
 		
-		Set<Portal> connectedPortals = portalHandler.getLinkedPortals(portal);
+		Set<Portal> connectedPortals = portalHandler.getPortalsLinkedTo(portal);
 		
 		if (connectedPortals.isEmpty()) {
 			player.sendMessage(ChatColor.GRAY + "  portals linked to portal: -none-");

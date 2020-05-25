@@ -87,12 +87,11 @@ public class BlockCacheFactory {
 						continue;
 					}
 					
-					BlockType blockType;
+					BlockType blockType = BlockType.of(block);
 					
-					if (isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing)) {
+					//make sure that the cache border onl consists of occluding blocks
+					if (!blockType.isOccluding() && isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing)) {
 						blockType = cacheBorderBlock.clone();
-					} else {
-						blockType = BlockType.of(block);
 					}
 					
 					copiedBlocks[x - minX][y - minY][z - minZ] = blockType;
@@ -117,14 +116,14 @@ public class BlockCacheFactory {
 		Map<BlockVec, BlockType> changedBlocks = new HashMap<>();
 		BlockVec blockPos = new BlockVec(changedBlock);
 		
-		if (cache.isBorder(blockPos)) {
-			return changedBlocks;
-		}
-		
 		BlockType oldBlockType = cache.getBlockTypeAt(blockPos);
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
 		if (blockWasOccluding == newBlockData.isOccluding()) {
+			
+			//return an empty list when the block is part of the border anyway
+			if(!blockWasOccluding && cache.isBorder(blockPos))
+				return changedBlocks;
 			
 			changedBlocks.put(blockPos, newBlockData);
 			return changedBlocks;

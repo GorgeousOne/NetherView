@@ -100,11 +100,6 @@ public class BlockCache {
 	}
 	
 	public void setBlockTypeAt(BlockVec blockPos, BlockType blockType) {
-		
-		if (isBorder(blockPos)) {
-			blockType = borderBlock.clone();
-		}
-		
 		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
