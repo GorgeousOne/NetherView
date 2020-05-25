@@ -157,6 +157,10 @@ public class ViewingHandler {
 			return;
 		}
 		
+		if (!portal.areProjectionsLoaded()) {
+			portalHandler.loadProjectionCachesFor(portal);
+		}
+		
 		ProjectionCache projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
 		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
 		

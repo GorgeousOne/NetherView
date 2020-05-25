@@ -92,8 +92,8 @@ public final class NetherView extends JavaPlugin {
 	
 	public void reload() {
 		
-		portalHandler.resetCaches();
 		viewingHandler.reset();
+		portalHandler.resetCaches();
 		
 		loadConfig();
 		loadConfigData();

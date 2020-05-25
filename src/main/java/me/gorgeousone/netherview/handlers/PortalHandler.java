@@ -45,14 +45,13 @@ public class PortalHandler {
 	
 	public void resetCaches() {
 	
-//		for (UUID worldID : worldsWithPortals.keySet()) {
-//			for (Portal portal : worldsWithPortals.get(worldID)) {
-//
-//			}
-//		}
+		for (UUID worldID : worldsWithPortals.keySet()) {
+			for (Portal portal : worldsWithPortals.get(worldID)) {
+				portal.clearCaches();
+			}
+		}
 		
-		worldsWithPortals.clear();
-		linkedPortals.clear();
+		linkedProjections.clear();
 	}
 	
 	public Set<Portal> getPortals(World world) {
@@ -222,9 +221,27 @@ public class PortalHandler {
                                         + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
 			}
 			
-			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are not the same size, it is difficult to get a clear view...");
+			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are not the same size.");
 		}
 		
+		portal.setLinkedTo(counterPortal);
+		linkedPortals.putIfAbsent(counterPortal, new HashSet<>());
+		linkedPortals.get(counterPortal).add(portal);
+		
+		if (main.debugMessagesEnabled()) {
+			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Debug: Linked portal from "
+			                                      + portal.toString() + " to portal at "
+			                                      + counterPortal.toString());
+		}
+	}
+	
+	public void loadProjectionCachesFor(Portal portal) {
+		
+		if (!portal.isLinked()) {
+			return;
+		}
+		
+		Portal counterPortal = portal.getCounterPortal();
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
 		
 		if (!counterPortal.areCachesLoaded()) {
@@ -234,25 +251,16 @@ public class PortalHandler {
 		BlockCache cache1 = counterPortal.getFrontCache();
 		BlockCache cache2 = counterPortal.getBackCache();
 		
-		//the projections caches are switching positions because of to the rotation transform
+		//the projections caches are switching positions because of the transform
 		ProjectionCache projection1 = new ProjectionCache(portal, cache2, linkTransform);
 		ProjectionCache projection2 = new ProjectionCache(portal, cache1, linkTransform);
 		
-		portal.setLinkedTo(counterPortal, new AbstractMap.SimpleEntry<>(projection1, projection2));
-		
-		linkedPortals.putIfAbsent(counterPortal, new HashSet<>());
-		linkedPortals.get(counterPortal).add(portal);
+		portal.setProjectionCaches(new AbstractMap.SimpleEntry<>(projection1, projection2));
 		
 		linkedProjections.putIfAbsent(cache1, new HashSet<>());
 		linkedProjections.putIfAbsent(cache2, new HashSet<>());
 		linkedProjections.get(cache1).add(projection2);
 		linkedProjections.get(cache2).add(projection1);
-		
-		if (main.debugMessagesEnabled()) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Debug: Linked portal from "
-			                        + portal.toString() + " to portal at "
-			                        + counterPortal.toString());
-		}
 	}
 	
 	public void savePortals(FileConfiguration portalConfig) {
