@@ -15,6 +15,7 @@ import org.bukkit.block.data.type.RedstoneWire;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class AquaticBlockType extends BlockType {
 	
@@ -112,7 +113,24 @@ public class AquaticBlockType extends BlockType {
 	}
 	
 	@Override
+	public int hashCode() {
+		return Objects.hash(blockData);
+	}
+	
+	@Override
 	public AquaticBlockType clone() {
 		return new AquaticBlockType(blockData);
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof AquaticBlockType)) {
+			return false;
+		}
+		AquaticBlockType blockType = (AquaticBlockType) o;
+		return blockData.equals(blockType.blockData);
 	}
 }

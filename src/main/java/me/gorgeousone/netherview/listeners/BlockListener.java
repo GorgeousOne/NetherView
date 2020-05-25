@@ -9,7 +9,6 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
-import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewingHandler;
@@ -22,7 +21,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockFormEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockGrowEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -71,11 +79,10 @@ public class BlockListener implements Listener {
 						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
 						BlockVec blockPosVec = new BlockVec(blockPos);
 						
-						ProjectionCache projection = viewingHandler.getViewedCache(player);
-						
-						if (!projection.contains(blockPosVec)) {
-							return;
-						}
+						//cannot limit location check to projection cache size because the portal itself is not included in that area, yet needed
+//						if (!projection.contains(blockPosVec)) {
+//							return;
+//						}
 						
 						Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
 						
@@ -130,10 +137,10 @@ public class BlockListener implements Listener {
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onBlockInteract(PlayerInteractEvent event) {
 		
-		if (event.getAction() != Action.LEFT_CLICK_BLOCK) {
+		if (event.getAction() != Action.LEFT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
 			return;
 		}
 		

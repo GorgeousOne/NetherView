@@ -52,13 +52,22 @@ public class ViewingHandler {
 			}
 		}
 		
+		viewedPortals.clear();
+		viewedProjections.clear();
 		playerViewSessions.clear();
 	}
 	
+	/**
+	 * Returns the one projection cache a player is currently able to see in a portal animation.
+	 */
 	public ProjectionCache getViewedCache(Player player) {
 		return viewedProjections.get(player.getUniqueId());
 	}
 	
+	/**
+	 * Returns a Map of BlockTypes linked to their location that are currently displayed with fake blocks
+	 * to a player.
+	 */
 	public Map<BlockVec, BlockType> getViewSession(Player player) {
 		
 		UUID uuid = player.getUniqueId();
@@ -80,13 +89,16 @@ public class ViewingHandler {
 	}
 	
 	/**
-	 * Simply removes the player from the system.
+	 * Only removes the player reference.
 	 */
 	public void removeVieSession(Player player) {
 		playerViewSessions.remove(player.getUniqueId());
 		viewedPortals.remove(player.getUniqueId());
 	}
 	
+	/**
+	 * Locates the nearest portal to a player and displays a portal animation to them with fake blocks (if in view range).
+	 */
 	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
 		
 		Portal portal = portalHandler.getNearestPortal(playerEyeLoc, true);
@@ -189,8 +201,6 @@ public class ViewingHandler {
 	
 	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
 		
-		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
-		
 		BlockVec min = projection.getMin();
 		BlockVec max = projection.getMax();
 		
@@ -222,6 +232,8 @@ public class ViewingHandler {
 			}
 		}
 		
+		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
+		
 		for (int x = min.getX(); x <= max.getX(); x++) {
 			for (int y = min.getY(); y <= max.getY(); y++) {
 				for (int z = min.getZ(); z <= max.getZ(); z++) {
@@ -239,11 +251,11 @@ public class ViewingHandler {
 	}
 	
 	/**
-	 * Forwards the changes made in a block cache to all the linked projections. This also live-updates what the players see
+	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what the players see
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedCopies) {
 		
-		for (ProjectionCache projection : portalHandler.getLinkedProjections(cache)) {
+		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(cache)) {
 			
 			Map<BlockVec, BlockType> projectionUpdates = new HashMap<>();
 			
@@ -299,7 +311,10 @@ public class ViewingHandler {
 		}
 	}
 	
-	
+	/**
+	 * Adding new blocks to the portal animation for a player.
+	 * But first redundant blocks are filtered out and outdated blocks are refreshed for the player.
+	 */
 	private void displayBlocks(Player player, Map<BlockVec, BlockType> blocksToDisplay) {
 		
 		Map<BlockVec, BlockType> viewSession = getViewSession(player);
@@ -347,11 +362,13 @@ public class ViewingHandler {
 //		} catch (Exception ignored) {}
 //	}
 	
+	/**
+	 * Removes a portal and related portal animations.
+	 */
 	public void removePortal(Portal portal) {
 		
-		Set<Portal> affectedPortals = portalHandler.getLinkedPortals(portal);
+		Set<Portal> affectedPortals = portalHandler.getPortalsLinkedTo(portal);
 		affectedPortals.add(portal);
-		
 		Iterator<Map.Entry<UUID, Portal>> iter = viewedPortals.entrySet().iterator();
 		
 		while (iter.hasNext()) {

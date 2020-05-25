@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class Portal {
@@ -130,10 +131,15 @@ public class Portal {
 	
 	@Override
 	public String toString() {
-		return world.getName() + ", " + min.toString();
+		return world.getName() + ", " + new BlockVec(getLocation()).toString();
 	}
 	
 	public String toWhiteString() {
 		return ChatColor.RESET + toString();
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(getLocation());
 	}
 }

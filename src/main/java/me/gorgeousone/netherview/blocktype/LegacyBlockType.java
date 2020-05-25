@@ -10,6 +10,7 @@ import org.bukkit.material.MaterialData;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class LegacyBlockType extends BlockType {
 	
@@ -65,6 +66,23 @@ public class LegacyBlockType extends BlockType {
 	@Override
 	public LegacyBlockType clone() {
 		return new LegacyBlockType(materialData.clone());
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof LegacyBlockType)) {
+			return false;
+		}
+		LegacyBlockType blockType = (LegacyBlockType) o;
+		return materialData.equals(blockType.materialData);
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(materialData);
 	}
 	
 	private final static List<String> OCCLUDING_TYPES = Arrays.asList(

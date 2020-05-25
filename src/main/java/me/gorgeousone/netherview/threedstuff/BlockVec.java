@@ -138,10 +138,30 @@ public class BlockVec {
 	
 	@Override
 	public String toString() {
-		return "[" +
-		       "x=" + x +
-		       ",y=" + y +
-		       ",z=" + z +
-		       ']';
+		return "[" + "x=" + x + ",y=" + y + ",z=" + z + "]";
+	}
+	
+	public static BlockVec fromString(String serialized) {
+		
+		if (serialized.length() < 13) {
+			throw new IllegalArgumentException("Cannot deserialize BlockVec from string " + serialized + ": String is too short.");
+		}
+		
+		String coordinateString = serialized.substring(1, serialized.length() - 1);
+		String[] coordinates = coordinateString.split(",");
+		
+		if (coordinates.length != 3) {
+			throw new IllegalArgumentException("Cannot deserialize BlockVec from string " + serialized + ": String contains too few coordinates.");
+		}
+		
+		try {
+			int x = Integer.parseInt(coordinates[0].substring(2));
+			int y = Integer.parseInt(coordinates[1].substring(2));
+			int z = Integer.parseInt(coordinates[2].substring(2));
+			return new BlockVec(x, y, z);
+			
+		}catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Cannot deserialize BlockVec from string " + serialized + ": " + e.getMessage());
+		}
 	}
 }

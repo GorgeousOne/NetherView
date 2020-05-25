@@ -46,12 +46,12 @@ public abstract class ArgCommand extends BasicCommand {
 			else
 				createMoreValuesThanSenderInput(values, stringArgs);
 			
-		} catch (ArrayIndexOutOfBoundsException ex) {
+		} catch (ArrayIndexOutOfBoundsException e) {
 			sendUsage(sender);
 			return;
 			
-		} catch (IllegalArgumentException ex) {
-			sender.sendMessage(ex.getMessage());
+		} catch (IllegalArgumentException e) {
+			sender.sendMessage(e.getMessage());
 			return;
 		}
 		

@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview;
 
+import com.sun.org.glassfish.external.statistics.AverageRangeStatistic;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
@@ -22,10 +23,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,19 +76,23 @@ public final class NetherView extends JavaPlugin {
 		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
 		
+		loadPortalsFromConfig();
+		
 		registerCommands();
 		registerListeners();
 		checkForUpdates();
+		
 	}
 	
 	@Override
 	public void onDisable() {
 		viewingHandler.reset();
+		savePortalsToConfig();
 	}
 	
 	public void reload() {
 		
-		portalHandler.reset();
+		portalHandler.resetCaches();
 		viewingHandler.reset();
 		
 		loadConfig();
@@ -97,8 +105,9 @@ public final class NetherView extends JavaPlugin {
 		if (debugMessagesEnabled != state) {
 			
 			debugMessagesEnabled = state;
-			getConfig().set("debug-messages", debugMessagesEnabled);
 			PortalLocator.setDebugMessagesEnabled(debugMessagesEnabled);
+			getConfig().set("debug-messages", debugMessagesEnabled);
+			saveConfig();
 			return true;
 		}
 		
@@ -136,7 +145,6 @@ public final class NetherView extends JavaPlugin {
 		netherViewCommand.addChild(new EnableDebugCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, this, portalHandler));
 		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, portalHandler));
-		
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
@@ -213,6 +221,37 @@ public final class NetherView extends JavaPlugin {
 				getLogger().info("Unable to check for new versions...");
 			}
 		}).check();
+	}
+	
+	private void loadPortalsFromConfig() {
+		
+		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
+		
+		if (!portalConfigFile.exists())
+			return;
+		
+		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
+		portalHandler.loadPortals(portalConfig);
+		portalHandler.loadPortalLinks(portalConfig);
+		
+		try {
+			portalConfig.save(portalConfigFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void savePortalsToConfig() {
+		
+		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
+		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
+		portalHandler.savePortals(portalConfig);
+		
+		try {
+			portalConfig.save(portalConfigFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void registerPortalsOnlineChart(Metrics metrics) {
