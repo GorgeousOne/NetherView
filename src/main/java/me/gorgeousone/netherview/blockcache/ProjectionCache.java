@@ -16,7 +16,7 @@ public class ProjectionCache {
 	private Portal portal;
 	private Transform blockTransform;
 	
-	private BlockType[][][] blockTypes;
+	private BlockType[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
 	
@@ -30,9 +30,9 @@ public class ProjectionCache {
 		createBlockCopies(sourceCache);
 		
 		if (portal.getAxis() == Axis.X) {
-			cacheLength = blockTypes[0][0].length;
+			cacheLength = blockCopies[0][0].length;
 		} else {
-			cacheLength = blockTypes.length;
+			cacheLength = blockCopies.length;
 		}
 	}
 	
@@ -76,7 +76,7 @@ public class ProjectionCache {
 			return null;
 		}
 		
-		return blockTypes
+		return blockCopies
 				[loc.getX() - min.getX()]
 				[loc.getY() - min.getY()]
 				[loc.getZ() - min.getZ()];
@@ -84,7 +84,7 @@ public class ProjectionCache {
 	
 	public void setBlockTypeAt(BlockVec blockPos, BlockType newBlockData) {
 		
-		blockTypes
+		blockCopies
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
 				[blockPos.getZ() - min.getZ()] = newBlockData;
@@ -125,7 +125,7 @@ public class ProjectionCache {
 		int minY = min.getY();
 		int minZ = min.getZ();
 		
-		blockTypes = new BlockType
+		blockCopies = new BlockType
 				[max.getX() - minX]
 				[max.getY() - minY]
 				[max.getZ() - minZ];
@@ -144,7 +144,7 @@ public class ProjectionCache {
 					BlockType rotatedBlockType = blockType.clone().rotate(blockTransform.getQuarterTurns());
 					BlockVec newBlockPos = blockTransform.transformVec(blockPos);
 					
-					blockTypes
+					blockCopies
 							[newBlockPos.getX() - minX]
 							[newBlockPos.getY() - minY]
 							[newBlockPos.getZ() - minZ] = rotatedBlockType;

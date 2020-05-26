@@ -129,7 +129,7 @@ public class PortalLocator {
 		}
 		
 		if (debugMessagesEnabled) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Debug: Detection stopped after exceeding 21 portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
+			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Detection stopped after exceeding 21 portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
 		}
 		
 		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");
@@ -154,7 +154,7 @@ public class PortalLocator {
 					} else {
 						
 						if(debugMessagesEnabled) {
-							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Debug: Portal block expected at " + new BlockVec(x, y, z).toString());
+							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Portal block expected at " + new BlockVec(x, y, z).toString());
 						}
 						
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal does not seem to form a rectangle...");
@@ -201,7 +201,7 @@ public class PortalLocator {
 					} else {
 						
 						if (debugMessagesEnabled) {
-							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Debug: Block at "
+							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Block at "
 							                        + portalBlock.getWorld().getName() + ", "
 							                        + new BlockVec(portalBlock).toString()
 							                        + " is not out of " + Material.OBSIDIAN.name());

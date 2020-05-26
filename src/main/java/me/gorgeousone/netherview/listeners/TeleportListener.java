@@ -45,7 +45,7 @@ public class TeleportListener implements Listener {
 		if (!main.canCreatePortalsViews(from.getWorld())) {
 			
 			if (main.debugMessagesEnabled()) {
-				Bukkit.getConsoleSender().sendMessage(ChatColor.GRAY + "Debug: World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
+				Bukkit.getConsoleSender().sendMessage(ChatColor.GRAY + "[Debug] World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
 			}
 			return;
 		}
@@ -56,7 +56,7 @@ public class TeleportListener implements Listener {
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null) {
 			if (main.debugMessagesEnabled()) {
-				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "Debug: No portal found at starting point " + new BlockVec(from).toString());
+				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] No portal found at starting point " + new BlockVec(from).toString());
 			}
 			return;
 		}
@@ -77,7 +77,7 @@ public class TeleportListener implements Listener {
 			
 			if (counterPortalBlock == null) {
 				if (main.debugMessagesEnabled()) {
-					player.sendMessage(ChatColor.DARK_GRAY + "Debug: No portal found at destination point " + new BlockVec(to).toString());
+					player.sendMessage(ChatColor.DARK_GRAY + "[Debug] No portal found at destination point " + new BlockVec(to).toString());
 				}
 				return;
 			}

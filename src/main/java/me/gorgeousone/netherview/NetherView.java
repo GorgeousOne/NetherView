@@ -13,13 +13,11 @@ import me.gorgeousone.netherview.handlers.ViewingHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
-import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -29,8 +27,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -63,58 +63,38 @@ public final class NetherView extends JavaPlugin {
 	public void onEnable() {
 		
 		Metrics metrics = new Metrics(this, 7571);
-		registerPortalsOnlineChart(metrics);
-		registerTotalPortalsChart(metrics);
+		registerPortalsChart(metrics);
 		
 		loadServerVersion();
 		BlockType.configureVersion(isLegacyServer);
 		PortalLocator.configureVersion(portalMaterial);
 		
-		loadConfig();
-		loadConfigData();
-		
 		portalHandler = new PortalHandler(this);
 		viewingHandler = new ViewingHandler(this, portalHandler);
 		
-		loadPortalsFromConfig();
-		
-		registerCommands();
+		//do not register listeners or commands before creating handlers
 		registerListeners();
+		registerCommands();
+		
+		loadConfigData();
+		loadPortalsFromConfig();
+		checkForUpdates();
+	}
+	
+	public void reload() {
+		
+		onDisable();
+		loadConfigData();
+		loadPortalsFromConfig();
 		checkForUpdates();
 	}
 	
 	@Override
 	public void onDisable() {
-		viewingHandler.reset();
-		savePortalsToConfig();
-	}
-	
-	public void reload() {
 		
 		savePortalsToConfig();
-		
 		viewingHandler.reset();
 		portalHandler.reset();
-		
-		loadConfig();
-		loadConfigData();
-		loadPortalsFromConfig();
-		
-		checkForUpdates();
-	}
-	
-	public boolean setDebugMessagesEnabled(boolean state) {
-		
-		if (debugMessagesEnabled != state) {
-			
-			debugMessagesEnabled = state;
-			PortalLocator.setDebugMessagesEnabled(debugMessagesEnabled);
-			getConfig().set("debug-messages", debugMessagesEnabled);
-			saveConfig();
-			return true;
-		}
-		
-		return false;
 	}
 	
 	public int getPortalProjectionDist() {
@@ -141,16 +121,18 @@ public final class NetherView extends JavaPlugin {
 		return debugMessagesEnabled;
 	}
 	
-	private void registerCommands() {
+	public boolean setDebugMessagesEnabled(boolean state) {
 		
-		ParentCommand netherViewCommand = new ParentCommand("netherview", null, false, "just tab");
-		netherViewCommand.addChild(new ReloadCommand(netherViewCommand, this));
-		netherViewCommand.addChild(new EnableDebugCommand(netherViewCommand, this));
-		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, this, portalHandler));
-		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, portalHandler));
+		if (debugMessagesEnabled != state) {
+			
+			debugMessagesEnabled = state;
+			PortalLocator.setDebugMessagesEnabled(debugMessagesEnabled);
+			getConfig().set("debug-messages", debugMessagesEnabled);
+			saveConfig();
+			return true;
+		}
 		
-		CommandHandler cmdHandler = new CommandHandler(this);
-		cmdHandler.registerCommand(netherViewCommand);
+		return false;
 	}
 	
 	private void loadServerVersion() {
@@ -166,18 +148,34 @@ public final class NetherView extends JavaPlugin {
 		portalMaterial = isLegacyServer ? Material.matchMaterial("PORTAL") : Material.NETHER_PORTAL;
 	}
 	
-	private void loadConfig() {
+	private void registerCommands() {
 		
-		reloadConfig();
-		getConfig().options().copyDefaults(true);
-		saveConfig();
+		ParentCommand netherViewCommand = new ParentCommand("netherview", null, false, "just tab");
+		netherViewCommand.addChild(new ReloadCommand(netherViewCommand, this));
+		netherViewCommand.addChild(new EnableDebugCommand(netherViewCommand, this));
+		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, this, portalHandler));
+		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, portalHandler));
+		
+		CommandHandler cmdHandler = new CommandHandler(this);
+		cmdHandler.registerCommand(netherViewCommand);
+	}
+	
+	private void registerListeners() {
+		
+		PluginManager manager = Bukkit.getPluginManager();
+		manager.registerEvents(new TeleportListener(this, portalHandler), this);
+		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
+		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler, portalMaterial), this);
 	}
 	
 	private void loadConfigData() {
 		
+		reloadConfig();
+		getConfig().options().copyDefaults(true);
+		saveConfig();
+		
 		portalProjectionDist = getConfig().getInt("portal-projection-view-distance", 8);
 		portalDisplayRangeSquared = (int) Math.pow(getConfig().getInt("portal-display-range", 32), 2);
-		
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
 		
@@ -196,34 +194,6 @@ public final class NetherView extends JavaPlugin {
 		}
 		
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages", false));
-	}
-	
-	public void registerListeners() {
-		
-		PluginManager manager = Bukkit.getPluginManager();
-		manager.registerEvents(new TeleportListener(this, portalHandler), this);
-		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
-		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler, portalMaterial), this);
-	}
-	
-	private void checkForUpdates() {
-		
-		new UpdateCheck(this, resourceId).handleResponse((versionResponse, newVersion) -> {
-			
-			if (versionResponse == VersionResponse.FOUND_NEW) {
-				
-				for (Player player : Bukkit.getOnlinePlayers()) {
-					if (player.isOp()) {
-						player.sendMessage("A new version of NetherView is available: " + ChatColor.LIGHT_PURPLE + newVersion);
-					}
-				}
-				
-				getLogger().info("A new version of NetherView is available: " + newVersion);
-				
-			} else if (versionResponse == VersionResponse.UNAVAILABLE) {
-				getLogger().info("Unable to check for new versions...");
-			}
-		}).check();
 	}
 	
 	private void loadPortalsFromConfig() {
@@ -257,37 +227,36 @@ public final class NetherView extends JavaPlugin {
 		}
 	}
 	
-	private void registerTotalPortalsChart(Metrics metrics) {
+	private void registerPortalsChart(Metrics metrics) {
 		
-		metrics.addCustomChart(new Metrics.SingleLineChart("total_portals", () -> {
+		metrics.addCustomChart(new Metrics.MultiLineChart("portals", () -> {
 			
-			int portalCount = 0;
+			Map<String, Integer> valueMap = new HashMap<>();
+
+			valueMap.put("recently viewed portals", portalHandler.getRecentlyViewedPortalsCount());
+			valueMap.put("total portals", portalHandler.getTotalPortalCount());
 			
-			for (World world : Bukkit.getWorlds()) {
-				portalCount += portalHandler.getPortals(world).size();
-			}
-			
-			return portalCount;
+			return valueMap;
 		}));
 	}
 	
-	private void registerPortalsOnlineChart(Metrics metrics) {
+	private void checkForUpdates() {
 		
-		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> {
+		new UpdateCheck(this, resourceId).handleResponse((versionResponse, newVersion) -> {
 			
-			int portalsOnlineCount = 0;
-			
-			for (World world : Bukkit.getWorlds()) {
-				for (Portal portal : portalHandler.getPortals(world)) {
-					
-					Location portalLoc = portal.getLocation();
-					
-					if (world.isChunkLoaded(portalLoc.getBlockX() >> 4, portalLoc.getBlockZ() >> 4)) {
-						portalsOnlineCount++;
+			if (versionResponse == VersionResponse.FOUND_NEW) {
+				
+				for (Player player : Bukkit.getOnlinePlayers()) {
+					if (player.isOp()) {
+						player.sendMessage("A new version of NetherView is available: " + ChatColor.LIGHT_PURPLE + newVersion);
 					}
 				}
+				
+				getLogger().info("A new version of NetherView is available: " + newVersion);
+				
+			} else if (versionResponse == VersionResponse.UNAVAILABLE) {
+				getLogger().info("Unable to check for new versions...");
 			}
-			return portalsOnlineCount;
-		}));
+		}).check();
 	}
 }
