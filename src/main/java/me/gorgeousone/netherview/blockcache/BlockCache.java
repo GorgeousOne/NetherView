@@ -14,9 +14,9 @@ public class BlockCache {
 	private BlockVec max;
 	
 	private Vector facing;
-	private BlockType borderBlock;
+	private BlockType borderType;
 	
-	public BlockCache(BlockVec offset, BlockType[][][] blockCopies, Vector facing, World world, BlockType borderBlock) {
+	public BlockCache(BlockVec offset, BlockType[][][] blockCopies, Vector facing, World world, BlockType borderType) {
 		
 		this.world = world;
 		this.blockCopies = blockCopies;
@@ -24,7 +24,7 @@ public class BlockCache {
 		this.max = offset.clone().add(sourceCacheSize());
 		
 		this.facing = facing;
-		this.borderBlock = borderBlock;
+		this.borderType = borderType;
 	}
 	
 	private BlockVec sourceCacheSize() {
@@ -85,6 +85,10 @@ public class BlockCache {
 		} else {
 			return z == minZ;
 		}
+	}
+	
+	public BlockType getBorderBlockType() {
+		return borderType;
 	}
 	
 	public BlockType getBlockTypeAt(BlockVec blockPos) {

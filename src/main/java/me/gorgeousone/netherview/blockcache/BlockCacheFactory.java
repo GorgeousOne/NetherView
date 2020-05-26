@@ -55,6 +55,7 @@ public class BlockCacheFactory {
 		return new AbstractMap.SimpleEntry<>(front, back);
 	}
 	
+	//TODO check if this can be rewritten so the blocks are copied into an already existing empty BlockCache?
 	private static BlockCache copyBlocksInBounds(Vector cacheCorner1,
 	                                             Vector cacheCorner2,
 	                                             World cacheWorld,
@@ -110,42 +111,36 @@ public class BlockCacheFactory {
 	public static Map<BlockVec, BlockType> updateBlockInCache(
 			BlockCache cache,
 			Block changedBlock,
-			BlockType newBlockData,
+			BlockType newBlockType,
 			boolean blockWasOccluding) {
 		
-		Map<BlockVec, BlockType> changedBlocks = new HashMap<>();
-		BlockVec blockPos = new BlockVec(changedBlock);
 		
-		BlockType oldBlockType = cache.getBlockTypeAt(blockPos);
+		BlockVec blockPos = new BlockVec(changedBlock);
+		Map<BlockVec, BlockType> changedBlocks = new HashMap<>();
+		
+		//any new transparent block in the cache border will be replaced with the border block type (of course)
+		if (!newBlockType.isOccluding() && cache.isBorder(blockPos)) {
+			newBlockType = cache.getBorderBlockType();
+		}
 		
 		//if the block did not change it's occlusion then only the block itself needs to be updated
-		if (blockWasOccluding == newBlockData.isOccluding()) {
+		if (blockWasOccluding == newBlockType.isOccluding()) {
 			
-			//return an empty list when the block is part of the border anyway
-			if(!blockWasOccluding && cache.isBorder(blockPos))
+			//return no cache updates when the block is hidden as border anyway
+			if (!blockWasOccluding && cache.isBorder(blockPos)) {
 				return changedBlocks;
+			}
 			
-			changedBlocks.put(blockPos, newBlockData);
+			cache.setBlockTypeAt(blockPos, newBlockType);
+			changedBlocks.put(blockPos, newBlockType);
 			return changedBlocks;
 		}
 		
 		World cacheWorld = cache.getWorld();
 		
-		if (oldBlockType == null) {
-			
-			oldBlockType = BlockType.of(cacheWorld.getBlockAt(
-					blockPos.getX(),
-					blockPos.getY(),
-					blockPos.getZ()));
-			
-			cache.setBlockTypeAt(blockPos, oldBlockType);
-		}
-		
-		changedBlocks.put(blockPos, newBlockData);
-		
 		//hide other block copies that are now covered by this occluding block
-		//they don't need to be redisplayed
-		if (newBlockData.isOccluding()) {
+		//but they don't need to be updated in the projections
+		if (newBlockType.isOccluding()) {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
 				
@@ -156,7 +151,7 @@ public class BlockCacheFactory {
 				}
 			}
 			
-		//re-add fake blocks that are revealed by the new transparent block
+			//re-add fake blocks that are revealed by the new transparent block
 		} else {
 			
 			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
@@ -167,26 +162,35 @@ public class BlockCacheFactory {
 					continue;
 				}
 				
-				BlockType touchingBlockData = BlockType.of(touchingBlockPos.toLocation(cacheWorld).getBlock());
-				cache.setBlockTypeAt(touchingBlockPos, touchingBlockData);
-				changedBlocks.put(touchingBlockPos, touchingBlockData);
+				BlockType touchingBlockType = BlockType.of(cacheWorld.getBlockAt(
+						touchingBlockPos.getX(),
+						touchingBlockPos.getX(),
+						touchingBlockPos.getX()));
+				
+				if (touchingBlockType.isOccluding() && cache.isBorder(touchingBlockPos)) {
+					touchingBlockType = cache.getBorderBlockType();
+				}
+				
+				cache.setBlockTypeAt(touchingBlockPos, touchingBlockType);
+				changedBlocks.put(touchingBlockPos, touchingBlockType);
 			}
 		}
 		
+		changedBlocks.put(blockPos, newBlockType);
 		return changedBlocks;
 	}
-	
-	//	private static boolean isCacheBorder(BlockVec blockPos, BlockCache cache) {
-	//
-	//		BlockVec cacheMin = cache.getMin();
-	//		BlockVec cacheMax = cache.getMax();
-	//
-	//		return isCacheBorder(
-	//				blockPos.getX(), blockPos.getY(), blockPos.getZ(),
-	//				cacheMin.getX(), cacheMin.getY(), cacheMin.getZ(),
-	//				cacheMax.getX(), cacheMax.getY(), cacheMax.getZ(),
-	//				cache.getFacing());
-	//	}
+
+//		private static boolean isCacheBorder(BlockVec blockPos, BlockCache cache) {
+//
+//			BlockVec cacheMin = cache.getMin();
+//			BlockVec cacheMax = cache.getMax();
+//
+//			return isCacheBorder(
+//					blockPos.getX(), blockPos.getY(), blockPos.getZ(),
+//					cacheMin.getX(), cacheMin.getY(), cacheMin.getZ(),
+//					cacheMax.getX(), cacheMax.getY(), cacheMax.getZ(),
+//					cache.getFacing());
+//		}
 	
 	/**
 	 * Returns true if the block is part of the border of the cache cuboid except the side where the portal is
@@ -235,7 +239,7 @@ public class BlockCacheFactory {
 		
 		switch (world.getEnvironment()) {
 			case NORMAL:
-				return BlockType.match("BLUE_ICE", "STAINED_CLAY", (byte) 0);
+				return BlockType.match("WHITE_TERRACOTTA", "STAINED_CLAY", (byte) 0);
 			case NETHER:
 				return BlockType.match("RED_CONCRETE", "STAINED_CLAY", (byte) 14);
 			case THE_END:

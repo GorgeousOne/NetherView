@@ -157,9 +157,9 @@ public class ViewingHandler {
 			return;
 		}
 		
-		if (!portal.areProjectionsLoaded()) {
+		if (!portal.projectionsAreLoaded()) {
 			portalHandler.loadProjectionCachesOf(portal);
-		}else {
+		} else {
 			portalHandler.updateExpirationTime(portal);
 		}
 		

@@ -27,7 +27,7 @@ public class PortalInfoCommand extends BasicCommand {
 		Player player = (Player) sender;
 		Portal portal = portalHandler.getNearestPortal(player.getLocation(), false);
 		
-		if(portal == null) {
+		if (portal == null) {
 			sender.sendMessage(ChatColor.GRAY + "No portals listed for world '" + player.getWorld().getName() + "'.");
 			return;
 		}
@@ -38,7 +38,7 @@ public class PortalInfoCommand extends BasicCommand {
 			player.sendMessage(ChatColor.GRAY + "  is linked to:");
 			player.sendMessage(ChatColor.GRAY + "  - " + portal.getCounterPortal().toWhiteString());
 			
-		}else {
+		} else {
 			player.sendMessage(ChatColor.GRAY + "  is linked: false");
 		}
 		
@@ -46,10 +46,10 @@ public class PortalInfoCommand extends BasicCommand {
 		
 		if (connectedPortals.isEmpty()) {
 			player.sendMessage(ChatColor.GRAY + "  portals linked to portal: -none-");
-		
-		}else {
 			
-			for(Portal counterPortal : connectedPortals) {
+		} else {
+			
+			for (Portal counterPortal : connectedPortals) {
 				player.sendMessage(ChatColor.GRAY + "  portals linked to portal: ");
 				player.sendMessage(ChatColor.GRAY + "  - " + counterPortal.toWhiteString());
 			}

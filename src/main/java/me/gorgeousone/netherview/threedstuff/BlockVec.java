@@ -160,7 +160,7 @@ public class BlockVec {
 			int z = Integer.parseInt(coordinates[2].substring(2));
 			return new BlockVec(x, y, z);
 			
-		}catch (NumberFormatException e) {
+		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Cannot deserialize BlockVec from string " + serialized + ": " + e.getMessage());
 		}
 	}

@@ -5,9 +5,7 @@ import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blocktype.Axis;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -114,7 +112,7 @@ public class Portal {
 		blockCaches = null;
 	}
 	
-	public boolean areCachesLoaded() {
+	public boolean blockCachesAreLoaded() {
 		return blockCaches != null;
 	}
 	
@@ -134,7 +132,7 @@ public class Portal {
 		projectionCaches = null;
 	}
 	
-	public boolean areProjectionsLoaded() {
+	public boolean projectionsAreLoaded() {
 		return projectionCaches != null;
 	}
 	

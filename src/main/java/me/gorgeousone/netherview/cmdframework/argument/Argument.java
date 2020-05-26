@@ -23,11 +23,10 @@ public class Argument {
 		
 		this.tabList = new ArrayList<>();
 		
-		if(type == ArgType.BOOLEAN) {
+		if (type == ArgType.BOOLEAN) {
 			this.tabList.add("true");
 			this.tabList.add("false");
-		}else
-			this.tabList.addAll(Arrays.asList(tabList));
+		} else { this.tabList.addAll(Arrays.asList(tabList)); }
 	}
 	
 	public boolean hasDefault() {

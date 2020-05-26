@@ -17,6 +17,7 @@ import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,6 +35,7 @@ import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.StructureGrowEvent;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -266,5 +268,13 @@ public class BlockListener implements Listener {
 		Block block = event.getBlock();
 		//TODO check what 1.8 uses instead of event.getBlockData()
 		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onPlantGrow(StructureGrowEvent event) {
+		
+		for (BlockState state : event.getBlocks()) {
+			updateBlockCaches(state.getBlock(), BlockType.of(state), false);
+		}
 	}
 }

@@ -99,7 +99,7 @@ public class PortalLocator {
 			width = getPortalExtent(portalBlock, BlockFace.SOUTH).getZ() - position.getBlockZ() + 1;
 		}
 		
-		if(width > 21 || height > 21) {
+		if (width > 21 || height > 21) {
 			throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is bigger than possible in vanilla minecraft!");
 		}
 		
@@ -150,10 +150,10 @@ public class PortalLocator {
 					
 					if (portalBlock.getType() == PORTAL_MATERIAL) {
 						portalBlocks.add(portalBlock);
-					
+						
 					} else {
 						
-						if(debugMessagesEnabled) {
+						if (debugMessagesEnabled) {
 							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Portal block expected at " + new BlockVec(x, y, z).toString());
 						}
 						
@@ -202,9 +202,9 @@ public class PortalLocator {
 						
 						if (debugMessagesEnabled) {
 							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Block at "
-							                        + portalBlock.getWorld().getName() + ", "
-							                        + new BlockVec(portalBlock).toString()
-							                        + " is not out of " + Material.OBSIDIAN.name());
+							                                      + portalBlock.getWorld().getName() + ", "
+							                                      + new BlockVec(portalBlock).toString()
+							                                      + " is not out of " + Material.OBSIDIAN.name());
 						}
 						
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "Something about this portal frame seems to be incomplete...");

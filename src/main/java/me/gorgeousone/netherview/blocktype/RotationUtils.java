@@ -29,18 +29,19 @@ public class RotationUtils {
 			BlockFace.WEST,
 			BlockFace.WEST_NORTH_WEST));
 	
-	public static boolean isRotatableFace(BlockFace face) {
-		return rotationFaces.contains(face);
-	}
-	
+	/**
+	 * Returns the rotated version of a block face
+	 *
+	 * @param face         face to be rotated
+	 * @param quarterTurns count of 90 degree turns that should be performed (0 - 3)
+	 */
 	public static BlockFace getRotatedFace(BlockFace face, int quarterTurns) {
 		
 		if (!rotationFaces.contains(face)) {
-			return null;
+			return face;
 		}
 		
-		int positiveTurns = (quarterTurns % 4 + 4);
-		int rotatedFaceIndex = (rotationFaces.indexOf(face) + positiveTurns * 4) % rotationFaces.size();
+		int rotatedFaceIndex = (rotationFaces.indexOf(face) + quarterTurns * 4) % rotationFaces.size();
 		return rotationFaces.get(rotatedFaceIndex);
 	}
 }

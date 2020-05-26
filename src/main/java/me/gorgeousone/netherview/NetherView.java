@@ -27,10 +27,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -63,7 +61,8 @@ public final class NetherView extends JavaPlugin {
 	public void onEnable() {
 		
 		Metrics metrics = new Metrics(this, 7571);
-		registerPortalsChart(metrics);
+		registerTotalPortalsChart(metrics);
+		registerPortalsOnline(metrics);
 		
 		loadServerVersion();
 		BlockType.configureVersion(isLegacyServer);
@@ -113,7 +112,7 @@ public final class NetherView extends JavaPlugin {
 		return cancelTeleportWhenLinking;
 	}
 	
-	public boolean canCreatePortalsViews(World world) {
+	public boolean canCreatePortalViews(World world) {
 		return worldsWithPortalViewing.contains(world.getUID());
 	}
 	
@@ -200,8 +199,7 @@ public final class NetherView extends JavaPlugin {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
 		
-		if (!portalConfigFile.exists())
-			return;
+		if (!portalConfigFile.exists()) { return; }
 		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		portalHandler.loadPortals(portalConfig);
@@ -227,17 +225,12 @@ public final class NetherView extends JavaPlugin {
 		}
 	}
 	
-	private void registerPortalsChart(Metrics metrics) {
-		
-		metrics.addCustomChart(new Metrics.MultiLineChart("portals", () -> {
-			
-			Map<String, Integer> valueMap = new HashMap<>();
-
-			valueMap.put("recently viewed portals", portalHandler.getRecentlyViewedPortalsCount());
-			valueMap.put("total portals", portalHandler.getTotalPortalCount());
-			
-			return valueMap;
-		}));
+	private void registerTotalPortalsChart(Metrics metrics) {
+		metrics.addCustomChart(new Metrics.SingleLineChart("total_portals", () -> portalHandler.getTotalPortalCount()));
+	}
+	
+	private void registerPortalsOnline(Metrics metrics) {
+		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> portalHandler.getRecentlyViewedPortalsCount()));
 	}
 	
 	private void checkForUpdates() {

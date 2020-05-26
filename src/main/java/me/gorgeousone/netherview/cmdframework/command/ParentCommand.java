@@ -81,8 +81,7 @@ public class ParentCommand extends BasicCommand {
 		//forwards the task of creating a tab list to a child commands
 		for (BasicCommand child : getChildren()) {
 			
-			if (!child.matches(arguments[0]))
-				continue;
+			if (!child.matches(arguments[0])) { continue; }
 			
 			if (child.isPlayerRequired() && !(sender instanceof Player)) {
 				continue;

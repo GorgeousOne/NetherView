@@ -41,10 +41,9 @@ public abstract class ArgCommand extends BasicCommand {
 		ArgValue[] values = new ArgValue[Math.max(argsSize, stringArgsLength)];
 		
 		try {
-			if (stringArgsLength >= argsSize)
-				createMoreValuesThanOwnArgs(values, stringArgs);
-			else
+			if (stringArgsLength >= argsSize) { createMoreValuesThanOwnArgs(values, stringArgs); } else {
 				createMoreValuesThanSenderInput(values, stringArgs);
+			}
 			
 		} catch (ArrayIndexOutOfBoundsException e) {
 			sendUsage(sender);
@@ -64,11 +63,9 @@ public abstract class ArgCommand extends BasicCommand {
 	@Override
 	public List<String> getTabList(CommandSender sender, String[] arguments) {
 		
-		if(isPlayerRequired() && !(sender instanceof Player))
-			return null;
+		if (isPlayerRequired() && !(sender instanceof Player)) { return null; }
 		
-		if (this.arguments.size() < arguments.length)
-			return new LinkedList<>();
+		if (this.arguments.size() < arguments.length) { return new LinkedList<>(); }
 		
 		return this.arguments.get(arguments.length - 1).getTabList();
 	}
@@ -107,10 +104,7 @@ public abstract class ArgCommand extends BasicCommand {
 				continue;
 			}
 			
-			if (arg.hasDefault())
-				values[i] = arg.getDefault();
-			else
-				throw new ArrayIndexOutOfBoundsException();
+			if (arg.hasDefault()) { values[i] = arg.getDefault(); } else { throw new ArrayIndexOutOfBoundsException(); }
 		}
 	}
 }

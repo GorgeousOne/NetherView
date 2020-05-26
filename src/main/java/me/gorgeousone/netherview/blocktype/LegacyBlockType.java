@@ -7,10 +7,13 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.material.Directional;
 import org.bukkit.material.MaterialData;
+import org.bukkit.material.Mushroom;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class LegacyBlockType extends BlockType {
 	
@@ -44,8 +47,24 @@ public class LegacyBlockType extends BlockType {
 			Directional directional = (Directional) materialData;
 			BlockFace facing = directional.getFacing();
 			
-			if (RotationUtils.isRotatableFace(facing)) {
-				directional.setFacingDirection(RotationUtils.getRotatedFace(directional.getFacing(), quarterTurns));
+			//DON'T ASK ME WHY BUT IT IZZ HOW IT IZZ
+			if (materialData.getItemType().name().contains("STAIRS")) {
+				facing = facing.getOppositeFace();
+			}
+			
+			directional.setFacingDirection(RotationUtils.getRotatedFace(facing, quarterTurns));
+			
+		} else if (materialData instanceof Mushroom) {
+			
+			Mushroom mushroom = (Mushroom) materialData;
+			Set<BlockFace> paintedFaces = new HashSet<>(mushroom.getPaintedFaces());
+			
+			for (BlockFace paintedFace : paintedFaces) {
+				mushroom.setFacePainted(paintedFace, false);
+			}
+			
+			for (BlockFace paintedFace : paintedFaces) {
+				mushroom.setFacePainted(RotationUtils.getRotatedFace(paintedFace, quarterTurns), true);
 			}
 		}
 		

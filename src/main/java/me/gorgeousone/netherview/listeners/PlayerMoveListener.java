@@ -31,7 +31,7 @@ public class PlayerMoveListener implements Listener {
 		
 		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
 			
-			if(viewingHandler.hasViewSession(player)) {
+			if (viewingHandler.hasViewSession(player)) {
 				viewingHandler.hideViewSession(player);
 			}
 			
@@ -40,7 +40,7 @@ public class PlayerMoveListener implements Listener {
 		
 		World playerWorld = player.getWorld();
 		
-		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canCreatePortalsViews(playerWorld)) {
+		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canCreatePortalViews(playerWorld)) {
 			return;
 		}
 		

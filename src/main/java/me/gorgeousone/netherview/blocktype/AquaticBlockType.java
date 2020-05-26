@@ -14,8 +14,10 @@ import org.bukkit.block.data.Rotatable;
 import org.bukkit.block.data.type.RedstoneWire;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class AquaticBlockType extends BlockType {
 	
@@ -73,16 +75,15 @@ public class AquaticBlockType extends BlockType {
 		} else if (blockData instanceof MultipleFacing) {
 			
 			MultipleFacing multiFacing = (MultipleFacing) blockData;
-			Map<BlockFace, Boolean> facings = new HashMap<>();
+			Set<BlockFace> facings = new HashSet<>(multiFacing.getFaces());
 			
 			for (BlockFace face : multiFacing.getAllowedFaces()) {
-				if (RotationUtils.isRotatableFace(face)) {
-					facings.put(face, multiFacing.hasFace(face));
-				}
+				multiFacing.setFace(face, false);
 			}
 			
-			for (BlockFace face : facings.keySet())
-				multiFacing.setFace(RotationUtils.getRotatedFace(face, quarterTurns), facings.get(face));
+			for (BlockFace face : facings) {
+				multiFacing.setFace(RotationUtils.getRotatedFace(face, quarterTurns), true);
+			}
 			
 		} else if (blockData instanceof RedstoneWire) {
 			
@@ -90,9 +91,7 @@ public class AquaticBlockType extends BlockType {
 			Map<BlockFace, RedstoneWire.Connection> connections = new HashMap<>();
 			
 			for (BlockFace face : wire.getAllowedFaces()) {
-				if (RotationUtils.isRotatableFace(face)) {
-					connections.put(face, wire.getFace(face));
-				}
+				connections.put(face, wire.getFace(face));
 			}
 			
 			for (BlockFace face : connections.keySet())
