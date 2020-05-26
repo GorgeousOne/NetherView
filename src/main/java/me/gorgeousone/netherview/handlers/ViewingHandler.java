@@ -158,7 +158,9 @@ public class ViewingHandler {
 		}
 		
 		if (!portal.areProjectionsLoaded()) {
-			portalHandler.loadProjectionCachesFor(portal);
+			portalHandler.loadProjectionCachesOf(portal);
+		}else {
+			portalHandler.updateExpirationTime(portal);
 		}
 		
 		ProjectionCache projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
@@ -166,6 +168,8 @@ public class ViewingHandler {
 		
 		viewedPortals.put(player.getUniqueId(), portal);
 		viewedProjections.put(player.getUniqueId(), projection);
+		
+		//TODO refresh portal time stamp
 		
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		

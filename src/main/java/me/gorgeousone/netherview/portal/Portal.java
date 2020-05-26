@@ -7,6 +7,7 @@ import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -105,16 +106,12 @@ public class Portal {
 		return counterPortal != null;
 	}
 	
-	/**
-	 * removes own block projection caches. The link to another portal remains unchanged.
-	 */
-	public void clearCaches() {
-		blockCaches = null;
-		projectionCaches = null;
-	}
-	
 	public void setBlockCaches(Map.Entry<BlockCache, BlockCache> blockCaches) {
 		this.blockCaches = blockCaches;
+	}
+	
+	public void removeBlockCaches() {
+		blockCaches = null;
 	}
 	
 	public boolean areCachesLoaded() {
@@ -131,6 +128,10 @@ public class Portal {
 	
 	public void setProjectionCaches(Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
 		this.projectionCaches = projectionCaches;
+	}
+	
+	public void removeProjections() {
+		projectionCaches = null;
 	}
 	
 	public boolean areProjectionsLoaded() {
@@ -157,5 +158,9 @@ public class Portal {
 	@Override
 	public int hashCode() {
 		return Objects.hash(getLocation());
+	}
+	
+	public boolean isChunkLoaded() {
+		return world.isChunkLoaded(portalRect.getMin().getBlockX(), portalRect.getMin().getBlockZ());
 	}
 }
