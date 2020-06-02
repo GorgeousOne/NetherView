@@ -6,6 +6,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.material.MaterialData;
 
+import java.lang.reflect.InvocationTargetException;
+
 public abstract class BlockType {
 	
 	private static boolean isLegacyServer;
@@ -29,16 +31,8 @@ public abstract class BlockType {
 		return isLegacyServer ? new LegacyBlockType(state) : new AquaticBlockType(state);
 	}
 	
-	/**
-	 * Tries to match a material with the given material name string. Will return the legacy alternative if server version below 1.13
-	 */
-	public static BlockType match(String materialName, String alternativeMat, byte data) {
-		
-		if (isLegacyServer) {
-			return new LegacyBlockType(new MaterialData(Material.valueOf(alternativeMat), data));
-		} else {
-			return BlockType.of(Material.matchMaterial(materialName));
-		}
+	public static BlockType of(String serialized) {
+		return isLegacyServer ? new LegacyBlockType(serialized) : new AquaticBlockType(serialized);
 	}
 	
 	/**

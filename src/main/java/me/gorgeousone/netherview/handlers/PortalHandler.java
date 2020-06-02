@@ -208,7 +208,11 @@ public class PortalHandler {
 	
 	private void loadBlockCachesOf(Portal portal) {
 		
-		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(portal, main.getPortalProjectionDist()));
+		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(
+				portal,
+				main.getPortalProjectionDist(),
+				main.getWorldBorderBlockType(portal.getWorld().getEnvironment())));
+		
 		addPortalToExpirationTimer(portal);
 		
 		if (main.debugMessagesEnabled()) {

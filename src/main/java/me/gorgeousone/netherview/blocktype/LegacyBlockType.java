@@ -11,6 +11,7 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.material.Mushroom;
 import org.bukkit.material.Rails;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +37,25 @@ public class LegacyBlockType extends BlockType {
 	
 	public LegacyBlockType(MaterialData data) {
 		materialData = data.clone();
+	}
+	
+	public LegacyBlockType(String serialized) {
+		
+		Material material;
+		byte data = 0;
+		
+		if (serialized.contains(":")) {
+			
+			String[] fullData = serialized.split(":");
+			
+			material = Material.valueOf(fullData[0].toUpperCase());
+			data = Byte.parseByte(fullData[1]);
+			
+		} else {
+			material = Material.valueOf(serialized.toUpperCase());
+		}
+		
+		materialData = new MaterialData(material, data);
 	}
 	
 	@Override
