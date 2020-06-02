@@ -11,7 +11,7 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.handlers.PortalHandler;
-import me.gorgeousone.netherview.handlers.ViewingHandler;
+import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Material;
@@ -44,17 +44,17 @@ public class BlockListener implements Listener {
 	
 	private NetherView main;
 	private PortalHandler portalHandler;
-	private ViewingHandler viewingHandler;
+	private ViewHandler viewHandler;
 	private Material portalMaterial;
 	
 	public BlockListener(NetherView main,
 	                     PortalHandler portalHandler,
-	                     ViewingHandler viewingHandler,
+	                     ViewHandler viewHandler,
 	                     Material portalMaterial) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
-		this.viewingHandler = viewingHandler;
+		this.viewHandler = viewHandler;
 		this.portalMaterial = portalMaterial;
 		addBlockUpdateInterceptor();
 	}
@@ -74,7 +74,7 @@ public class BlockListener implements Listener {
 						
 						Player player = event.getPlayer();
 						
-						if (!viewingHandler.hasViewSession(player)) {
+						if (!viewHandler.hasViewSession(player)) {
 							return;
 						}
 						
@@ -86,7 +86,7 @@ public class BlockListener implements Listener {
 //							return;
 //						}
 						
-						Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
+						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
 						
 						if (viewSession.containsKey(blockPosVec)) {
 							event.getPacket().getBlockData().write(0, viewSession.get(blockPosVec).getWrapped());
@@ -109,7 +109,7 @@ public class BlockListener implements Listener {
 		for (Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
 			
 			if (portal.contains(blockLoc)) {
-				viewingHandler.removePortal(portal);
+				viewHandler.removePortal(portal);
 				portalHandler.removePortal(portal);
 			}
 		}
@@ -134,7 +134,7 @@ public class BlockListener implements Listener {
 			Map<BlockVec, BlockType> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockType, blockWasOccluding);
 			
 			if (!updatedCopies.isEmpty()) {
-				viewingHandler.updateProjections(cache, updatedCopies);
+				viewHandler.updateProjections(cache, updatedCopies);
 			}
 		}
 	}
@@ -148,11 +148,11 @@ public class BlockListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewingHandler.hasViewSession(player)) {
+		if (!viewHandler.hasViewSession(player)) {
 			return;
 		}
 		
-		Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
+		Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
 		BlockVec blockPos = new BlockVec(event.getClickedBlock());
 		
 		if (viewSession.containsKey(blockPos)) {
@@ -181,11 +181,11 @@ public class BlockListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewingHandler.hasViewSession(player)) {
+		if (!viewHandler.hasViewSession(player)) {
 			return;
 		}
 		
-		Map<BlockVec, BlockType> viewSession = viewingHandler.getViewSession(player);
+		Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
 		BlockVec blockPos = new BlockVec(block);
 		
 		if (viewSession.containsKey(blockPos)) {

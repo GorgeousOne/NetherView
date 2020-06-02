@@ -164,10 +164,10 @@ public class BlockCacheFactory {
 				
 				BlockType touchingBlockType = BlockType.of(cacheWorld.getBlockAt(
 						touchingBlockPos.getX(),
-						touchingBlockPos.getX(),
-						touchingBlockPos.getX()));
+						touchingBlockPos.getY(),
+						touchingBlockPos.getZ()));
 				
-				if (touchingBlockType.isOccluding() && cache.isBorder(touchingBlockPos)) {
+				if (!touchingBlockType.isOccluding() && cache.isBorder(touchingBlockPos)) {
 					touchingBlockType = cache.getBorderBlockType();
 				}
 				

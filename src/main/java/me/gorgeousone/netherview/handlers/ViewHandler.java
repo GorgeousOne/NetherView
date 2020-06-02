@@ -10,8 +10,8 @@ import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewingFrustum;
-import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewingFrustumFactory;
+import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustum;
+import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustumFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public class ViewingHandler {
+public class ViewHandler {
 	
 	private NetherView main;
 	private PortalHandler portalHandler;
@@ -34,7 +34,7 @@ public class ViewingHandler {
 	private Map<UUID, ProjectionCache> viewedProjections;
 	private Map<UUID, Map<BlockVec, BlockType>> playerViewSessions;
 	
-	public ViewingHandler(NetherView main, PortalHandler portalHandler) {
+	public ViewHandler(NetherView main, PortalHandler portalHandler) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
@@ -163,8 +163,8 @@ public class ViewingHandler {
 			portalHandler.updateExpirationTime(portal);
 		}
 		
-		ProjectionCache projection = ViewingFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
-		ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
+		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
+		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
 		
 		viewedPortals.put(player.getUniqueId(), portal);
 		viewedProjections.put(player.getUniqueId(), projection);
@@ -185,7 +185,7 @@ public class ViewingHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
-	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewingFrustum frustum) {
+	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewFrustum frustum) {
 		
 		BlockVec min = projection.getMin();
 		BlockVec max = projection.getMax();
@@ -265,7 +265,7 @@ public class ViewingHandler {
 				Portal portal = viewedPortals.get(playerID);
 				Player player = Bukkit.getPlayer(playerID);
 				
-				ViewingFrustum playerFrustum = ViewingFrustumFactory.createFrustum(
+				ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(
 						player.getEyeLocation().toVector(),
 						portal.getPortalRect(),
 						projection.getCacheLength());

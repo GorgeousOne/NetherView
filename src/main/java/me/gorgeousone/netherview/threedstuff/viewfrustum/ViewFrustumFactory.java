@@ -7,14 +7,14 @@ import me.gorgeousone.netherview.threedstuff.Line;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public final class ViewingFrustumFactory {
+public final class ViewFrustumFactory {
 	
-	private ViewingFrustumFactory() {}
+	private ViewFrustumFactory() {}
 	
 	/**
 	 * Returns a viewing frustum with a near plane precisely representing the area the player can see through the portal.
 	 */
-	public static ViewingFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect, double frustumLength) {
+	public static ViewFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect, double frustumLength) {
 		
 		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);
 		
@@ -92,7 +92,7 @@ public final class ViewingFrustumFactory {
 		}
 		
 		AxisAlignedRect actualViewingRect = new AxisAlignedRect(maxViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
-		return new ViewingFrustum(viewPoint, actualViewingRect, frustumLength);
+		return new ViewFrustum(viewPoint, actualViewingRect, frustumLength);
 	}
 	
 	public static boolean isPlayerBehindPortal(Player player, Portal portal) {

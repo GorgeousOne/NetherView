@@ -1,7 +1,7 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherView;
-import me.gorgeousone.netherview.handlers.ViewingHandler;
+import me.gorgeousone.netherview.handlers.ViewHandler;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -9,10 +9,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerQuitListener implements Listener {
 	
-	private ViewingHandler viewingHandler;
+	private ViewHandler viewHandler;
 	
-	public PlayerQuitListener(ViewingHandler viewingHandler) {
-		this.viewingHandler = viewingHandler;
+	public PlayerQuitListener(ViewHandler viewHandler) {
+		this.viewHandler = viewHandler;
 	}
 	
 	@EventHandler
@@ -21,7 +21,7 @@ public class PlayerQuitListener implements Listener {
 		Player player = event.getPlayer();
 		
 		if (player.hasPermission(NetherView.VIEW_PERM)) {
-			viewingHandler.removeVieSession(player);
+			viewHandler.removeVieSession(player);
 		}
 	}
 }
