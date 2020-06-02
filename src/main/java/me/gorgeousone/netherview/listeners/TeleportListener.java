@@ -61,33 +61,30 @@ public class TeleportListener implements Listener {
 			return;
 		}
 		
-		Portal portal = portalHandler.getPortalByBlock(portalBlock);
-		
 		try {
-			
-			if (portal == null) {
-				portal = portalHandler.addPortalStructure(portalBlock);
-			}
-			
-			if (portal.isLinked()) {
-				return;
-			}
+			Portal portal = portalHandler.getPortalByBlock(portalBlock);
 			
 			Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
 			
 			if (counterPortalBlock == null) {
 				if (main.debugMessagesEnabled()) {
-					player.sendMessage(ChatColor.DARK_GRAY + "[Debug] No portal found at destination point " + new BlockVec(to).toString());
+					Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] No portal found at destination point " + new BlockVec(to).toString());
 				}
 				return;
 			}
 			
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
-			if (counterPortal == null) {
-				counterPortal = portalHandler.addPortalStructure(counterPortalBlock);
+			if (portal.getCounterPortal() == counterPortal) {
+				return;
 			}
 			
+			if (portal.isLinked()) {
+				portalHandler.unlinkPortal(portal);
+				portalHandler.linkPortalTo(portal, counterPortal);
+				return;
+			}
+		
 			portalHandler.linkPortalTo(portal, counterPortal);
 			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
 			

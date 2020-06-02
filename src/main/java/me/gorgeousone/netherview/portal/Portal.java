@@ -128,10 +128,6 @@ public class Portal {
 		this.projectionCaches = projectionCaches;
 	}
 	
-	public void removeProjections() {
-		projectionCaches = null;
-	}
-	
 	public boolean projectionsAreLoaded() {
 		return projectionCaches != null;
 	}
@@ -156,9 +152,5 @@ public class Portal {
 	@Override
 	public int hashCode() {
 		return Objects.hash(getLocation());
-	}
-	
-	public boolean isChunkLoaded() {
-		return world.isChunkLoaded(portalRect.getMin().getBlockX(), portalRect.getMin().getBlockZ());
 	}
 }

@@ -87,14 +87,15 @@ public class PortalHandler {
 	}
 	
 	/**
-	 * Returns the count of portals that have been viewed in the last 10 minutes
+	 * Returns the count of portals that have been viewed in the last 10 minutes.
 	 */
 	public Integer getRecentlyViewedPortalsCount() {
 		return recentlyViewedPortals.size();
 	}
 	
 	/**
-	 * Returns the first portal that contains the passed block as part of the portal surface. Returns null if none was found.
+	 * Returns the first portal that contains the passed block as part of the portal surface.
+	 * If none was found it will  be tried to add the portal related to this block.
 	 */
 	public Portal getPortalByBlock(Block portalBlock) {
 		
@@ -104,7 +105,7 @@ public class PortalHandler {
 			}
 		}
 		
-		return null;
+		return addPortalStructure(portalBlock);
 	}
 	
 	/**
@@ -186,7 +187,7 @@ public class PortalHandler {
 	}
 	
 	/**
-	 * Locates and registers a new portal
+	 * Locates and registers a new portal.
 	 *
 	 * @param portalBlock one block of the structure required to detect the rest of it
 	 */
@@ -277,13 +278,20 @@ public class PortalHandler {
 			}
 		}
 		
-		unregisterProjectionCachesOf(portal);
+		unlinkPortal(portal);
 		unregisterBlockCachesOf(portal);
 		
 		linkedPortals.remove(portal);
 		recentlyViewedPortals.remove(portal);
 		
 		getPortals(portal.getWorld()).remove(portal);
+	}
+	
+	public void unlinkPortal(Portal portal) {
+		
+		unregisterProjectionCachesOf(portal);
+		linkedPortals.remove(portal);
+		portal.setLinkedTo(null);
 	}
 	
 	private void unregisterBlockCachesOf(Portal portal) {
@@ -302,7 +310,7 @@ public class PortalHandler {
 			Portal counterPortal = portal.getCounterPortal();
 			linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
 			linkedProjections.get(counterPortal.getBackCache()).remove(portal.getFrontProjection());
-			portal.removeProjections();
+			portal.unlink();
 		}
 	}
 	
