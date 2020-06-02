@@ -1,6 +1,8 @@
 package me.gorgeousone.netherview.blocktype;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
+import me.gorgeousone.netherview.blocktype.rotation.AquaticRailUtils;
+import me.gorgeousone.netherview.blocktype.rotation.RotationUtils;
 import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -10,6 +12,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.Orientable;
+import org.bukkit.block.data.Rail;
 import org.bukkit.block.data.Rotatable;
 import org.bukkit.block.data.type.RedstoneWire;
 
@@ -49,7 +52,7 @@ public class AquaticBlockType extends BlockType {
 		//e.g. logs
 		if (blockData instanceof Orientable) {
 			
-			if (quarterTurns == 2) {
+			if (quarterTurns % 2 == 0) {
 				return this;
 			}
 			
@@ -96,6 +99,11 @@ public class AquaticBlockType extends BlockType {
 			
 			for (BlockFace face : connections.keySet())
 				wire.setFace(RotationUtils.getRotatedFace(face, quarterTurns), connections.get(face));
+			
+		} else if (blockData instanceof Rail) {
+			
+			Rail rail = (Rail) blockData;
+			rail.setShape(AquaticRailUtils.getRotatedRail(rail.getShape(), quarterTurns));
 		}
 		
 		return this;

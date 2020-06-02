@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.blocktype;
+package me.gorgeousone.netherview.blocktype.rotation;
 
 import org.bukkit.block.BlockFace;
 
@@ -8,7 +8,7 @@ import java.util.List;
 
 public class RotationUtils {
 	
-	private static List<BlockFace> rotationFaces = new ArrayList<>(Arrays.asList(
+	private final static List<BlockFace> ROTATION_FACES = new ArrayList<>(Arrays.asList(
 			BlockFace.NORTH_WEST,
 			BlockFace.NORTH_NORTH_WEST,
 			BlockFace.NORTH,
@@ -27,7 +27,15 @@ public class RotationUtils {
 			
 			BlockFace.WEST_SOUTH_WEST,
 			BlockFace.WEST,
-			BlockFace.WEST_NORTH_WEST));
+			BlockFace.WEST_NORTH_WEST
+	));
+
+//	private final static List<BlockFace> CARDIANL_FACES = new ArrayList<>(Arrays.asList(
+//			BlockFace.NORTH,
+//			BlockFace.EAST,
+//			BlockFace.SOUTH,
+//			BlockFace.WEST
+//	));
 	
 	/**
 	 * Returns the rotated version of a block face
@@ -37,11 +45,12 @@ public class RotationUtils {
 	 */
 	public static BlockFace getRotatedFace(BlockFace face, int quarterTurns) {
 		
-		if (!rotationFaces.contains(face)) {
+		if (!ROTATION_FACES.contains(face)) {
 			return face;
 		}
 		
-		int rotatedFaceIndex = (rotationFaces.indexOf(face) + quarterTurns * 4) % rotationFaces.size();
-		return rotationFaces.get(rotatedFaceIndex);
+		int rotatedFaceIndex = (ROTATION_FACES.indexOf(face) + quarterTurns * 4) % ROTATION_FACES.size();
+		return ROTATION_FACES.get(rotatedFaceIndex);
 	}
+	
 }
