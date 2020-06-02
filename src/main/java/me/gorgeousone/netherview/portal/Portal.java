@@ -95,9 +95,9 @@ public class Portal {
 		this.counterPortal = counterPortal;
 	}
 	
-	public void unlink() {
+	public void removeLink() {
 		this.counterPortal = null;
-		this.projectionCaches = null;
+		removeProjectionCaches();
 	}
 	
 	public boolean isLinked() {
@@ -126,6 +126,10 @@ public class Portal {
 	
 	public void setProjectionCaches(Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
 		this.projectionCaches = projectionCaches;
+	}
+	
+	public void removeProjectionCaches() {
+		this.projectionCaches = null;
 	}
 	
 	public boolean projectionsAreLoaded() {

@@ -58,13 +58,6 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Returns the one projection cache a player is currently able to see in a portal animation.
-	 */
-	public ProjectionCache getViewedCache(Player player) {
-		return viewedProjections.get(player.getUniqueId());
-	}
-	
-	/**
 	 * Returns a Map of BlockTypes linked to their location that are currently displayed with fake blocks
 	 * to a player.
 	 */
