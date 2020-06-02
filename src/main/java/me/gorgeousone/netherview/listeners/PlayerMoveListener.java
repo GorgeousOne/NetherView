@@ -1,7 +1,7 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherView;
-import me.gorgeousone.netherview.handlers.ViewingHandler;
+import me.gorgeousone.netherview.handlers.ViewHandler;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -17,11 +17,11 @@ import org.bukkit.util.Vector;
 public class PlayerMoveListener implements Listener {
 	
 	private NetherView main;
-	private ViewingHandler viewingHandler;
+	private ViewHandler viewHandler;
 	
-	public PlayerMoveListener(NetherView main, ViewingHandler viewingHandler) {
+	public PlayerMoveListener(NetherView main, ViewHandler viewHandler) {
 		this.main = main;
-		this.viewingHandler = viewingHandler;
+		this.viewHandler = viewHandler;
 	}
 	
 	@EventHandler
@@ -31,8 +31,8 @@ public class PlayerMoveListener implements Listener {
 		
 		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
 			
-			if (viewingHandler.hasViewSession(player)) {
-				viewingHandler.hideViewSession(player);
+			if (viewHandler.hasViewSession(player)) {
+				viewHandler.hideViewSession(player);
 			}
 			
 			return;
@@ -49,7 +49,7 @@ public class PlayerMoveListener implements Listener {
 		
 		if (!from.toVector().equals(to.toVector())) {
 			Vector movement = to.clone().subtract(from).toVector();
-			viewingHandler.displayNearestPortalTo(player, player.getEyeLocation().add(movement));
+			viewHandler.displayNearestPortalTo(player, player.getEyeLocation().add(movement));
 		}
 	}
 	
@@ -68,7 +68,7 @@ public class PlayerMoveListener implements Listener {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					viewingHandler.displayNearestPortalTo(player, player.getEyeLocation());
+					viewHandler.displayNearestPortalTo(player, player.getEyeLocation());
 				}
 			}.runTaskLater(main, 2);
 		}
@@ -78,7 +78,7 @@ public class PlayerMoveListener implements Listener {
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
 		if (event.getNewGameMode() == GameMode.SPECTATOR) {
-			viewingHandler.hideViewSession(event.getPlayer());
+			viewHandler.hideViewSession(event.getPlayer());
 		}
 	}
 }

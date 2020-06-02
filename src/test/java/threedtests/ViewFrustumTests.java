@@ -6,7 +6,7 @@ import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ViewingFrustumTests {
+public class ViewFrustumTests {
 
 	@Test
 	public void pointInRect() {

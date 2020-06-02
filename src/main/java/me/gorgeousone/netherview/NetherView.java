@@ -9,7 +9,7 @@ import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
-import me.gorgeousone.netherview.handlers.ViewingHandler;
+import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
@@ -46,7 +46,7 @@ public final class NetherView extends JavaPlugin {
 	private Material portalMaterial;
 	
 	private PortalHandler portalHandler;
-	private ViewingHandler viewingHandler;
+	private ViewHandler viewHandler;
 	
 	private Set<UUID> worldsWithPortalViewing;
 	
@@ -69,7 +69,7 @@ public final class NetherView extends JavaPlugin {
 		PortalLocator.configureVersion(portalMaterial);
 		
 		portalHandler = new PortalHandler(this);
-		viewingHandler = new ViewingHandler(this, portalHandler);
+		viewHandler = new ViewHandler(this, portalHandler);
 		
 		//do not register listeners or commands before creating handlers
 		registerListeners();
@@ -92,7 +92,7 @@ public final class NetherView extends JavaPlugin {
 	public void onDisable() {
 		
 		savePortalsToConfig();
-		viewingHandler.reset();
+		viewHandler.reset();
 		portalHandler.reset();
 	}
 	
@@ -163,8 +163,8 @@ public final class NetherView extends JavaPlugin {
 		
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler), this);
-		manager.registerEvents(new PlayerMoveListener(this, viewingHandler), this);
-		manager.registerEvents(new BlockListener(this, portalHandler, viewingHandler, portalMaterial), this);
+		manager.registerEvents(new PlayerMoveListener(this, viewHandler), this);
+		manager.registerEvents(new BlockListener(this, portalHandler, viewHandler, portalMaterial), this);
 	}
 	
 	private void loadConfigData() {

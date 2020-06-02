@@ -5,13 +5,13 @@ import me.gorgeousone.netherview.threedstuff.Line;
 import me.gorgeousone.netherview.threedstuff.Plane;
 import org.bukkit.util.Vector;
 
-public class ViewingFrustum {
+public class ViewFrustum {
 	
 	private Vector viewPoint;
 	private AxisAlignedRect nearPlaneRect;
 	private AxisAlignedRect farPlaneRect;
 	
-	public ViewingFrustum(Vector viewPoint, AxisAlignedRect nearPlane, double frustumLength) {
+	public ViewFrustum(Vector viewPoint, AxisAlignedRect nearPlane, double frustumLength) {
 		
 		this.viewPoint = viewPoint;
 		this.nearPlaneRect = nearPlane;

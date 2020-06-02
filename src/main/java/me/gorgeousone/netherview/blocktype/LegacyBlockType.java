@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview.blocktype;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
+import me.gorgeousone.netherview.blocktype.rotation.RotationUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -8,6 +9,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.material.Directional;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.Mushroom;
+import org.bukkit.material.Rails;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class LegacyBlockType extends BlockType {
 	
 	private MaterialData materialData;
@@ -54,6 +57,12 @@ public class LegacyBlockType extends BlockType {
 			
 			directional.setFacingDirection(RotationUtils.getRotatedFace(facing, quarterTurns));
 			
+		} else if (materialData instanceof Rails) {
+			
+			Rails rails = (Rails) materialData;
+			BlockFace facing = rails.getDirection();
+			rails.setDirection(RotationUtils.getRotatedFace(facing, quarterTurns), rails.isOnSlope());
+			
 		} else if (materialData instanceof Mushroom) {
 			
 			Mushroom mushroom = (Mushroom) materialData;
@@ -68,7 +77,6 @@ public class LegacyBlockType extends BlockType {
 			}
 		}
 		
-		//TODO find out if other blocks need to be rotated with their byte data
 		return this;
 	}
 	
