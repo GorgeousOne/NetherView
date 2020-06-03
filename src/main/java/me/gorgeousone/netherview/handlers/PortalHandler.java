@@ -278,8 +278,10 @@ public class PortalHandler {
 				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Un-linking " + portalsLinkedToPortals.get(portal).size() + " portal projections.");
 			}
 			
+			//don't use unlink() because that will create a CurrentModificationException
 			for (Portal linkedPortal : portalsLinkedToPortals.get(portal)) {
-				linkedPortal.removeLink();
+				unregisterProjectionCachesOf(linkedPortal);
+				portal.removeLink();
 			}
 			
 			portalsLinkedToPortals.remove(portal);
@@ -302,7 +304,6 @@ public class PortalHandler {
 		portal.removeLink();
 	}
 	
-	
 	/**
 	 * Removes the block caches of the passed portal and any projection caches referring to them.
 	 */
@@ -310,13 +311,15 @@ public class PortalHandler {
 		
 		if (portal.blockCachesAreLoaded()) {
 			
-			for (Portal linkedPortal : portalsLinkedToPortals.get(portal)) {
-				unregisterProjectionCachesOf(linkedPortal);
-			}
-			
 			linkedProjections.remove(portal.getFrontCache());
 			linkedProjections.remove(portal.getBackCache());
 			portal.removeBlockCaches();
+			
+			if (portalsLinkedToPortals.containsKey(portal)) {
+				for (Portal linkedPortal : portalsLinkedToPortals.get(portal)) {
+					unregisterProjectionCachesOf(linkedPortal);
+				}
+			}
 		}
 	}
 	
@@ -496,7 +499,6 @@ public class PortalHandler {
 			@Override
 			public void run() {
 				
-				System.out.println("--check");
 				Iterator<Map.Entry<Portal, Long>> entries = recentlyViewedPortals.entrySet().iterator();
 				long now = System.currentTimeMillis();
 				
@@ -533,7 +535,7 @@ public class PortalHandler {
 			}
 		};
 		
-		expirationTimer.runTaskTimerAsynchronously(main, ticksTillNextMinute(), 20);
+		expirationTimer.runTaskTimerAsynchronously(main, ticksTillNextMinute(), 10 * 20);
 	}
 	
 	private long ticksTillNextMinute() {

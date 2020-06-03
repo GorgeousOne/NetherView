@@ -354,12 +354,11 @@ public class ViewHandler {
 			
 			Map.Entry<UUID, Portal> playerView = iter.next();
 			
-			if (!affectedPortals.contains(playerView.getValue())) {
-				continue;
+			//call iter.remove() first because otherwise hideViewSession() will create ConcurrentModificationException
+			if (affectedPortals.contains(playerView.getValue())) {
+				iter.remove();
+				hideViewSession(Bukkit.getPlayer(playerView.getKey()));
 			}
-			
-			iter.remove();
-			hideViewSession(Bukkit.getPlayer(playerView.getKey()));
 		}
 	}
 }
