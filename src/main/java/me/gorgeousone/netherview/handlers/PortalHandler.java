@@ -37,8 +37,7 @@ public class PortalHandler {
 	private NetherView main;
 	
 	private Map<UUID, Set<Portal>> worldsWithPortals;
-	private Map<Portal, Set<Portal>> portalsLinkedToPortals;
-	private Map<BlockCache, Set<ProjectionCache>> linkedProjections;
+//	private Map<Portal, Set<Portal>> linkedProjectionPortals;
 	
 	private BukkitRunnable expirationTimer;
 	private long cacheExpirationDuration;
@@ -49,8 +48,6 @@ public class PortalHandler {
 		this.main = main;
 		
 		worldsWithPortals = new HashMap<>();
-		portalsLinkedToPortals = new HashMap<>();
-		linkedProjections = new HashMap<>();
 		
 		recentlyViewedPortals = new HashMap<>();
 		cacheExpirationDuration = Duration.ofMinutes(10).toMillis();
@@ -59,8 +56,6 @@ public class PortalHandler {
 	public void reset() {
 		
 		worldsWithPortals.clear();
-		portalsLinkedToPortals.clear();
-		linkedProjections.clear();
 		recentlyViewedPortals.clear();
 	}
 	
@@ -157,7 +152,23 @@ public class PortalHandler {
 	 * Returns a Set of all portals connected with their projections to the passed portal. Returns an empty set if none was found.
 	 */
 	public Set<Portal> getPortalsLinkedTo(Portal portal) {
-		return new HashSet<>(portalsLinkedToPortals.getOrDefault(portal, new HashSet<>()));
+		
+		Set<Portal> linkedToPortals = new HashSet<>();
+		
+		for (UUID worldID : worldsWithPortals.keySet()) {
+			for (Portal secondPortal : worldsWithPortals.get(worldID)) {
+				
+				if (secondPortal == portal) {
+					continue;
+				}
+				
+				if (secondPortal.isLinked() && secondPortal.getCounterPortal() == portal) {
+					linkedToPortals.add(secondPortal);
+				}
+			}
+		}
+		
+		return linkedToPortals;
 	}
 	
 	/**
@@ -183,7 +194,20 @@ public class PortalHandler {
 	 * Returns an empty Set if none were found.
 	 */
 	public Set<ProjectionCache> getProjectionsLinkedTo(BlockCache cache) {
-		return linkedProjections.getOrDefault(cache, new HashSet<>());
+		
+		Set<ProjectionCache> linkedToProjections = new HashSet<>();
+		Portal portal = cache.getPortal();
+		
+		boolean isFrontCache = portal.getFrontCache() == cache;
+		
+		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
+			
+			if (linkedPortal.projectionsAreLoaded()) {
+				linkedToProjections.add(isFrontCache ? linkedPortal.getBackProjection() : linkedPortal.getFrontProjection());
+			}
+		}
+		
+		return linkedToProjections;
 	}
 	
 	/**
@@ -233,19 +257,14 @@ public class PortalHandler {
 			loadBlockCachesOf(counterPortal);
 		}
 		
-		BlockCache cache1 = counterPortal.getFrontCache();
-		BlockCache cache2 = counterPortal.getBackCache();
+		BlockCache frontCache = counterPortal.getFrontCache();
+		BlockCache backCache = counterPortal.getBackCache();
 		
 		//the projections caches are switching positions because of the transform
-		ProjectionCache projection1 = new ProjectionCache(portal, cache2, linkTransform);
-		ProjectionCache projection2 = new ProjectionCache(portal, cache1, linkTransform);
-		portal.setProjectionCaches(new AbstractMap.SimpleEntry<>(projection1, projection2));
+		ProjectionCache frontProjection = new ProjectionCache(portal, backCache, linkTransform);
+		ProjectionCache backProjection = new ProjectionCache(portal, frontCache, linkTransform);
 		
-		linkedProjections.putIfAbsent(cache1, new HashSet<>());
-		linkedProjections.putIfAbsent(cache2, new HashSet<>());
-		linkedProjections.get(cache1).add(projection2);
-		linkedProjections.get(cache2).add(projection1);
-		
+		portal.setProjectionCaches(new AbstractMap.SimpleEntry<>(frontProjection, backProjection));
 		addPortalToExpirationTimer(portal);
 	}
 	
@@ -267,78 +286,21 @@ public class PortalHandler {
 	 */
 	public void removePortal(Portal portal) {
 		
+		Set<Portal> linkedToPortals = getPortalsLinkedTo(portal);
+		
 		if (main.debugMessagesEnabled()) {
 			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Removing portal at " + portal.toString());
+			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Un-linking " + linkedToPortals.size() + " portal projections.");
 		}
 		
-		//unlink other portals from this portal
-		if (portalsLinkedToPortals.containsKey(portal)) {
-			
-			if (main.debugMessagesEnabled()) {
-				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Un-linking " + portalsLinkedToPortals.get(portal).size() + " portal projections.");
-			}
-			
-			//don't use unlink() because that will create a CurrentModificationException
-			for (Portal linkedPortal : portalsLinkedToPortals.get(portal)) {
-				unregisterProjectionCachesOf(linkedPortal);
-				portal.removeLink();
-			}
-			
-			portalsLinkedToPortals.remove(portal);
+		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
+			linkedPortal.removeLink();
 		}
 		
-		unlinkPortal(portal);
-		unregisterBlockCachesOf(portal);
+		portal.removeLink();
 		
 		recentlyViewedPortals.remove(portal);
 		getPortals(portal.getWorld()).remove(portal);
-	}
-	
-	/**
-	 * Removes the linked portal from the passed portal and unregisters it's projection caches
-	 */
-	public void unlinkPortal(Portal portal) {
-		
-		unregisterProjectionCachesOf(portal);
-		portalsLinkedToPortals.get(portal.getCounterPortal()).remove(portal);
-		portal.removeLink();
-	}
-	
-	/**
-	 * Removes the block caches of the passed portal and any projection caches referring to them.
-	 */
-	private void unregisterBlockCachesOf(Portal portal) {
-		
-		if (portal.blockCachesAreLoaded()) {
-			
-			linkedProjections.remove(portal.getFrontCache());
-			linkedProjections.remove(portal.getBackCache());
-			portal.removeBlockCaches();
-			
-			if (portalsLinkedToPortals.containsKey(portal)) {
-				for (Portal linkedPortal : portalsLinkedToPortals.get(portal)) {
-					unregisterProjectionCachesOf(linkedPortal);
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Removes the projection caches of the passed portal and takes care of removing places where they are referenced
-	 */
-	private void unregisterProjectionCachesOf(Portal portal) {
-		
-		if (portal.isLinked() && portal.projectionsAreLoaded()) {
-			
-			Portal counterPortal = portal.getCounterPortal();
-			
-			if(counterPortal.blockCachesAreLoaded()) {
-				linkedProjections.get(counterPortal.getFrontCache()).remove(portal.getBackProjection());
-				linkedProjections.get(counterPortal.getBackCache()).remove(portal.getFrontProjection());
-			}
-			
-			portal.removeProjectionCaches();
-		}
 	}
 	
 	/**
@@ -358,8 +320,6 @@ public class PortalHandler {
 		}
 		
 		portal.setLinkedTo(counterPortal);
-		portalsLinkedToPortals.putIfAbsent(counterPortal, new HashSet<>());
-		portalsLinkedToPortals.get(counterPortal).add(portal);
 		
 		if (main.debugMessagesEnabled()) {
 			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Linked portal "
@@ -508,23 +468,12 @@ public class PortalHandler {
 					long timeSinceLastUse = now - entry.getValue();
 					Portal portal = entry.getKey();
 					
-					if (timeSinceLastUse < cacheExpirationDuration) {
-						continue;
-					}
-					
-					//remove projection caches if they weren't used for 10 minutes
-					unregisterProjectionCachesOf(portal);
-					
-					if (portal.blockCachesAreLoaded() && getProjectionsLinkedTo(portal.getFrontCache()).isEmpty()) {
-						unregisterBlockCachesOf(portal);
-					}
-					
-					if (!portal.projectionsAreLoaded() && !portal.blockCachesAreLoaded()) {
+					if (timeSinceLastUse > cacheExpirationDuration) {
+						portal.removeProjectionCaches();
+						portal.removeBlockCaches();
 						entries.remove();
 						
-						if (main.debugMessagesEnabled()) {
-							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Removed cached blocks of portal " + portal.toString());
-						}
+						Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Removed cached blocks of portal " + portal.toString());
 					}
 				}
 				

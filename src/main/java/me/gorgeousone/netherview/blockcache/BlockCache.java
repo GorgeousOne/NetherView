@@ -2,13 +2,14 @@ package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.FacingUtils;
 import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
 public class BlockCache {
 	
-	private World world;
+	private Portal portal;
 	private BlockType[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
@@ -16,9 +17,9 @@ public class BlockCache {
 	private Vector facing;
 	private BlockType borderType;
 	
-	public BlockCache(BlockVec offset, BlockType[][][] blockCopies, Vector facing, World world, BlockType borderType) {
+	public BlockCache(Portal portal, BlockVec offset, BlockType[][][] blockCopies, Vector facing, BlockType borderType) {
 		
-		this.world = world;
+		this.portal = portal;
 		this.blockCopies = blockCopies;
 		this.min = offset.clone();
 		this.max = offset.clone().add(sourceCacheSize());
@@ -31,8 +32,12 @@ public class BlockCache {
 		return new BlockVec(blockCopies.length, blockCopies[0].length, blockCopies[0][0].length);
 	}
 	
+	public Portal getPortal() {
+		return portal;
+	}
+	
 	public World getWorld() {
-		return world;
+		return portal.getWorld();
 	}
 	
 	public BlockVec getMin() {

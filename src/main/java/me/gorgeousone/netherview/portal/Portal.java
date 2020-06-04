@@ -32,6 +32,8 @@ public class Portal {
 	private Map.Entry<BlockCache, BlockCache> blockCaches;
 	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
 	
+	private boolean exists;
+	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
 	              Set<Block> portalBlocks,
@@ -47,6 +49,12 @@ public class Portal {
 		
 		this.min = min;
 		this.max = max;
+		
+		this.exists = true;
+	}
+	
+	public void remove() {
+		this.exists = false;
 	}
 	
 	public World getWorld() {
@@ -101,7 +109,20 @@ public class Portal {
 	}
 	
 	public boolean isLinked() {
-		return counterPortal != null;
+		
+		if (counterPortal == null)
+			return false;
+		
+		if (!counterPortal.exists()) {
+			removeLink();
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private boolean exists() {
+		return exists;
 	}
 	
 	public void setBlockCaches(Map.Entry<BlockCache, BlockCache> blockCaches) {
@@ -146,7 +167,7 @@ public class Portal {
 	
 	@Override
 	public String toString() {
-		return world.getName() + ", " + new BlockVec(getLocation()).toString();
+		return '[' + world.getName() + ", " + new BlockVec(getLocation()).toString() + ']';
 	}
 	
 	public String toWhiteString() {

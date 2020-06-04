@@ -20,6 +20,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -57,7 +58,12 @@ public class TeleportListener implements Listener {
 		}
 	}
 	
-	//I did not use the PlayerPortalEvent because it only give information about where the player should theoretically perfectly teleport to
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onEntityReappear(PlayerSpawnLocationEvent event) {
+		Bukkit.broadcastMessage(event.getSpawnLocation().getYaw() + " süawm");
+	}
+	
+		//I did not use the PlayerPortalEvent because it only give information about where the player should theoretically perfectly teleport to
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPortalTravel(PlayerTeleportEvent event) {
 		
@@ -75,11 +81,18 @@ public class TeleportListener implements Listener {
 		}
 	}
 	
+	/**
+	 * Locates and links two portals at the given locations.
+	 * @param traveller entity that will receive confirmation messages.
+	 * @return true if a new link between two portals has been created.
+	 */
 	private boolean createPortalView(Location from, Location to, Entity traveller) {
 		
 		if (from == null || to == null) {
 			return false;
 		}
+		
+		traveller.sendMessage("rotated " + traveller.getType().name() + " around " + getQuarterTurnsBetween(from, to));
 		
 		if (!main.canCreatePortalViews(from.getWorld())) {
 			
@@ -93,24 +106,25 @@ public class TeleportListener implements Listener {
 		
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null) {
+			
 			if (main.debugMessagesEnabled()) {
 				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] No portal found at starting point " + new BlockVec(from).toString());
 			}
 			return false;
 		}
 		
-		try {
-			Portal portal = portalHandler.getPortalByBlock(portalBlock);
-			
-			Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
-			
-			if (counterPortalBlock == null) {
-				if (main.debugMessagesEnabled()) {
-					Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] No portal found at destination point " + new BlockVec(to).toString());
-				}
-				return false;
+		Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
+		
+		if (counterPortalBlock == null) {
+			if (main.debugMessagesEnabled()) {
+				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] No portal found at destination point " + new BlockVec(to).toString());
 			}
+			return false;
+		}
+		
+		try {
 			
+			Portal portal = portalHandler.getPortalByBlock(portalBlock);
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
 			if (portal.getCounterPortal() == counterPortal) {
@@ -118,7 +132,7 @@ public class TeleportListener implements Listener {
 			}
 			
 			if (portal.isLinked()) {
-				portalHandler.unlinkPortal(portal);
+				portal.removeLink();
 				portalHandler.linkPortalTo(portal, counterPortal);
 				return false;
 			}
@@ -131,5 +145,13 @@ public class TeleportListener implements Listener {
 			traveller.sendMessage(e.getMessage());
 			return false;
 		}
+	}
+	
+	private int getQuarterTurnsBetween(Location from, Location to) {
+	
+		Bukkit.broadcastMessage(to.getYaw() + " - " +  from.getYaw());
+		float deltaYaw = to.getYaw() - from.getYaw();
+		
+		return (int) deltaYaw;
 	}
 }

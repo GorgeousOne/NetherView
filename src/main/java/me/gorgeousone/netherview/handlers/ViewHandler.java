@@ -325,22 +325,6 @@ public class ViewHandler {
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
 
-//	private void displayFrustum(Player player, ViewingFrustum frustum) {
-//
-//		try {
-//			AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-//			AxisAlignedRect farPlane = frustum.getFarPlaneRect();
-//			World world = player.getWorld();
-//
-//			player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-//			player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-//
-//			player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMin().toLocation(world), 0, 0, 0, 0);
-//			player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMax().toLocation(world), 0, 0, 0, 0);
-//
-//		} catch (Exception ignored) {}
-//	}
-	
 	/**
 	 * Removes a portal and related portal animations.
 	 */

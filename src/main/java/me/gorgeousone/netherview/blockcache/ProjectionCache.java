@@ -22,9 +22,11 @@ public class ProjectionCache {
 	
 	private int cacheLength;
 	
-	public ProjectionCache(Portal projectionPortal, BlockCache sourceCache, Transform blockTransform) {
+	public ProjectionCache(Portal projectedPortal, BlockCache sourceCache, Transform blockTransform) {
 		
-		this.portal = projectionPortal;
+		this.sourceCache = sourceCache;
+		
+		this.portal = projectedPortal;
 		this.blockTransform = blockTransform;
 		
 		createBlockCopies(sourceCache);
@@ -40,12 +42,12 @@ public class ProjectionCache {
 		return portal;
 	}
 	
-	public Transform getTransform() {
-		return blockTransform;
-	}
-	
 	public World getWorld() {
 		return portal.getWorld();
+	}
+	
+	public Transform getTransform() {
+		return blockTransform;
 	}
 	
 	public BlockVec getMin() {
@@ -169,5 +171,11 @@ public class ProjectionCache {
 		}
 		
 		return locsAroundCorner;
+	}
+	
+	private BlockCache sourceCache;
+	
+	public BlockCache getCache() {
+		return sourceCache;
 	}
 }
