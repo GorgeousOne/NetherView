@@ -152,17 +152,16 @@ public class ViewHandler {
 		
 		if (!portal.projectionsAreLoaded()) {
 			portalHandler.loadProjectionCachesOf(portal);
-		} else {
-			portalHandler.updateExpirationTime(portal);
 		}
+		
+		portalHandler.updateExpirationTime(portal);
+		portalHandler.updateExpirationTime(portal.getCounterPortal());
 		
 		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
 		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
 		
 		viewedPortals.put(player.getUniqueId(), portal);
 		viewedProjections.put(player.getUniqueId(), projection);
-		
-		//TODO refresh portal time stamp
 		
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
@@ -324,7 +323,7 @@ public class ViewHandler {
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
-
+	
 	/**
 	 * Removes a portal and related portal animations.
 	 */

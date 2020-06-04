@@ -24,8 +24,6 @@ public class ProjectionCache {
 	
 	public ProjectionCache(Portal projectedPortal, BlockCache sourceCache, Transform blockTransform) {
 		
-		this.sourceCache = sourceCache;
-		
 		this.portal = projectedPortal;
 		this.blockTransform = blockTransform;
 		
@@ -171,11 +169,5 @@ public class ProjectionCache {
 		}
 		
 		return locsAroundCorner;
-	}
-	
-	private BlockCache sourceCache;
-	
-	public BlockCache getCache() {
-		return sourceCache;
 	}
 }

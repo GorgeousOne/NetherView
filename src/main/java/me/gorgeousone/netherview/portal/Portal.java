@@ -110,8 +110,7 @@ public class Portal {
 	
 	public boolean isLinked() {
 		
-		if (counterPortal == null)
-			return false;
+		if (counterPortal == null) { return false; }
 		
 		if (!counterPortal.exists()) {
 			removeLink();

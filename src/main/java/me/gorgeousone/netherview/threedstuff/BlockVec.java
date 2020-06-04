@@ -151,8 +151,8 @@ public class BlockVec {
 		
 		//So I decided to remove the square brackets from the BlockVec string in v1.2.1
 		//but for migrating from an earlier plugin version I will have to leave this check in
-		if(coordinateString.startsWith("[")) {
-			coordinateString = coordinateString.substring(1, coordinateString.length()-1);
+		if (coordinateString.startsWith("[")) {
+			coordinateString = coordinateString.substring(1, coordinateString.length() - 1);
 		}
 		
 		String[] coordinates = coordinateString.split(",");

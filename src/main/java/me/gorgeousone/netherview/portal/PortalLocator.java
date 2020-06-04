@@ -55,6 +55,12 @@ public class PortalLocator {
 	
 	public static Portal locatePortalStructure(Block portalBlock) {
 		
+		//this only happens when some data read from the portal config is wrong
+		//that's why it is not a gray italic message
+		if (portalBlock.getType() != PORTAL_MATERIAL) {
+			throw new IllegalStateException("No portal block found at " + new BlockVec(portalBlock).toString());
+		}
+		
 		World world = portalBlock.getWorld();
 		AxisAlignedRect portalRect = getPortalRect(portalBlock);
 		
@@ -157,7 +163,7 @@ public class PortalLocator {
 							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Portal block expected at " + new BlockVec(x, y, z).toString());
 						}
 						
-						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal does not seem to form a rectangle...");
+						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is not rectangular.");
 					}
 				}
 			}

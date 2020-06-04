@@ -11,7 +11,6 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.material.Mushroom;
 import org.bukkit.material.Rails;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -139,6 +138,7 @@ public class LegacyBlockType extends BlockType {
 			"COBBLESTONE",
 			"WOOD",
 			"BEDROCK",
+			"LAVA",
 			"SAND",
 			"GRAVEL",
 			"GOLD_ORE",
@@ -173,6 +173,7 @@ public class LegacyBlockType extends BlockType {
 			"PUMPKIN",
 			"NETHERRACK",
 			"SOUL_SAND",
+			"GLOWSTONE",
 			"JACK_O_LANTERN",
 			"MONSTER_EGGS",
 			"SMOOTH_BRICK",
@@ -196,6 +197,7 @@ public class LegacyBlockType extends BlockType {
 			"SLIME_BLOCK",
 			"BARRIER",
 			"PRISMARINE",
+			"SEA_LANTERN",
 			"HAY_BLOCK",
 			"HARD_CLAY",
 			"COAL_BLOCK",

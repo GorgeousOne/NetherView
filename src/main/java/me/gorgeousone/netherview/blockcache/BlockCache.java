@@ -17,7 +17,11 @@ public class BlockCache {
 	private Vector facing;
 	private BlockType borderType;
 	
-	public BlockCache(Portal portal, BlockVec offset, BlockType[][][] blockCopies, Vector facing, BlockType borderType) {
+	public BlockCache(Portal portal,
+	                  BlockVec offset,
+	                  BlockType[][][] blockCopies,
+	                  Vector facing,
+	                  BlockType borderType) {
 		
 		this.portal = portal;
 		this.blockCopies = blockCopies;

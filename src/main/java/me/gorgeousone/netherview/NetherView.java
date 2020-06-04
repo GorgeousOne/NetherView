@@ -27,7 +27,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -187,7 +186,7 @@ public final class NetherView extends JavaPlugin {
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
 		
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages", false));
-	
+		
 		loadWorldBorderBlockTypes();
 		loadWorldsWithPortalViewing();
 		loadRegisteredPortals();
@@ -199,8 +198,8 @@ public final class NetherView extends JavaPlugin {
 			getConfig().addDefault("overworld-border", "stained_clay");
 			getConfig().addDefault("nether-border", "stained_clay:14");
 			getConfig().addDefault("end-border", "wool:15");
-		
-		}else {
+			
+		} else {
 			getConfig().addDefault("overworld-border", "white_terracotta");
 			getConfig().addDefault("nether-border", "red_concrete");
 			getConfig().addDefault("end-border", "black_concrete");
@@ -242,12 +241,12 @@ public final class NetherView extends JavaPlugin {
 		try {
 			worldBorder = BlockType.of(configValue);
 			
-		}catch (Exception e) {
+		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "'" + configValue + "' could not be interpreted as a block type. Using '" + defaultValue + "' instead.");
 			return BlockType.of(defaultValue);
 		}
 		
-		if(!worldBorder.isOccluding()) {
+		if (!worldBorder.isOccluding()) {
 			getLogger().log(Level.WARNING, "'" + configValue + "' is not an occluding block. Using '" + defaultValue + "' instead.");
 			return BlockType.of(defaultValue);
 		}

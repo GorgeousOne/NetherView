@@ -4,9 +4,6 @@ import com.comphenix.protocol.wrappers.WrappedBlockData;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.material.MaterialData;
-
-import java.lang.reflect.InvocationTargetException;
 
 public abstract class BlockType {
 	
@@ -37,6 +34,7 @@ public abstract class BlockType {
 	
 	/**
 	 * Rotates the BlockType if it is rotatable in the xz plane in any way
+	 *
 	 * @param quarterTurns count of 90° turns performed (between 0 and 3)
 	 */
 	public abstract BlockType rotate(int quarterTurns);

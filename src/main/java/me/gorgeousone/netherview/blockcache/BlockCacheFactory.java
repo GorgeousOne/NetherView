@@ -17,7 +17,9 @@ import java.util.Map;
 
 public class BlockCacheFactory {
 	
-	public static Map.Entry<BlockCache, BlockCache> createBlockCaches(Portal portal, int viewDist, BlockType cacheBorderBlockType) {
+	public static Map.Entry<BlockCache, BlockCache> createBlockCaches(Portal portal,
+	                                                                  int viewDist,
+	                                                                  BlockType cacheBorderBlockType) {
 		
 		//theoretically the view distance needs to be increased by 1 for the extra layer of border around the cuboid of blocks.
 		//but somehow it's 2. Don't ask me.

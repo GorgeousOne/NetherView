@@ -37,18 +37,16 @@ public class PortalHandler {
 	private NetherView main;
 	
 	private Map<UUID, Set<Portal>> worldsWithPortals;
-//	private Map<Portal, Set<Portal>> linkedProjectionPortals;
+	private Map<Portal, Long> recentlyViewedPortals;
 	
 	private BukkitRunnable expirationTimer;
 	private long cacheExpirationDuration;
-	private Map<Portal, Long> recentlyViewedPortals;
 	
 	public PortalHandler(NetherView main) {
 		
 		this.main = main;
 		
 		worldsWithPortals = new HashMap<>();
-		
 		recentlyViewedPortals = new HashMap<>();
 		cacheExpirationDuration = Duration.ofMinutes(10).toMillis();
 	}
@@ -383,7 +381,7 @@ public class PortalHandler {
 					addPortalStructure(worldWithPortals.getBlockAt(portalLoc.getX(), portalLoc.getY(), portalLoc.getZ()));
 					
 				} catch (IllegalArgumentException | IllegalStateException e) {
-					main.getLogger().warning("Unable to load portal at " + worldWithPortals.getName() + ", " + serializedBlockVec + ": " + e.getMessage());
+					main.getLogger().warning("Unable to load portal at [" + worldWithPortals.getName() + ", " + serializedBlockVec + "]: " + e.getMessage());
 				}
 			}
 		}
