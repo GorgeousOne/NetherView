@@ -58,13 +58,6 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Returns the one projection cache a player is currently able to see in a portal animation.
-	 */
-	public ProjectionCache getViewedCache(Player player) {
-		return viewedProjections.get(player.getUniqueId());
-	}
-	
-	/**
 	 * Returns a Map of BlockTypes linked to their location that are currently displayed with fake blocks
 	 * to a player.
 	 */
@@ -159,17 +152,16 @@ public class ViewHandler {
 		
 		if (!portal.projectionsAreLoaded()) {
 			portalHandler.loadProjectionCachesOf(portal);
-		} else {
-			portalHandler.updateExpirationTime(portal);
 		}
+		
+		portalHandler.updateExpirationTime(portal);
+		portalHandler.updateExpirationTime(portal.getCounterPortal());
 		
 		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
 		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
 		
 		viewedPortals.put(player.getUniqueId(), portal);
 		viewedProjections.put(player.getUniqueId(), projection);
-		
-		//TODO refresh portal time stamp
 		
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
@@ -331,22 +323,6 @@ public class ViewHandler {
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
 	}
-
-//	private void displayFrustum(Player player, ViewingFrustum frustum) {
-//
-//		try {
-//			AxisAlignedRect nearPlane = frustum.getNearPlaneRect();
-//			AxisAlignedRect farPlane = frustum.getFarPlaneRect();
-//			World world = player.getWorld();
-//
-//			player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMin().toLocation(world), 0, 0, 0, 0);
-//			player.getWorld().spawnParticle(Particle.FLAME, nearPlane.getMax().toLocation(world), 0, 0, 0, 0);
-//
-//			player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMin().toLocation(world), 0, 0, 0, 0);
-//			player.getWorld().spawnParticle(Particle.FLAME, farPlane.getMax().toLocation(world), 0, 0, 0, 0);
-//
-//		} catch (Exception ignored) {}
-//	}
 	
 	/**
 	 * Removes a portal and related portal animations.
@@ -361,12 +337,11 @@ public class ViewHandler {
 			
 			Map.Entry<UUID, Portal> playerView = iter.next();
 			
-			if (!affectedPortals.contains(playerView.getValue())) {
-				continue;
+			//call iter.remove() first because otherwise hideViewSession() will create ConcurrentModificationException
+			if (affectedPortals.contains(playerView.getValue())) {
+				iter.remove();
+				hideViewSession(Bukkit.getPlayer(playerView.getKey()));
 			}
-			
-			iter.remove();
-			hideViewSession(Bukkit.getPlayer(playerView.getKey()));
 		}
 	}
 }

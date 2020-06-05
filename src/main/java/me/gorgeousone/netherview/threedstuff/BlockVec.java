@@ -138,16 +138,23 @@ public class BlockVec {
 	
 	@Override
 	public String toString() {
-		return "[" + "x=" + x + ",y=" + y + ",z=" + z + "]";
+		return "x=" + x + ",y=" + y + ",z=" + z;
 	}
 	
 	public static BlockVec fromString(String serialized) {
 		
-		if (serialized.length() < 13) {
+		if (serialized.length() < 11) {
 			throw new IllegalArgumentException("Cannot deserialize BlockVec from string " + serialized + ": String is too short.");
 		}
 		
-		String coordinateString = serialized.substring(1, serialized.length() - 1);
+		String coordinateString = serialized;
+		
+		//So I decided to remove the square brackets from the BlockVec string in v1.2.1
+		//but for migrating from an earlier plugin version I will have to leave this check in
+		if (coordinateString.startsWith("[")) {
+			coordinateString = coordinateString.substring(1, coordinateString.length() - 1);
+		}
+		
 		String[] coordinates = coordinateString.split(",");
 		
 		if (coordinates.length != 3) {

@@ -38,6 +38,25 @@ public class LegacyBlockType extends BlockType {
 		materialData = data.clone();
 	}
 	
+	public LegacyBlockType(String serialized) {
+		
+		Material material;
+		byte data = 0;
+		
+		if (serialized.contains(":")) {
+			
+			String[] fullData = serialized.split(":");
+			
+			material = Material.valueOf(fullData[0].toUpperCase());
+			data = Byte.parseByte(fullData[1]);
+			
+		} else {
+			material = Material.valueOf(serialized.toUpperCase());
+		}
+		
+		materialData = new MaterialData(material, data);
+	}
+	
 	@Override
 	public BlockType rotate(int quarterTurns) {
 		
@@ -119,6 +138,7 @@ public class LegacyBlockType extends BlockType {
 			"COBBLESTONE",
 			"WOOD",
 			"BEDROCK",
+			"LAVA",
 			"SAND",
 			"GRAVEL",
 			"GOLD_ORE",
@@ -153,6 +173,7 @@ public class LegacyBlockType extends BlockType {
 			"PUMPKIN",
 			"NETHERRACK",
 			"SOUL_SAND",
+			"GLOWSTONE",
 			"JACK_O_LANTERN",
 			"MONSTER_EGGS",
 			"SMOOTH_BRICK",
@@ -176,6 +197,7 @@ public class LegacyBlockType extends BlockType {
 			"SLIME_BLOCK",
 			"BARRIER",
 			"PRISMARINE",
+			"SEA_LANTERN",
 			"HAY_BLOCK",
 			"HARD_CLAY",
 			"COAL_BLOCK",

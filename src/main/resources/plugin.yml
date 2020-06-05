@@ -12,9 +12,9 @@ commands:
 
 permissions:
   netherview.viewportals:
-    default: op
+    default: true
   netherview.linkportals:
-    default: op
+    default: true
   netherview.reload:
     default: op
   netherview.info:

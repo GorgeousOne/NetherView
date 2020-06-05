@@ -17,7 +17,9 @@ import java.util.Map;
 
 public class BlockCacheFactory {
 	
-	public static Map.Entry<BlockCache, BlockCache> createBlockCaches(Portal portal, int viewDist) {
+	public static Map.Entry<BlockCache, BlockCache> createBlockCaches(Portal portal,
+	                                                                  int viewDist,
+	                                                                  BlockType cacheBorderBlockType) {
 		
 		//theoretically the view distance needs to be increased by 1 for the extra layer of border around the cuboid of blocks.
 		//but somehow it's 2. Don't ask me.
@@ -40,26 +42,30 @@ public class BlockCacheFactory {
 		cacheCorner2.add(new Vector(0, verticalViewDist, 0));
 		cacheCorner2.add(widthFacing.clone().multiply(horizontalViewDist));
 		
+		//TODO pass parameters more efficient?
 		BlockCache front = copyBlocksInBounds(
+				portal,
 				cacheCorner1.clone().add(portalFacing),
 				cacheCorner2.clone().add(portalFacing.clone().multiply(frontViewDist)),
-				portal.getWorld(),
-				portalFacing);
+				portalFacing,
+				cacheBorderBlockType);
 		
 		BlockCache back = copyBlocksInBounds(
+				portal,
 				cacheCorner1.clone().subtract(portalFacing.clone().multiply(frontViewDist - 1)),
 				cacheCorner2,
-				portal.getWorld(),
-				portalFacing.clone().multiply(-1));
+				portalFacing.clone().multiply(-1),
+				cacheBorderBlockType);
 		
 		return new AbstractMap.SimpleEntry<>(front, back);
 	}
 	
-	//TODO check if this can be rewritten so the blocks are copied into an already existing empty BlockCache?
-	private static BlockCache copyBlocksInBounds(Vector cacheCorner1,
+	//TODO rather copy the blocs into an empty BlockCache?
+	private static BlockCache copyBlocksInBounds(Portal portal,
+	                                             Vector cacheCorner1,
 	                                             Vector cacheCorner2,
-	                                             World cacheWorld,
-	                                             Vector cacheFacing) {
+	                                             Vector cacheFacing,
+	                                             BlockType cacheBorderBlockType) {
 		
 		Vector cacheMin = Vector.getMinimum(cacheCorner1, cacheCorner2);
 		Vector cacheMax = Vector.getMaximum(cacheCorner1, cacheCorner2);
@@ -76,7 +82,7 @@ public class BlockCacheFactory {
 		}
 		
 		BlockType[][][] copiedBlocks = new BlockType[maxX - minX][maxY - minY][maxZ - minZ];
-		BlockType cacheBorderBlock = getCacheBorderBlock(cacheWorld);
+		World cacheWorld = portal.getWorld();
 		
 		for (int x = minX; x < maxX; x++) {
 			for (int y = minY; y < maxY; y++) {
@@ -92,7 +98,7 @@ public class BlockCacheFactory {
 					
 					//make sure that the cache border onl consists of occluding blocks
 					if (!blockType.isOccluding() && isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing)) {
-						blockType = cacheBorderBlock.clone();
+						blockType = cacheBorderBlockType.clone();
 					}
 					
 					copiedBlocks[x - minX][y - minY][z - minZ] = blockType;
@@ -100,7 +106,7 @@ public class BlockCacheFactory {
 			}
 		}
 		
-		return new BlockCache(new BlockVec(cacheMin), copiedBlocks, cacheFacing, cacheWorld, cacheBorderBlock);
+		return new BlockCache(portal, new BlockVec(cacheMin), copiedBlocks, cacheFacing, cacheBorderBlockType);
 	}
 	
 	/**
@@ -233,19 +239,5 @@ public class BlockCacheFactory {
 		}
 		
 		return false;
-	}
-	
-	private static BlockType getCacheBorderBlock(World world) {
-		
-		switch (world.getEnvironment()) {
-			case NORMAL:
-				return BlockType.match("WHITE_TERRACOTTA", "STAINED_CLAY", (byte) 0);
-			case NETHER:
-				return BlockType.match("RED_CONCRETE", "STAINED_CLAY", (byte) 14);
-			case THE_END:
-				return BlockType.match("BLACK_CONCRETE", "STAINED_CLAY", (byte) 11);
-			default:
-				return null;
-		}
 	}
 }

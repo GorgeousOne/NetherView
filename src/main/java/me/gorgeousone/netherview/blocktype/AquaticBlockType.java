@@ -42,6 +42,10 @@ public class AquaticBlockType extends BlockType {
 		blockData = data.clone();
 	}
 	
+	public AquaticBlockType(String serialized) {
+		blockData = Material.valueOf(serialized.toUpperCase()).createBlockData();
+	}
+	
 	@Override
 	public BlockType rotate(int quarterTurns) {
 		

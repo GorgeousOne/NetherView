@@ -27,6 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +58,8 @@ public final class NetherView extends JavaPlugin {
 	private boolean cancelTeleportWhenLinking;
 	private boolean debugMessagesEnabled;
 	
+	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
+	
 	@Override
 	public void onEnable() {
 		
@@ -76,7 +79,7 @@ public final class NetherView extends JavaPlugin {
 		registerCommands();
 		
 		loadConfigData();
-		loadPortalsFromConfig();
+		
 		checkForUpdates();
 	}
 	
@@ -84,7 +87,6 @@ public final class NetherView extends JavaPlugin {
 		
 		onDisable();
 		loadConfigData();
-		loadPortalsFromConfig();
 		checkForUpdates();
 	}
 	
@@ -114,6 +116,10 @@ public final class NetherView extends JavaPlugin {
 	
 	public boolean canCreatePortalViews(World world) {
 		return worldsWithPortalViewing.contains(world.getUID());
+	}
+	
+	public BlockType getWorldBorderBlockType(World.Environment environment) {
+		return worldBorderBlockTypes.get(environment);
 	}
 	
 	public boolean debugMessagesEnabled() {
@@ -171,12 +177,36 @@ public final class NetherView extends JavaPlugin {
 		
 		reloadConfig();
 		getConfig().options().copyDefaults(true);
+		addVersionDependentDefaults();
 		saveConfig();
 		
 		portalProjectionDist = getConfig().getInt("portal-projection-view-distance", 8);
 		portalDisplayRangeSquared = (int) Math.pow(getConfig().getInt("portal-display-range", 32), 2);
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
+		
+		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages", false));
+		
+		loadWorldBorderBlockTypes();
+		loadWorldsWithPortalViewing();
+		loadRegisteredPortals();
+	}
+	
+	private void addVersionDependentDefaults() {
+		
+		if (isLegacyServer) {
+			getConfig().addDefault("overworld-border", "stained_clay");
+			getConfig().addDefault("nether-border", "stained_clay:14");
+			getConfig().addDefault("end-border", "wool:15");
+			
+		} else {
+			getConfig().addDefault("overworld-border", "white_terracotta");
+			getConfig().addDefault("nether-border", "red_concrete");
+			getConfig().addDefault("end-border", "black_concrete");
+		}
+	}
+	
+	private void loadWorldsWithPortalViewing() {
 		
 		worldsWithPortalViewing = new HashSet<>();
 		
@@ -186,16 +216,45 @@ public final class NetherView extends JavaPlugin {
 			World world = Bukkit.getWorld(worldName);
 			
 			if (world == null) {
-				getLogger().log(Level.WARNING, "Could not find world " + worldName + ".");
+				getLogger().log(Level.WARNING, "World " + worldName + " could be found.");
 			} else {
 				worldsWithPortalViewing.add(world.getUID());
 			}
 		}
-		
-		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages", false));
 	}
 	
-	private void loadPortalsFromConfig() {
+	private void loadWorldBorderBlockTypes() {
+		
+		worldBorderBlockTypes = new HashMap<>();
+		worldBorderBlockTypes.put(World.Environment.NORMAL, deserializeWorldBorderBlockType("overworld-border"));
+		worldBorderBlockTypes.put(World.Environment.NETHER, deserializeWorldBorderBlockType("nether-border"));
+		worldBorderBlockTypes.put(World.Environment.THE_END, deserializeWorldBorderBlockType("end-border"));
+	}
+	
+	private BlockType deserializeWorldBorderBlockType(String configPath) {
+		
+		String configValue = getConfig().getString(configPath);
+		String defaultValue = getConfig().getDefaults().getString(configPath);
+		
+		BlockType worldBorder;
+		
+		try {
+			worldBorder = BlockType.of(configValue);
+			
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "'" + configValue + "' could not be interpreted as a block type. Using '" + defaultValue + "' instead.");
+			return BlockType.of(defaultValue);
+		}
+		
+		if (!worldBorder.isOccluding()) {
+			getLogger().log(Level.WARNING, "'" + configValue + "' is not an occluding block. Using '" + defaultValue + "' instead.");
+			return BlockType.of(defaultValue);
+		}
+		
+		return worldBorder;
+	}
+	
+	private void loadRegisteredPortals() {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
 		
