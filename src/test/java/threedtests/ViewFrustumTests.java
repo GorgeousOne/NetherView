@@ -2,9 +2,14 @@ package threedtests;
 
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustum;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class ViewFrustumTests {
 
@@ -18,6 +23,35 @@ public class ViewFrustumTests {
 		
 		Assertions.assertTrue(rect.contains(containedPoint));
 		Assertions.assertFalse(rect.contains(notContainedPoint));
+	}
+	
+	@Test
+	public void allBlockLocsInFrustum() {
+		
+		AxisAlignedRect nearPlane = new AxisAlignedRect(Axis.X, new Vector(-1, -1, 0), 2, 2);
+		ViewFrustum frustum = new ViewFrustum(new Vector(0, 0, -1), nearPlane, 2);
+		
+		Set<BlockVec> locsIteratedManually = new HashSet<>();
+		
+		for (int x = -10; x <= 10; x++) {
+			for (int y = -10; y <= 10; y++) {
+				for (int z = -1; z <= frustum.getLength(); z++) {
+					
+					BlockVec blockLoc = new BlockVec(x, y, z);
+					
+					if (frustum.contains(blockLoc.toVector())) {
+						locsIteratedManually.add(blockLoc);
+						
+						if(y == 0)
+							System.out.println(blockLoc);
+					}
+				}
+			}
+		}
+		
+		Set<BlockVec> locsCreatedEfficiently = frustum.getContainedBlockLocs();
+		
+		System.out.println(locsCreatedEfficiently.size() + " auto");
 	}
 	
 //	@Test

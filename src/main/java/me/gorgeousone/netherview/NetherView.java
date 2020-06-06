@@ -74,12 +74,11 @@ public final class NetherView extends JavaPlugin {
 		portalHandler = new PortalHandler(this);
 		viewHandler = new ViewHandler(this, portalHandler);
 		
-		//do not register listeners or commands before creating handlers
+		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
 		registerCommands();
 		
 		loadConfigData();
-		
 		checkForUpdates();
 	}
 	
