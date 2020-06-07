@@ -5,6 +5,7 @@ import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,16 +71,22 @@ public class ProjectionCache {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
-	public BlockType getBlockTypeAt(BlockVec loc) {
+	public boolean contains(int x, int y, int z) {
+		return x >= min.getX() && x < max.getX() &&
+		       y >= min.getY() && y < max.getY() &&
+		       z >= min.getZ() && z < max.getZ();
+	}
+	
+	public BlockType getBlockTypeAt(int x, int y, int z) {
 		
-		if (!contains(loc)) {
+		if (!contains(x, y, z)) {
 			return null;
 		}
 		
 		return blockCopies
-				[loc.getX() - min.getX()]
-				[loc.getY() - min.getY()]
-				[loc.getZ() - min.getZ()];
+				[x - min.getX()]
+				[y - min.getY()]
+				[z - min.getZ()];
 	}
 	
 	public void setBlockTypeAt(BlockVec blockPos, BlockType newBlockData) {
@@ -90,20 +97,62 @@ public class ProjectionCache {
 				[blockPos.getZ() - min.getZ()] = newBlockData;
 	}
 	
-	public Map<BlockVec, BlockType> getBlockTypesAround(BlockVec blockCorner) {
+	public Map<BlockVec, BlockType> getBlockTypesAround(int x, int y, int z) {
 		
 		Map<BlockVec, BlockType> blocksAroundCorner = new HashMap<>();
 		
-		for (BlockVec blockPos : getAllCornerLocs(blockCorner)) {
+		for (BlockVec blockPos : getAllCornerLocs(x, y, z)) {
 			
 			if (!contains(blockPos)) {
 				continue;
 			}
 			
-			BlockType blockType = getBlockTypeAt(blockPos);
+			BlockType blockType = getBlockTypeAt(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 			
 			if (blockType != null) {
 				blocksAroundCorner.put(blockPos, blockType.clone());
+			}
+		}
+		
+		return blocksAroundCorner;
+	}
+	
+	public Map<BlockVec, BlockType> getBlocksAroundPositiveX(int x, int y, int z) {
+		
+		Map<BlockVec, BlockType> blocksAroundCorner = new HashMap<>();
+		
+		for (int dy = -1; dy <= 0; dy++) {
+			for (int dz = -1; dz <= 0; dz++) {
+				
+				int newY = y + dy;
+				int newZ = z + dz;
+				
+				BlockType blockType = getBlockTypeAt(x, newY, newZ);
+				
+				if (blockType != null) {
+					blocksAroundCorner.put(new BlockVec(x, newY, newZ), blockType);
+				}
+			}
+		}
+		
+		return blocksAroundCorner;
+	}
+	
+	public Map<BlockVec, BlockType> getBlocksAroundPositiveZ(int x, int y, int z) {
+		
+		Map<BlockVec, BlockType> blocksAroundCorner = new HashMap<>();
+		
+		for (int dy = -1; dy <= 0; dy++) {
+			for (int dx = -1; dx <= 0; dx++) {
+				
+				int newY = y + dy;
+				int newX = x + dx;
+				
+				BlockType blockType = getBlockTypeAt(newX, newY, z);
+				
+				if (blockType != null) {
+					blocksAroundCorner.put(new BlockVec(newX, newY, z), blockType);
+				}
 			}
 		}
 		
@@ -153,17 +202,18 @@ public class ProjectionCache {
 		}
 	}
 	
-	private Set<BlockVec> getAllCornerLocs(BlockVec blockCorner) {
+	private Set<BlockVec> getAllCornerLocs(int x, int y, int z) {
 		
 		Set<BlockVec> locsAroundCorner = new HashSet<>();
 		
 		for (int dx = -1; dx <= 0; dx++) {
 			for (int dy = -1; dy <= 0; dy++) {
 				for (int dz = -1; dz <= 0; dz++) {
+					
 					locsAroundCorner.add(new BlockVec(
-							blockCorner.getX() + dx,
-							blockCorner.getY() + dy,
-							blockCorner.getZ() + dz));
+							x + dx,
+							y + dy,
+							z + dz));
 				}
 			}
 		}

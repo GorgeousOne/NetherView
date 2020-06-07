@@ -1,13 +1,18 @@
 package me.gorgeousone.netherview.threedstuff.viewfrustum;
 
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.Line;
 import me.gorgeousone.netherview.threedstuff.Plane;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class ViewFrustum {
@@ -102,9 +107,12 @@ public class ViewFrustum {
 	
 	/**
 	 * Iterates through the view frustum by iterating through the exact frustum shape and listing all locations contained by it.
+	 *
 	 * @return a Set of block locations in the frustum.
 	 */
-	public Set<BlockVec> getContainedBlockLocs() {
+	public Map<BlockVec, BlockType> getContainedBlockLocs(ProjectionCache cache) {
+		
+		long start0 = System.currentTimeMillis();
 		
 		AxisAlignedRect minLayer;
 		AxisAlignedRect maxLayer;
@@ -119,67 +127,51 @@ public class ViewFrustum {
 		}
 		
 		Vector iterationMax = maxLayer.getMax();
+		Vector currentLayerMin = minLayer.getMin();
 		Vector currentLayerMax = minLayer.getMax();
 		
 		Vector layerMinStep = maxLayer.getMin().subtract(minLayer.getMin()).multiply(1d / frustumLength);
 		Vector layerMaxStep = maxLayer.getMax().subtract(minLayer.getMax()).multiply(1d / frustumLength);
-	
-		Vector currentLayer = minLayer.getMin();
-		Vector currentColumn = currentLayer.clone();
-		Vector currentLoc = currentLayer.clone();
 		
-		Set<BlockVec> blockLocs= new HashSet<>();
+		Map<BlockVec, BlockType> blockLocs = new HashMap<>();
 		
-		while (true) {
+		if (nearPlaneRect.getAxis() == Axis.X) {
 			
-			blockLocs.add(new BlockVec(currentLoc));
+			long start = System.currentTimeMillis();
 			
-			if (currentLoc.getBlockY() + 1 <= currentLayerMax.getY()) {
-				currentLoc.setY(currentLoc.getY() + 1);
-				continue;
+			for (int z = currentLayerMin.getBlockZ(); z < iterationMax.getZ(); z++) {
+				for (int x = (int) Math.ceil(currentLayerMin.getX()); x < currentLayerMax.getX(); x++) {
+					for (int y = (int) Math.ceil(currentLayerMin.getY()); y < currentLayerMax.getY(); y++) {
+						
+						blockLocs.putAll(cache.getBlocksAroundPositiveZ(x, y, z));
+					}
+				}
+				
+				currentLayerMin.add(layerMinStep);
+				currentLayerMax.add(layerMaxStep);
 			}
+			System.out.println("auto time: " + (System.currentTimeMillis() - start) + " - found blocks: " + blockLocs.size() + " prep time: " + (start - start0));
 			
-			if (nearPlaneRect.getAxis() == Axis.X) {
-				
-				if (currentLoc.getBlockX() + 1 <= currentLayerMax.getX()) {
+		} else {
+			
+			long start = System.currentTimeMillis();
+			
+			for (int x = currentLayerMin.getBlockX(); x < iterationMax.getX(); x++) {
+				for (int z = (int) Math.ceil(currentLayerMin.getZ()); z < currentLayerMax.getZ(); z++) {
+					for (int y = (int) Math.ceil(currentLayerMin.getY()); y < currentLayerMax.getY(); y++) {
 					
-					currentColumn.setX(currentColumn.getX() + 1);
-					currentLoc = currentColumn.clone();
-					continue;
+						blockLocs.putAll(cache.getBlocksAroundPositiveX(x, y, z));
+					}
 				}
 				
-				if (currentLoc.getBlockZ() + 1 <= iterationMax.getZ()) {
-					
-					currentLayer.add(layerMinStep);
-					currentLayerMax.add(layerMaxStep);
-					
-					currentColumn = currentLayer.clone();
-					currentLoc = currentLayer.clone();
-					continue;
-				}
-				
-			} else {
-				
-				if (currentLoc.getBlockZ() + 1 <= currentLayerMax.getZ()) {
-					
-					currentColumn.setZ(currentColumn.getZ() + 1);
-					currentLoc = currentColumn.clone();
-					continue;
-				}
-				
-				if (currentLoc.getBlockX() + 1 <= iterationMax.getX()) {
-					
-					currentLayer.add(layerMinStep);
-					currentLayerMax.add(layerMaxStep);
-					
-					currentColumn = currentLayer.clone();
-					currentLoc = currentLayer.clone();
-					continue;
-				}
+				currentLayerMin.add(layerMinStep);
+				currentLayerMax.add(layerMaxStep);
 			}
+			System.out.println("auto time: " + (System.currentTimeMillis() - start) + " - found blocks: " + blockLocs.size());
 			
-			return blockLocs;
 		}
+		
+		return blockLocs;
 	}
 	
 	public double getLength() {

@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
+import com.google.common.cache.CacheBuilder;
 import me.gorgeousone.netherview.DisplayUtils;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
@@ -180,22 +181,13 @@ public class ViewHandler {
 	
 	private Map<BlockVec, BlockType> getBlocksInFrustum2(ProjectionCache projection, ViewFrustum frustum) {
 		
-		long start = System.currentTimeMillis();
-		
-		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
-		
-		for (BlockVec blockVec : frustum.getContainedBlockLocs()) {
-			blocksInFrustum.putAll(projection.getBlockTypesAround(blockVec));
-		}
-		
-		System.out.println("auto time: " + (System.currentTimeMillis() - start));
+		Map<BlockVec, BlockType> blocksInFrustum = frustum.getContainedBlockLocs(projection);
 		return blocksInFrustum;
 	}
 	
 	
 	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewFrustum frustum) {
 		
-		long start = System.currentTimeMillis();
 		
 		BlockVec min = projection.getMin();
 		BlockVec max = projection.getMax();
@@ -230,21 +222,21 @@ public class ViewHandler {
 		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
+		System.out.println("----------------");
+		long start = System.currentTimeMillis();
+		
 		for (int x = min.getX(); x <= max.getX(); x++) {
 			for (int y = min.getY(); y <= max.getY(); y++) {
 				for (int z = min.getZ(); z <= max.getZ(); z++) {
 					
-					BlockVec blockPos = new BlockVec(x, y, z);
-					
-					if (frustum.contains(blockPos.toVector())) {
-						blocksInFrustum.putAll(projection.getBlockTypesAround(new BlockVec(x, y, z)));
+					if (frustum.contains(new Vector(x, y, z))) {
+						blocksInFrustum.putAll(projection.getBlockTypesAround(x, y, z));
 					}
 				}
 			}
 		}
 		
-		System.out.println("----------------");
-		System.out.println("manu time: " + (System.currentTimeMillis() - start));
+		System.out.println("manu time: " + (System.currentTimeMillis() - start) + " - found blocks: " + blocksInFrustum.size());
 		return blocksInFrustum;
 	}
 	

@@ -46,12 +46,12 @@ public class ViewFrustumTests {
 			}
 		}
 		
-		Set<BlockVec> locsCreatedEfficiently = frustum.getContainedBlockLocs();
-		Assertions.assertEquals(locsIteratedManually.size(), locsCreatedEfficiently.size());
-		
-		for (BlockVec vec : locsIteratedManually) {
-			Assertions.assertTrue(locsCreatedEfficiently.contains(vec));
-		}
+//		Set<BlockVec> locsCreatedEfficiently = frustum.getContainedBlockLocs();
+//		Assertions.assertEquals(locsIteratedManually.size(), locsCreatedEfficiently.size());
+//
+//		for (BlockVec vec : locsIteratedManually) {
+//			Assertions.assertTrue(locsCreatedEfficiently.contains(vec));
+//		}
 	}
 	
 //	@Test
