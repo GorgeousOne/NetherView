@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview.handlers;
 
-import com.google.common.cache.CacheBuilder;
 import me.gorgeousone.netherview.DisplayUtils;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
@@ -167,8 +166,7 @@ public class ViewHandler {
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
 		if (playerFrustum != null && displayFrustum) {
-			getBlocksInFrustum(projection, playerFrustum);
-			visibleBlocks.putAll(getBlocksInFrustum2(projection, playerFrustum));
+			visibleBlocks = playerFrustum.getContainedBlocks(projection);
 		}
 		
 		if (hidePortalBlocks) {
@@ -177,67 +175,6 @@ public class ViewHandler {
 		}
 		
 		displayBlocks(player, visibleBlocks);
-	}
-	
-	private Map<BlockVec, BlockType> getBlocksInFrustum2(ProjectionCache projection, ViewFrustum frustum) {
-		
-		Map<BlockVec, BlockType> blocksInFrustum = frustum.getContainedBlockLocs(projection);
-		return blocksInFrustum;
-	}
-	
-	
-	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewFrustum frustum) {
-		
-		
-		BlockVec min = projection.getMin();
-		BlockVec max = projection.getMax();
-		
-		AxisAlignedRect nearPlaneRect = frustum.getNearPlaneRect();
-		AxisAlignedRect farPlaneRect = frustum.getFarPlaneRect();
-		
-		if (farPlaneRect.getAxis() == Axis.X) {
-			
-			double newMinX = Math.min(nearPlaneRect.getMin().getX(), farPlaneRect.getMin().getX());
-			double newMaxX = Math.max(nearPlaneRect.getMax().getX(), farPlaneRect.getMax().getX());
-			
-			if (newMinX > min.getX()) {
-				min.setX((int) Math.floor(newMinX));
-			}
-			if (newMaxX < max.getX()) {
-				max.setX((int) Math.ceil(newMaxX));
-			}
-			
-		} else {
-			
-			double newMinZ = Math.min(nearPlaneRect.getMin().getZ(), farPlaneRect.getMin().getZ());
-			double newMaxZ = Math.max(nearPlaneRect.getMax().getZ(), farPlaneRect.getMax().getZ());
-			
-			if (newMinZ > min.getZ()) {
-				min.setZ((int) Math.floor(newMinZ));
-			}
-			if (newMaxZ < max.getZ()) {
-				max.setZ((int) Math.ceil(newMaxZ));
-			}
-		}
-		
-		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
-		
-		System.out.println("----------------");
-		long start = System.currentTimeMillis();
-		
-		for (int x = min.getX(); x <= max.getX(); x++) {
-			for (int y = min.getY(); y <= max.getY(); y++) {
-				for (int z = min.getZ(); z <= max.getZ(); z++) {
-					
-					if (frustum.contains(new Vector(x, y, z))) {
-						blocksInFrustum.putAll(projection.getBlockTypesAround(x, y, z));
-					}
-				}
-			}
-		}
-		
-		System.out.println("manu time: " + (System.currentTimeMillis() - start) + " - found blocks: " + blocksInFrustum.size());
-		return blocksInFrustum;
 	}
 	
 	/**

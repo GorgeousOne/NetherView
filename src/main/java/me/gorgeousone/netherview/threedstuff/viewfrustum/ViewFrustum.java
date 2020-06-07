@@ -7,13 +7,10 @@ import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.Line;
 import me.gorgeousone.netherview.threedstuff.Plane;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class ViewFrustum {
 	
@@ -106,71 +103,91 @@ public class ViewFrustum {
 	}
 	
 	/**
-	 * Iterates through the view frustum by iterating through the exact frustum shape and listing all locations contained by it.
-	 *
-	 * @return a Set of block locations in the frustum.
+	 * Returns a map of all blocks from a projection cache visible in this frustum.
 	 */
-	public Map<BlockVec, BlockType> getContainedBlockLocs(ProjectionCache cache) {
+	public Map<BlockVec, BlockType> getContainedBlocks(ProjectionCache cache) {
 		
-		long start0 = System.currentTimeMillis();
-		
-		AxisAlignedRect minLayer;
-		AxisAlignedRect maxLayer;
+		AxisAlignedRect startLayer;
+		AxisAlignedRect endLayer;
 		
 		if (frustumFacing.getX() == -1 || frustumFacing.getZ() == -1) {
-			minLayer = farPlaneRect;
-			maxLayer = nearPlaneRect;
+			startLayer = farPlaneRect;
+			endLayer = nearPlaneRect;
 			
 		} else {
-			minLayer = nearPlaneRect;
-			maxLayer = farPlaneRect;
+			startLayer = nearPlaneRect;
+			endLayer = farPlaneRect;
 		}
 		
-		Vector iterationMax = maxLayer.getMax();
-		Vector currentLayerMin = minLayer.getMin();
-		Vector currentLayerMax = minLayer.getMax();
+		Vector iterationMaxPoint = endLayer.getMax();
+		Vector currentLayerMinPoint = startLayer.getMin();
+		Vector currentLayerMaxPoint = startLayer.getMax();
 		
-		Vector layerMinStep = maxLayer.getMin().subtract(minLayer.getMin()).multiply(1d / frustumLength);
-		Vector layerMaxStep = maxLayer.getMax().subtract(minLayer.getMax()).multiply(1d / frustumLength);
+		Vector layerMinPointStep = endLayer.getMin().subtract(startLayer.getMin()).multiply(1d / frustumLength);
+		Vector layerMaxPointStep = endLayer.getMax().subtract(startLayer.getMax()).multiply(1d / frustumLength);
 		
 		Map<BlockVec, BlockType> blockLocs = new HashMap<>();
 		
+		long start = System.currentTimeMillis();
+		
 		if (nearPlaneRect.getAxis() == Axis.X) {
 			
-			long start = System.currentTimeMillis();
-			
-			for (int z = currentLayerMin.getBlockZ(); z < iterationMax.getZ(); z++) {
-				for (int x = (int) Math.ceil(currentLayerMin.getX()); x < currentLayerMax.getX(); x++) {
-					for (int y = (int) Math.ceil(currentLayerMin.getY()); y < currentLayerMax.getY(); y++) {
+			for (int z = currentLayerMinPoint.getBlockZ(); z <= iterationMaxPoint.getZ(); z++) {
+				for (int x = (int) Math.floor(currentLayerMinPoint.getX()); x <= currentLayerMaxPoint.getX(); x++) {
+					for (int y = (int) Math.floor(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
 						
-						blockLocs.putAll(cache.getBlocksAroundPositiveZ(x, y, z));
+//						blockLocs.putAll(cache.getBlockTypesAround(x, y, z));
+						
+						BlockType blockType = cache.getBlockTypeAt(x, y, z);
+						BlockType blockInFront = cache.getBlockTypeAt(x, y, z-1);
+						BlockType blockBehind = cache.getBlockTypeAt(x, y, z+1);
+						
+						if (blockType != null) {
+							blockLocs.put(new BlockVec(x, y, z), blockType);
+						}
+						if (blockInFront != null) {
+							blockLocs.put(new BlockVec(x, y, z-1), blockInFront);
+						}
+						if (blockBehind != null) {
+							blockLocs.put(new BlockVec(x, y, z+1), blockBehind);
+						}
 					}
 				}
 				
-				currentLayerMin.add(layerMinStep);
-				currentLayerMax.add(layerMaxStep);
+				currentLayerMinPoint.add(layerMinPointStep);
+				currentLayerMaxPoint.add(layerMaxPointStep);
 			}
-			System.out.println("auto time: " + (System.currentTimeMillis() - start) + " - found blocks: " + blockLocs.size() + " prep time: " + (start - start0));
 			
 		} else {
 			
-			long start = System.currentTimeMillis();
-			
-			for (int x = currentLayerMin.getBlockX(); x < iterationMax.getX(); x++) {
-				for (int z = (int) Math.ceil(currentLayerMin.getZ()); z < currentLayerMax.getZ(); z++) {
-					for (int y = (int) Math.ceil(currentLayerMin.getY()); y < currentLayerMax.getY(); y++) {
-					
-						blockLocs.putAll(cache.getBlocksAroundPositiveX(x, y, z));
+			for (int x = currentLayerMinPoint.getBlockX(); x <= iterationMaxPoint.getX(); x++) {
+				for (int z = (int) Math.floor(currentLayerMinPoint.getZ()); z <= currentLayerMaxPoint.getZ(); z++) {
+					for (int y = (int) Math.floor(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
+						
+//						blockLocs.putAll(cache.getBlockTypesAround(x, y, z));
+
+						BlockType blockType = cache.getBlockTypeAt(x, y, z);
+						BlockType blockInFront = cache.getBlockTypeAt(x-1, y, z);
+						BlockType blockBehind = cache.getBlockTypeAt(x+1, y, z);
+						
+						if (blockType != null) {
+							blockLocs.put(new BlockVec(x, y, z), blockType);
+						}
+						if (blockInFront != null) {
+							blockLocs.put(new BlockVec(x-1, y, z), blockInFront);
+						}
+						if (blockBehind != null) {
+							blockLocs.put(new BlockVec(x+1, y, z), blockBehind);
+						}
 					}
 				}
 				
-				currentLayerMin.add(layerMinStep);
-				currentLayerMax.add(layerMaxStep);
+				currentLayerMinPoint.add(layerMinPointStep);
+				currentLayerMaxPoint.add(layerMaxPointStep);
 			}
-			System.out.println("auto time: " + (System.currentTimeMillis() - start) + " - found blocks: " + blockLocs.size());
-			
 		}
 		
+		System.out.println("time " + (System.currentTimeMillis() - start));
 		return blockLocs;
 	}
 	
