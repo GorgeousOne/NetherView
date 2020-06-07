@@ -166,7 +166,8 @@ public class ViewHandler {
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
 		if (playerFrustum != null && displayFrustum) {
-			visibleBlocks.putAll(getBlocksInFrustum(projection, playerFrustum));
+			getBlocksInFrustum(projection, playerFrustum);
+			visibleBlocks.putAll(getBlocksInFrustum2(projection, playerFrustum));
 		}
 		
 		if (hidePortalBlocks) {
@@ -177,7 +178,24 @@ public class ViewHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
+	private Map<BlockVec, BlockType> getBlocksInFrustum2(ProjectionCache projection, ViewFrustum frustum) {
+		
+		long start = System.currentTimeMillis();
+		
+		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
+		
+		for (BlockVec blockVec : frustum.getContainedBlockLocs()) {
+			blocksInFrustum.putAll(projection.getBlockTypesAround(blockVec));
+		}
+		
+		System.out.println("auto time: " + (System.currentTimeMillis() - start));
+		return blocksInFrustum;
+	}
+	
+	
 	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewFrustum frustum) {
+		
+		long start = System.currentTimeMillis();
 		
 		BlockVec min = projection.getMin();
 		BlockVec max = projection.getMax();
@@ -225,6 +243,8 @@ public class ViewHandler {
 			}
 		}
 		
+		System.out.println("----------------");
+		System.out.println("manu time: " + (System.currentTimeMillis() - start));
 		return blocksInFrustum;
 	}
 	

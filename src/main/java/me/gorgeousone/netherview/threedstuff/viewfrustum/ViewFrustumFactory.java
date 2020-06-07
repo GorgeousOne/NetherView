@@ -14,7 +14,7 @@ public final class ViewFrustumFactory {
 	/**
 	 * Returns a viewing frustum with a near plane precisely representing the area the player can see through the portal.
 	 */
-	public static ViewFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect, double frustumLength) {
+	public static ViewFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect, int frustumLength) {
 		
 		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);
 		
