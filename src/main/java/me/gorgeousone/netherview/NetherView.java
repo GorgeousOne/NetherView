@@ -303,7 +303,7 @@ public final class NetherView extends JavaPlugin {
 					}
 				}
 				
-				getLogger().info("A new version of NetherView is available: " + newVersion);
+				Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "A new version of NetherView is available: " + newVersion);
 				
 			} else if (versionResponse == VersionResponse.UNAVAILABLE) {
 				getLogger().info("Unable to check for new versions...");

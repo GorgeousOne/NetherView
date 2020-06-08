@@ -6,9 +6,6 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class ProjectionCache {
 	
 	private Portal portal;

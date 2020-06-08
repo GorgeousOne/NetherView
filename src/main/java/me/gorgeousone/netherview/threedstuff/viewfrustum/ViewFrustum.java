@@ -160,7 +160,11 @@ public class ViewFrustum {
 		return blocksInFrustum;
 	}
 	
-	private void addSurroundingBlocks(int x, int y, int z, ProjectionCache projection, Map<BlockVec, BlockType> blocksInFrustum) {
+	private void addSurroundingBlocks(int x,
+	                                  int y,
+	                                  int z,
+	                                  ProjectionCache projection,
+	                                  Map<BlockVec, BlockType> blocksInFrustum) {
 		
 		for (int dx = -1; dx <= 0; dx++) {
 			for (int dy = -1; dy <= 0; dy++) {

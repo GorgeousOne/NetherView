@@ -261,9 +261,9 @@ public class ViewHandler {
 		}
 		
 		iterator = blocksToDisplay.keySet().iterator();
-
+		
 		while (iterator.hasNext()) {
-
+			
 			if (viewSession.containsKey(iterator.next())) {
 				iterator.remove();
 			}
