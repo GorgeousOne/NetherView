@@ -244,8 +244,6 @@ public class ViewHandler {
 	 */
 	private void displayBlocks(Player player, Map<BlockVec, BlockType> blocksToDisplay) {
 		
-		long start = System.currentTimeMillis();
-		
 		Map<BlockVec, BlockType> viewSession = getViewSession(player);
 		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
 		Iterator<BlockVec> iterator = viewSession.keySet().iterator();
@@ -269,7 +267,6 @@ public class ViewHandler {
 			}
 		}
 		
-		System.out.println(System.currentTimeMillis() - start + " time");
 		viewSession.putAll(blocksToDisplay);
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
