@@ -7,6 +7,8 @@ import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.Line;
 import me.gorgeousone.netherview.threedstuff.Plane;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -133,24 +135,42 @@ public class ViewFrustum {
 		if (nearPlaneRect.getAxis() == Axis.X) {
 			
 			for (int z = currentLayerMinPoint.getBlockZ(); z <= iterationMaxPoint.getZ(); z++) {
-				for (int x = (int) Math.floor(currentLayerMinPoint.getX()); x <= currentLayerMaxPoint.getX(); x++) {
-					for (int y = (int) Math.floor(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
+				for (int x = (int) Math.ceil(currentLayerMinPoint.getX()); x <= currentLayerMaxPoint.getX(); x++) {
+					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
 						
-//						blockLocs.putAll(cache.getBlockTypesAround(x, y, z));
+						for (int dx = -1; dx <= 0; dx++) {
+							for (int dy = -1; dy <= 0; dy++) {
+								for (int dz = -1; dz <= 0; dz++) {
+									
+									BlockType blockType = cache.getBlockTypeAt(x + dx, y + dy, z + dz);
+									
+									if (blockType != null) {
+										blockLocs.put(new BlockVec(x + dx, y + dy, z + dz), blockType);
+									}
+								}
+							}
+						}
 						
-						BlockType blockType = cache.getBlockTypeAt(x, y, z);
-						BlockType blockInFront = cache.getBlockTypeAt(x, y, z-1);
-						BlockType blockBehind = cache.getBlockTypeAt(x, y, z+1);
-						
-						if (blockType != null) {
-							blockLocs.put(new BlockVec(x, y, z), blockType);
-						}
-						if (blockInFront != null) {
-							blockLocs.put(new BlockVec(x, y, z-1), blockInFront);
-						}
-						if (blockBehind != null) {
-							blockLocs.put(new BlockVec(x, y, z+1), blockBehind);
-						}
+//						BlockType blockType = cache.getBlockTypeAt(x, y, z);
+//						
+//						if (blockType != null) {
+//							blockLocs.put(new BlockVec(x, y, z), blockType);
+//						}
+//						
+//						if (x <= currentLayerMinPoint.getX() || x >= currentLayerMaxPoint.getX() ||
+//						    y <= currentLayerMinPoint.getY() || y >= currentLayerMaxPoint.getY()) {
+//							continue;
+//						}
+//						
+//						BlockType blockInFront = cache.getBlockTypeAt(x, y, z-1);
+//						BlockType blockBehind = cache.getBlockTypeAt(x, y, z+1);
+//						
+//						if (blockInFront != null) {
+//							blockLocs.put(new BlockVec(x, y, z-1), blockInFront);
+//						}
+//						if (blockBehind != null) {
+//							blockLocs.put(new BlockVec(x, y, z+1), blockBehind);
+//						}
 					}
 				}
 				
@@ -161,24 +181,44 @@ public class ViewFrustum {
 		} else {
 			
 			for (int x = currentLayerMinPoint.getBlockX(); x <= iterationMaxPoint.getX(); x++) {
-				for (int z = (int) Math.floor(currentLayerMinPoint.getZ()); z <= currentLayerMaxPoint.getZ(); z++) {
-					for (int y = (int) Math.floor(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
+				for (int z = (int) Math.ceil(currentLayerMinPoint.getZ()); z <= currentLayerMaxPoint.getZ(); z++) {
+					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
 						
-//						blockLocs.putAll(cache.getBlockTypesAround(x, y, z));
+						for (int dx = -1; dx <= 0; dx++) {
+							for (int dy = -1; dy <= 0; dy++) {
+								for (int dz = -1; dz <= 0; dz++) {
+									
+									BlockType blockType = cache.getBlockTypeAt(x + dx, y + dy, z + dz);
 
-						BlockType blockType = cache.getBlockTypeAt(x, y, z);
-						BlockType blockInFront = cache.getBlockTypeAt(x-1, y, z);
-						BlockType blockBehind = cache.getBlockTypeAt(x+1, y, z);
-						
-						if (blockType != null) {
-							blockLocs.put(new BlockVec(x, y, z), blockType);
+									if (blockType != null) {
+										blockLocs.put(new BlockVec(x + dx, y + dy, z + dz), blockType);
+									}
+								}
+							}
 						}
-						if (blockInFront != null) {
-							blockLocs.put(new BlockVec(x-1, y, z), blockInFront);
-						}
-						if (blockBehind != null) {
-							blockLocs.put(new BlockVec(x+1, y, z), blockBehind);
-						}
+							
+//						BlockType blockType = cache.getBlockTypeAt(x, y, z);
+//						
+//						if (blockType != null) {
+//							blockLocs.put(new BlockVec(x, y, z), blockType);
+//						}
+//						
+//						if (z <= currentLayerMinPoint.getZ() || z >= currentLayerMaxPoint.getZ() ||
+//						    y <= currentLayerMinPoint.getY() || y >= currentLayerMaxPoint.getY()) {
+//							continue;
+//						}
+//
+//						BlockType blockInFront = cache.getBlockTypeAt(x-1, y, z);
+//						BlockType blockBehind = cache.getBlockTypeAt(x+1, y, z);
+//						
+//						if (blockInFront != null) {
+//							if(!blockLocs.containsKey(new BlockVec(x-1, y, z)))
+//								blockLocs.put(new BlockVec(x-1, y, z), blockInFront.isOccluding() ? BlockType.of(Material.BRAIN_CORAL_BLOCK) : blockInFront);
+//						}
+//						if (blockBehind != null) {
+//							if(!blockLocs.containsKey(new BlockVec(x+1, y, z)))
+//								blockLocs.put(new BlockVec(x+1, y, z), blockBehind.isOccluding() ? BlockType.of(Material.BRAIN_CORAL_BLOCK) : blockBehind);
+//						}
 					}
 				}
 				

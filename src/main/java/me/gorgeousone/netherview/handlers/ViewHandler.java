@@ -259,14 +259,14 @@ public class ViewHandler {
 			}
 		}
 		
-		iterator = blocksToDisplay.keySet().iterator();
-		
-		while (iterator.hasNext()) {
-			
-			if (viewSession.containsKey(iterator.next())) {
-				iterator.remove();
-			}
-		}
+//		iterator = blocksToDisplay.keySet().iterator();
+//
+//		while (iterator.hasNext()) {
+//
+//			if (viewSession.containsKey(iterator.next())) {
+//				iterator.remove();
+//			}
+//		}
 		
 		viewSession.putAll(blocksToDisplay);
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
