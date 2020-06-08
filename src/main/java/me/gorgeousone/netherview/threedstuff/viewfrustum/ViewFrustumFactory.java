@@ -14,7 +14,7 @@ public final class ViewFrustumFactory {
 	/**
 	 * Returns a viewing frustum with a near plane precisely representing the area the player can see through the portal.
 	 */
-	public static ViewFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect, double frustumLength) {
+	public static ViewFrustum createFrustum(Vector viewPoint, AxisAlignedRect portalRect, int frustumLength) {
 		
 		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);
 		
@@ -23,7 +23,6 @@ public final class ViewFrustumFactory {
 		
 		//this will become near plane of the viewing frustum. It will be cropped to fit the actual player view through the portal
 		AxisAlignedRect maxViewingRect = portalRect.clone().translate(playerFacingToPortal.clone().multiply(0.5));
-		
 		
 		//widen the rectangle bounds a bit so the projection becomes smoother/more consistent when moving quickly
 		//side effects are blocks slightly sticking out at the sides when standing further away

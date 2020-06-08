@@ -166,7 +166,7 @@ public class ViewHandler {
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
 		if (playerFrustum != null && displayFrustum) {
-			visibleBlocks.putAll(getBlocksInFrustum(projection, playerFrustum));
+			visibleBlocks = playerFrustum.getContainedBlocks(projection);
 		}
 		
 		if (hidePortalBlocks) {
@@ -175,57 +175,6 @@ public class ViewHandler {
 		}
 		
 		displayBlocks(player, visibleBlocks);
-	}
-	
-	private Map<BlockVec, BlockType> getBlocksInFrustum(ProjectionCache projection, ViewFrustum frustum) {
-		
-		BlockVec min = projection.getMin();
-		BlockVec max = projection.getMax();
-		
-		AxisAlignedRect nearPlaneRect = frustum.getNearPlaneRect();
-		AxisAlignedRect farPlaneRect = frustum.getFarPlaneRect();
-		
-		if (farPlaneRect.getAxis() == Axis.X) {
-			
-			double newMinX = Math.min(nearPlaneRect.getMin().getX(), farPlaneRect.getMin().getX());
-			double newMaxX = Math.max(nearPlaneRect.getMax().getX(), farPlaneRect.getMax().getX());
-			
-			if (newMinX > min.getX()) {
-				min.setX((int) Math.floor(newMinX));
-			}
-			if (newMaxX < max.getX()) {
-				max.setX((int) Math.ceil(newMaxX));
-			}
-			
-		} else {
-			
-			double newMinZ = Math.min(nearPlaneRect.getMin().getZ(), farPlaneRect.getMin().getZ());
-			double newMaxZ = Math.max(nearPlaneRect.getMax().getZ(), farPlaneRect.getMax().getZ());
-			
-			if (newMinZ > min.getZ()) {
-				min.setZ((int) Math.floor(newMinZ));
-			}
-			if (newMaxZ < max.getZ()) {
-				max.setZ((int) Math.ceil(newMaxZ));
-			}
-		}
-		
-		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
-		
-		for (int x = min.getX(); x <= max.getX(); x++) {
-			for (int y = min.getY(); y <= max.getY(); y++) {
-				for (int z = min.getZ(); z <= max.getZ(); z++) {
-					
-					BlockVec blockPos = new BlockVec(x, y, z);
-					
-					if (frustum.contains(blockPos.toVector())) {
-						blocksInFrustum.putAll(projection.getBlockTypesAround(new BlockVec(x, y, z)));
-					}
-				}
-			}
-		}
-		
-		return blocksInFrustum;
 	}
 	
 	/**
@@ -295,8 +244,9 @@ public class ViewHandler {
 	 */
 	private void displayBlocks(Player player, Map<BlockVec, BlockType> blocksToDisplay) {
 		
-		Map<BlockVec, BlockType> viewSession = getViewSession(player);
+		long start = System.currentTimeMillis();
 		
+		Map<BlockVec, BlockType> viewSession = getViewSession(player);
 		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
 		Iterator<BlockVec> iterator = viewSession.keySet().iterator();
 		
@@ -319,6 +269,7 @@ public class ViewHandler {
 			}
 		}
 		
+		System.out.println(System.currentTimeMillis() - start + " time");
 		viewSession.putAll(blocksToDisplay);
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
 		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);

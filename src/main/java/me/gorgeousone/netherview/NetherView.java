@@ -74,12 +74,11 @@ public final class NetherView extends JavaPlugin {
 		portalHandler = new PortalHandler(this);
 		viewHandler = new ViewHandler(this, portalHandler);
 		
-		//do not register listeners or commands before creating handlers
+		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
 		registerCommands();
 		
 		loadConfigData();
-		
 		checkForUpdates();
 	}
 	
@@ -304,7 +303,7 @@ public final class NetherView extends JavaPlugin {
 					}
 				}
 				
-				getLogger().info("A new version of NetherView is available: " + newVersion);
+				Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "A new version of NetherView is available: " + newVersion);
 				
 			} else if (versionResponse == VersionResponse.UNAVAILABLE) {
 				getLogger().info("Unable to check for new versions...");

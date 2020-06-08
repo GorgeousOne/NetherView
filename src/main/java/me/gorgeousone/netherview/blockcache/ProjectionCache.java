@@ -6,11 +6,6 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 public class ProjectionCache {
 	
 	private Portal portal;
@@ -70,16 +65,22 @@ public class ProjectionCache {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
-	public BlockType getBlockTypeAt(BlockVec loc) {
+	public boolean contains(int x, int y, int z) {
+		return x >= min.getX() && x < max.getX() &&
+		       y >= min.getY() && y < max.getY() &&
+		       z >= min.getZ() && z < max.getZ();
+	}
+	
+	public BlockType getBlockTypeAt(int x, int y, int z) {
 		
-		if (!contains(loc)) {
+		if (!contains(x, y, z)) {
 			return null;
 		}
 		
 		return blockCopies
-				[loc.getX() - min.getX()]
-				[loc.getY() - min.getY()]
-				[loc.getZ() - min.getZ()];
+				[x - min.getX()]
+				[y - min.getY()]
+				[z - min.getZ()];
 	}
 	
 	public void setBlockTypeAt(BlockVec blockPos, BlockType newBlockData) {
@@ -88,26 +89,6 @@ public class ProjectionCache {
 				[blockPos.getX() - min.getX()]
 				[blockPos.getY() - min.getY()]
 				[blockPos.getZ() - min.getZ()] = newBlockData;
-	}
-	
-	public Map<BlockVec, BlockType> getBlockTypesAround(BlockVec blockCorner) {
-		
-		Map<BlockVec, BlockType> blocksAroundCorner = new HashMap<>();
-		
-		for (BlockVec blockPos : getAllCornerLocs(blockCorner)) {
-			
-			if (!contains(blockPos)) {
-				continue;
-			}
-			
-			BlockType blockType = getBlockTypeAt(blockPos);
-			
-			if (blockType != null) {
-				blocksAroundCorner.put(blockPos, blockType.clone());
-			}
-		}
-		
-		return blocksAroundCorner;
 	}
 	
 	private void createBlockCopies(BlockCache sourceCache) {
@@ -151,23 +132,5 @@ public class ProjectionCache {
 				}
 			}
 		}
-	}
-	
-	private Set<BlockVec> getAllCornerLocs(BlockVec blockCorner) {
-		
-		Set<BlockVec> locsAroundCorner = new HashSet<>();
-		
-		for (int dx = -1; dx <= 0; dx++) {
-			for (int dy = -1; dy <= 0; dy++) {
-				for (int dz = -1; dz <= 0; dz++) {
-					locsAroundCorner.add(new BlockVec(
-							blockCorner.getX() + dx,
-							blockCorner.getY() + dy,
-							blockCorner.getZ() + dz));
-				}
-			}
-		}
-		
-		return locsAroundCorner;
 	}
 }
