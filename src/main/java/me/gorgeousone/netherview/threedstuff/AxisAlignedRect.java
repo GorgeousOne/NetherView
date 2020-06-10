@@ -4,7 +4,7 @@ import me.gorgeousone.netherview.blocktype.Axis;
 import org.bukkit.util.Vector;
 
 /**
- * A rectangle used to describe the size of a nether portal (the part without the frame) or used as near plane in a viewing frustum.
+ * A rectangle used to describe the size of a nether portal (the part without the frame) or used as near plane in a view frustum.
  */
 public class AxisAlignedRect {
 	

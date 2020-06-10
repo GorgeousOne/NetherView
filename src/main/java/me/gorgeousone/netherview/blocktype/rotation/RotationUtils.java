@@ -30,13 +30,6 @@ public class RotationUtils {
 			BlockFace.WEST_NORTH_WEST
 	));
 
-//	private final static List<BlockFace> CARDIANL_FACES = new ArrayList<>(Arrays.asList(
-//			BlockFace.NORTH,
-//			BlockFace.EAST,
-//			BlockFace.SOUTH,
-//			BlockFace.WEST
-//	));
-	
 	/**
 	 * Returns the rotated version of a block face
 	 *

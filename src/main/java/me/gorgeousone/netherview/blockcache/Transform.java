@@ -1,8 +1,10 @@
 package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.threedstuff.BlockVec;
-import org.bukkit.util.Vector;
 
+/**
+ * A class for storing a translation and rotation between two portals and applying it to BlockVecs.
+ */
 public class Transform {
 	
 	private BlockVec translation;
@@ -78,24 +80,6 @@ public class Transform {
 		
 		int transX = relativeVec.getX();
 		int transZ = relativeVec.getZ();
-		
-		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
-		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
-	}
-	
-	public Vector transformVec(Vector vec) {
-		
-		
-		vec.subtract(rotCenter.toVector());
-		rotateVec(vec);
-		
-		return vec.add(rotCenter.toVector()).add(translation.toVector());
-	}
-	
-	private void rotateVec(Vector relativeVec) {
-		
-		double transX = relativeVec.getX();
-		double transZ = relativeVec.getZ();
 		
 		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
 		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);

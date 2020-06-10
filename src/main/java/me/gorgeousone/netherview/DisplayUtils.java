@@ -16,6 +16,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Utils for creating and sending multi block change packets via ProtocolLib
+ */
 public class DisplayUtils {
 	
 	public static void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {

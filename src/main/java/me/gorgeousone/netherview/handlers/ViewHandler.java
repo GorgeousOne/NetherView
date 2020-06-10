@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Handler class for running and updating the portal animations for players.
+ */
 public class ViewHandler {
 	
 	private NetherView main;
@@ -90,7 +93,7 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Locates the nearest portal to a player and displays a portal animation to them with fake blocks (if in view range).
+	 * Locates the nearest portal to a player and displays a portal animation to them (if in view range) with fake blocks .
 	 */
 	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
 		
@@ -140,7 +143,7 @@ public class ViewHandler {
 		return Math.abs(distanceToPortal);
 	}
 	
-	public void displayPortalTo(Player player,
+	private void displayPortalTo(Player player,
 	                            Location playerEyeLoc,
 	                            Portal portal,
 	                            boolean displayFrustum,
@@ -242,38 +245,32 @@ public class ViewHandler {
 	 * Adding new blocks to the portal animation for a player.
 	 * But first redundant blocks are filtered out and outdated blocks are refreshed for the player.
 	 */
-	private void displayBlocks(Player player, Map<BlockVec, BlockType> blocksToDisplay) {
+	private void displayBlocks(Player player, Map<BlockVec, BlockType> newBlocksToDisplay) {
 		
 		Map<BlockVec, BlockType> viewSession = getViewSession(player);
 		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
-		Iterator<BlockVec> iterator = viewSession.keySet().iterator();
 		
-		while (iterator.hasNext()) {
+		Iterator<BlockVec> viewSessionIter = viewSession.keySet().iterator();
+		
+		while (viewSessionIter.hasNext()) {
 			
-			BlockVec blockPos = iterator.next();
+			BlockVec blockPos = viewSessionIter.next();
 			
-			if (!blocksToDisplay.containsKey(blockPos)) {
+			if (!newBlocksToDisplay.containsKey(blockPos)) {
 				removedBlocks.put(blockPos, viewSession.get(blockPos));
-				iterator.remove();
+				viewSessionIter.remove();
 			}
 		}
 		
-		iterator = blocksToDisplay.keySet().iterator();
+		newBlocksToDisplay.keySet().removeIf(viewSession::containsKey);
+		viewSession.putAll(newBlocksToDisplay);
 		
-		while (iterator.hasNext()) {
-			
-			if (viewSession.containsKey(iterator.next())) {
-				iterator.remove();
-			}
-		}
-		
-		viewSession.putAll(blocksToDisplay);
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
-		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
+		DisplayUtils.displayFakeBlocks(player, newBlocksToDisplay);
 	}
 	
 	/**
-	 * Removes a portal and related portal animations.
+	 * Removes all to a portal related animations.
 	 */
 	public void removePortal(Portal portal) {
 		

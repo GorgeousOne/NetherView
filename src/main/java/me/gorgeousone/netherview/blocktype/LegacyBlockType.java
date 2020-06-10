@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * A wrapper for material data used before the aquatic update (1.12 and before)
+ */
 @SuppressWarnings("deprecation")
 public class LegacyBlockType extends BlockType {
 	
@@ -69,7 +72,7 @@ public class LegacyBlockType extends BlockType {
 			Directional directional = (Directional) materialData;
 			BlockFace facing = directional.getFacing();
 			
-			//DON'T ASK ME WHY BUT IT IZZ HOW IT IZZ
+			//somehow the facing of stairs is always reversed, nothing else, just    stairs
 			if (materialData.getItemType().name().contains("STAIRS")) {
 				facing = facing.getOppositeFace();
 			}
@@ -94,8 +97,7 @@ public class LegacyBlockType extends BlockType {
 			for (BlockFace paintedFace : paintedFaces) {
 				mushroom.setFacePainted(RotationUtils.getRotatedFace(paintedFace, quarterTurns), true);
 			}
-		}
-		
+		}   
 		return this;
 	}
 	

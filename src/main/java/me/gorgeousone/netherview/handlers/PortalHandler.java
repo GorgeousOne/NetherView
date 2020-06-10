@@ -291,14 +291,14 @@ public class PortalHandler {
 			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Un-linking " + linkedToPortals.size() + " portal projections.");
 		}
 		
-		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
+		for (Portal linkedPortal : linkedToPortals) {
 			linkedPortal.removeLink();
 		}
 		
-		portal.removeLink();
-		
 		recentlyViewedPortals.remove(portal);
 		getPortals(portal.getWorld()).remove(portal);
+		
+		portal.removeLink();
 	}
 	
 	/**

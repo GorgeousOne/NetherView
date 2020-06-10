@@ -7,6 +7,10 @@ import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+/**
+ * One big array of BlockTypes used to store information about all blocks in a cuboid area around a portal.
+ * For each of the 2 sides of a portal there is a separate BlockCache.
+ */
 public class BlockCache {
 	
 	private Portal portal;

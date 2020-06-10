@@ -12,6 +12,10 @@ import org.bukkit.util.Vector;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A viewing frustum for the viewable area through a portal frame.
+ * It has the specific condition that near and far plane are rectangles aligned to either the x or z axis.
+ */
 public class ViewFrustum {
 	
 	private Vector viewPoint;

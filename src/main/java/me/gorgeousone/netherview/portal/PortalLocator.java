@@ -117,7 +117,7 @@ public class PortalLocator {
 	}
 	
 	/**
-	 * Returns the last block of the portal inner into a certain direction.
+	 * Returns the last portal block of a portal's extent into a certain direction.
 	 */
 	private static Block getPortalExtent(Block sourceBlock, BlockFace facing) {
 		
@@ -142,7 +142,7 @@ public class PortalLocator {
 	}
 	
 	/**
-	 * Returns a set of blocks of all inner blocks of a portal according to the passed rectangle.
+	 * Returns a set of blocks of all portal blocks of a portal according to the passed rectangle.
 	 */
 	private static Set<Block> getInnerPortalBlocks(World world, BlockVec portalMin, BlockVec portalMax) {
 		
@@ -173,7 +173,7 @@ public class PortalLocator {
 	}
 	
 	/**
-	 * Returns a set of blocks where obsidian blocks need to be placed.
+	 * Returns a set of blocks where obsidian needs to be placed for a portal frame according to the given portal bounds.
 	 */
 	private static Set<Block> getPortalFrameBlocks(World world,
 	                                               BlockVec portalMin,

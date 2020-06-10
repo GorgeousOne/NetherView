@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Wrapper for the block data of blocks after the aquatic update (1.13)
+ */
 public class AquaticBlockType extends BlockType {
 	
 	private BlockData blockData;
