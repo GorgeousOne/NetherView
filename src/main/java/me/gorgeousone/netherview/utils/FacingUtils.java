@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview;
+package me.gorgeousone.netherview.utils;
 
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.block.BlockFace;
