@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.blocktype.rotation;
+package me.gorgeousone.netherview.wrapping.rotation;
 
 import org.bukkit.block.BlockFace;
 

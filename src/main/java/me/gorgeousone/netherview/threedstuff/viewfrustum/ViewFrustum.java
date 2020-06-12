@@ -1,20 +1,20 @@
 package me.gorgeousone.netherview.threedstuff.viewfrustum;
 
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
-import me.gorgeousone.netherview.blocktype.Axis;
-import me.gorgeousone.netherview.blocktype.BlockType;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.Line;
 import me.gorgeousone.netherview.threedstuff.Plane;
+import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A viewing frustum for the viewable area through a portal frame.
- * It has the specific condition that near and far plane are rectangles aligned to either the x or z axis.
+ * A viewing frustum for detecting the blocks of a projection cache that can be seen through a portal frame.
+ * It is a frustum with the specific condition that near and far plane are rectangles either aligned to the x or z axis.
  */
 public class ViewFrustum {
 	
@@ -107,7 +107,7 @@ public class ViewFrustum {
 	}
 	
 	/**
-	 * Returns a map of all blocks from a projection cache visible in this frustum.
+	 * Returns a map of all blocks from a projection cache visible with this frustum.
 	 */
 	public Map<BlockVec, BlockType> getContainedBlocks(ProjectionCache projection) {
 		
@@ -135,10 +135,13 @@ public class ViewFrustum {
 		if (nearPlaneRect.getAxis() == Axis.X) {
 			
 			for (int z = currentLayerMinPoint.getBlockZ(); z <= iterationMaxPoint.getZ(); z++) {
-				for (int x = (int) Math.ceil(currentLayerMinPoint.getX()); x <= currentLayerMaxPoint.getX(); x++) {
-					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
-						
-						addSurroundingBlocks(x, y, z, projection, blocksInFrustum);
+				
+				double minX = currentLayerMinPoint.getX();
+				double maxX = currentLayerMaxPoint.getX();
+				
+				for (double x = currentLayerMinPoint.getX(); x <= currentLayerMaxPoint.getX(); x++) {
+					for (double y = currentLayerMinPoint.getY(); y <= currentLayerMaxPoint.getY(); y++) {
+					
 					}
 				}
 				
@@ -149,6 +152,17 @@ public class ViewFrustum {
 		} else {
 			
 			for (int x = currentLayerMinPoint.getBlockX(); x <= iterationMaxPoint.getX(); x++) {
+				
+//				addBlock(currentLayerMinPoint.getBlockX(),
+//				         currentLayerMinPoint.getBlockY(),
+//				         currentLayerMinPoint.getBlockZ(),
+//				         projection, blocksInFrustum);
+//
+//				addBlock(currentLayerMaxPoint.getBlockX(),
+//				         currentLayerMaxPoint.getBlockY(),
+//				         currentLayerMaxPoint.getBlockZ(),
+//				         projection, blocksInFrustum);
+				
 				for (int z = (int) Math.ceil(currentLayerMinPoint.getZ()); z <= currentLayerMaxPoint.getZ(); z++) {
 					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
 						
@@ -164,6 +178,18 @@ public class ViewFrustum {
 		return blocksInFrustum;
 	}
 	
+	private void addBlock(int x, int y, int z, ProjectionCache projection, Map<BlockVec, BlockType> blocksInFrustum) {
+		
+		BlockType blockType = projection.getBlockTypeAt(x, y, z);
+		
+		if (blockType != null) {
+			blocksInFrustum.put(new BlockVec(x, y, z), blockType);
+		}
+	}
+	
+	/**
+	 * Adds the 8 blocks around a block location to the map of visible blocks in the frustum.
+	 */
 	private void addSurroundingBlocks(int x,
 	                                  int y,
 	                                  int z,

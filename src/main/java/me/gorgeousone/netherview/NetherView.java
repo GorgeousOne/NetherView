@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview;
 
-import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
@@ -12,6 +12,7 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
+import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
@@ -170,6 +171,7 @@ public final class NetherView extends JavaPlugin {
 		manager.registerEvents(new TeleportListener(this, portalHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler), this);
 		manager.registerEvents(new BlockListener(this, portalHandler, viewHandler, portalMaterial), this);
+		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 	}
 	
 	private void loadConfigData() {

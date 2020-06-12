@@ -1,7 +1,7 @@
-package me.gorgeousone.netherview.blocktype;
+package me.gorgeousone.netherview.wrapping.blocktype;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
-import me.gorgeousone.netherview.blocktype.rotation.RotationUtils;
+import me.gorgeousone.netherview.wrapping.rotation.RotationUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;

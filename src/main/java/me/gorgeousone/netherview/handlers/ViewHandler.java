@@ -5,8 +5,8 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
-import me.gorgeousone.netherview.blocktype.Axis;
-import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
@@ -175,6 +175,9 @@ public class ViewHandler {
 		if (hidePortalBlocks) {
 			for (Block portalBlock : portal.getPortalBlocks())
 				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
+			
+			for (Block portalBlock : portal.getFrameBlocks())
+				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of("stained_glass:7"));
 		}
 		
 		displayBlocks(player, visibleBlocks);

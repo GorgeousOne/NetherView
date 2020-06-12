@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.blocktype;
+package me.gorgeousone.netherview.wrapping.blocktype;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import org.bukkit.Material;

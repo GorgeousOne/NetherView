@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.blocktype;
+package me.gorgeousone.netherview.wrapping;
 
 import org.bukkit.util.Vector;
 

@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.threedstuff;
 
-import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.util.Vector;
 
 /**
