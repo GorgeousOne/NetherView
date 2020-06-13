@@ -57,6 +57,7 @@ public final class NetherView extends JavaPlugin {
 	
 	private boolean hidePortalBlocks;
 	private boolean cancelTeleportWhenLinking;
+	private boolean instantTeleportEnabled;
 	private boolean debugMessagesEnabled;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
@@ -114,6 +115,10 @@ public final class NetherView extends JavaPlugin {
 		return cancelTeleportWhenLinking;
 	}
 	
+	public boolean isInstantTeleportEnabled() {
+		return instantTeleportEnabled;
+	}
+	
 	public boolean canCreatePortalViews(World world) {
 		return worldsWithPortalViewing.contains(world.getUID());
 	}
@@ -169,7 +174,7 @@ public final class NetherView extends JavaPlugin {
 		
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler), this);
-		manager.registerEvents(new PlayerMoveListener(this, viewHandler), this);
+		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
 		manager.registerEvents(new BlockListener(this, portalHandler, viewHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 	}

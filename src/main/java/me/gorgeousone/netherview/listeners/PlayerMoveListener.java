@@ -2,8 +2,10 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.ViewHandler;
+import me.gorgeousone.netherview.utils.InvulnerabilityReflection;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,18 +20,28 @@ public class PlayerMoveListener implements Listener {
 	
 	private NetherView main;
 	private ViewHandler viewHandler;
+	private Material portalMaterial;
 	
-	public PlayerMoveListener(NetherView main, ViewHandler viewHandler) {
+	public PlayerMoveListener(NetherView main, ViewHandler viewHandler, Material portalMaterial) {
+		
 		this.main = main;
 		this.viewHandler = viewHandler;
+		this.portalMaterial = portalMaterial;
 	}
 	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
 		
 		Player player = event.getPlayer();
+		Location from = event.getFrom();
+		Location to = event.getTo();
 		
-		if (player.getGameMode() == GameMode.SPECTATOR || !player.hasPermission(NetherView.VIEW_PERM)) {
+		//sets player temporarily invulnerable so the game will instantly teleport them on entering a portal
+		if (main.isInstantTeleportEnabled() && mortalEnteredPortal(player, from, to)) {
+			InvulnerabilityReflection.setTemporarilyInvulnerable(player, main, 2);
+		}
+		
+		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
 			return;
 		}
 		
@@ -39,14 +51,35 @@ public class PlayerMoveListener implements Listener {
 			return;
 		}
 		
-		Location from = event.getFrom();
-		Location to = event.getTo();
+		Vector fromVec = from.toVector();
+		Vector toVec = to.toVector();
 		
 		if (!from.toVector().equals(to.toVector())) {
 			
 			Vector playerMovement = to.clone().subtract(from).toVector();
 			viewHandler.displayNearestPortalTo(player, player.getEyeLocation().add(playerMovement));
 		}
+	}
+	
+	/**
+	 * Checks if the player in a mortal game mode (so they would usually not be teleported instantly by a nether portal) and if they are entering a nether portal.
+	 */
+	private boolean mortalEnteredPortal(Player player, Location from, Location to) {
+		
+		GameMode gameMode = player.getGameMode();
+		
+		return
+				(gameMode == GameMode.SURVIVAL || gameMode == GameMode.ADVENTURE) &&
+				playerMovedIntoNewBlock(from, to) &&
+				to.getBlock().getType() == portalMaterial &&
+				from.getBlock().getType() != portalMaterial;
+	}
+	
+	private boolean playerMovedIntoNewBlock(Location from, Location to) {
+		return
+			from.getBlockX() != to.getBlockX() ||
+			from.getBlockY() != to.getBlockY() ||
+			from.getBlockZ() != to.getBlockZ();
 	}
 	
 	@EventHandler
