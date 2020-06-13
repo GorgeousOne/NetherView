@@ -23,7 +23,7 @@ public final class DisplayUtils {
 	
 	private DisplayUtils() {}
 	
-	public static void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
+	public static PacketContainer removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
 		World playerWorld = player.getWorld();
 		Map<BlockVec, BlockType> updatedBlockCopies = new HashMap<>();
@@ -31,10 +31,10 @@ public final class DisplayUtils {
 		for (BlockVec blockPos : blockCopies.keySet())
 			updatedBlockCopies.put(blockPos.clone(), BlockType.of(blockPos.toBlock(playerWorld)));
 		
-		displayFakeBlocks(player, updatedBlockCopies);
+		return displayFakeBlocks(player, updatedBlockCopies);
 	}
 	
-	public static void displayFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
+	public static PacketContainer displayFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
 		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
 		
@@ -50,24 +50,28 @@ public final class DisplayUtils {
 			PacketContainer fakeBlocksPacket = protocolManager.createPacket(PacketType.Play.Server.MULTI_BLOCK_CHANGE);
 			fakeBlocksPacket.getChunkCoordIntPairs().write(0, new ChunkCoordIntPair(chunkPos.getX(), chunkPos.getZ()));
 			
-			MultiBlockChangeInfo[] blockInfo = new MultiBlockChangeInfo[chunkBlockTypes.size()];
+			MultiBlockChangeInfo[] blockInfoArray = new MultiBlockChangeInfo[chunkBlockTypes.size()];
 			int i = 0;
 			
 			for (Map.Entry<BlockVec, BlockType> entry : chunkBlockTypes.entrySet()) {
 				
 				Location blockLoc = entry.getKey().toLocation(playerWorld);
-				blockInfo[i] = new MultiBlockChangeInfo(blockLoc, entry.getValue().getWrapped());
+				blockInfoArray[i] = new MultiBlockChangeInfo(blockLoc, entry.getValue().getWrapped());
 				i++;
 			}
 			
-			fakeBlocksPacket.getMultiBlockChangeInfoArrays().write(0, blockInfo);
+			fakeBlocksPacket.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
 			
 			try {
 				protocolManager.sendServerPacket(player, fakeBlocksPacket);
+				return fakeBlocksPacket;
+			
 			} catch (InvocationTargetException e) {
 				throw new RuntimeException("Failed to send packet " + fakeBlocksPacket, e);
 			}
 		}
+		
+		return null;
 	}
 	
 	private static Map<BlockVec, Map<BlockVec, BlockType>> getSortedByChunks(Map<BlockVec, BlockType> blockCopies) {

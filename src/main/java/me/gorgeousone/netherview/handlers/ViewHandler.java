@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
+import com.comphenix.protocol.events.PacketContainer;
 import me.gorgeousone.netherview.utils.DisplayUtils;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
@@ -20,6 +21,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +39,8 @@ public class ViewHandler {
 	private Map<UUID, ProjectionCache> viewedProjections;
 	private Map<UUID, Map<BlockVec, BlockType>> playerViewSessions;
 	
+	private Set<PacketContainer> customSentPackets;
+	
 	public ViewHandler(NetherView main, PortalHandler portalHandler) {
 		
 		this.main = main;
@@ -45,12 +49,14 @@ public class ViewHandler {
 		viewedProjections = new HashMap<>();
 		playerViewSessions = new HashMap<>();
 		viewedPortals = new HashMap<>();
+		
+		customSentPackets = new HashSet<>();
 	}
 	
 	public void reset() {
 		
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (hasViewSession(player)) {
+			if (isViewingAPortal(player)) {
 				hideViewSession(player);
 			}
 		}
@@ -72,8 +78,16 @@ public class ViewHandler {
 		return playerViewSessions.get(uuid);
 	}
 	
-	public boolean hasViewSession(Player player) {
-		return playerViewSessions.containsKey(player.getUniqueId());
+	public Portal getViewedPortal(Player player) {
+		return viewedPortals.get(player.getUniqueId());
+	}
+	
+	public ProjectionCache getViewedProjection(Player player) {
+		return viewedProjections.get(player.getUniqueId());
+	}
+	
+	public boolean isViewingAPortal(Player player) {
+		return viewedPortals.containsKey(player.getUniqueId());
 	}
 	
 	/**

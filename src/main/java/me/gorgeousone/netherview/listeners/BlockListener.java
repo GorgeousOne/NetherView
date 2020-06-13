@@ -2,14 +2,18 @@ package me.gorgeousone.netherview.listeners;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
@@ -37,7 +41,9 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,34 +73,89 @@ public class BlockListener implements Listener {
 	 */
 	private void addBlockUpdateInterceptor() {
 		
-		ProtocolLibrary.getProtocolManager().addPacketListener(
+		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+		
+		protocolManager.addPacketListener(
 				
-				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.BLOCK_CHANGE) {
+			new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.BLOCK_CHANGE) {
+				
+				@Override
+				public void onPacketSending(PacketEvent event) {
+					
+					Player player = event.getPlayer();
+					
+					if (event.isCancelled() || !viewHandler.isViewingAPortal(player)) {
+						return;
+					}
+					
+					BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
+					BlockVec blockPosVec = new BlockVec(blockPos);
+					
+					//execute some light weight bounding box checks before searching the block in the huge map of displayed blocks? Does that save time?
+					if (!viewHandler.getViewedProjection(player).contains(blockPosVec) && !viewHandler.getViewedPortal(player).contains(blockPosVec)) {
+						return;
+					}
+					
+					Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+					
+					if (viewSession.containsKey(new BlockVec(blockPos))) {
+						event.setCancelled(true);
+					}
+				}
+			}
+		);
+		
+		protocolManager.addPacketListener(
+				
+				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
 					
 					@Override
 					public void onPacketSending(PacketEvent event) {
 						
-						if (event.isCancelled() || event.getPacketType() != PacketType.Play.Server.BLOCK_CHANGE) {
+						PacketContainer packet = event.getPacket();
+						
+						if (event.isCancelled()) {
 							return;
 						}
 						
 						Player player = event.getPlayer();
 						
-						if (!viewHandler.hasViewSession(player)) {
+						if (!viewHandler.isViewingAPortal(player)) {
 							return;
 						}
 						
-						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
-						BlockVec blockPosVec = new BlockVec(blockPos);
+						MultiBlockChangeInfo[] blockInfoArray = event.getPacket().getMultiBlockChangeInfoArrays().getValues().get(0);
+						List<MultiBlockChangeInfo> approvedBlockInfoList = new ArrayList<>();
 						
+						Portal viewedPortal = viewHandler.getViewedPortal(player);
+						ProjectionCache viewedProjection = viewHandler.getViewedProjection(player);
 						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
 						
-						if (viewSession.containsKey(blockPosVec)) {
-							event.getPacket().getBlockData().write(0, viewSession.get(blockPosVec).getWrapped());
+						//filter all block changes that are not happening inside a projection
+						for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
+							BlockVec blockPos = new BlockVec(blockInfo);
+							
+							if (!viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession))
+								approvedBlockInfoList.add(blockInfo);
 						}
+						
+						event.getPlayer().sendMessage("filtered " + (blockInfoArray.length - approvedBlockInfoList.size()) + " blocks");
+						
+						if (blockInfoArray.length == approvedBlockInfoList.size()) {
+							return;
+						}
+						
+						//modify the packet so only the filtered block changes are sent to the player
+						MultiBlockChangeInfo[] approvedBlockInfoArray = new MultiBlockChangeInfo[approvedBlockInfoList.size()];
+						approvedBlockInfoList.toArray(approvedBlockInfoArray);
+						event.getPacket().getMultiBlockChangeInfoArrays().write(0, approvedBlockInfoArray);
 					}
 				}
 		);
+	}
+	
+	private boolean viewSessionContainsVec(BlockVec blockPos, Portal viewedPortal, ProjectionCache viewedCache, Map<BlockVec, BlockType> viewSession) {
+		return (viewedPortal.contains(blockPos) || !viewedCache.contains(blockPos)) && viewSession.containsKey(blockPos);
 	}
 	
 	private void removeDamagedPortals(Block block) {
@@ -149,7 +210,7 @@ public class BlockListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewHandler.hasViewSession(player)) {
+		if (!viewHandler.isViewingAPortal(player)) {
 			return;
 		}
 		
@@ -182,7 +243,7 @@ public class BlockListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewHandler.hasViewSession(player)) {
+		if (!viewHandler.isViewingAPortal(player)) {
 			return;
 		}
 		

@@ -41,7 +41,7 @@ public class PlayerMoveListener implements Listener {
 			InvulnerabilityReflection.setTemporarilyInvulnerable(player, main, 2);
 		}
 		
-		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
+		if (player.getGameMode() == GameMode.SPECTATOR || !player.hasPermission(NetherView.VIEW_PERM)) {
 			return;
 		}
 		
@@ -87,7 +87,7 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (viewHandler.hasViewSession(player)) {
+		if (viewHandler.isViewingAPortal(player)) {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
