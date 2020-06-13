@@ -1,7 +1,7 @@
 package threedtests;
 
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustum;
 import org.bukkit.util.Vector;

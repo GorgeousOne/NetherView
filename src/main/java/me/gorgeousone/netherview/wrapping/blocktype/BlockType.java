@@ -1,10 +1,13 @@
-package me.gorgeousone.netherview.blocktype;
+package me.gorgeousone.netherview.wrapping.blocktype;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 
+/**
+ * A wrapper for block materials and their (block-) data to support copying blocks across all versions.
+ */
 public abstract class BlockType {
 	
 	private static boolean isLegacyServer;

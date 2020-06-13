@@ -2,7 +2,7 @@ package me.gorgeousone.netherview.portal;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
-import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.ChatColor;
@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * A class containing information about a located portal structure in a world.
+ */
 public class Portal {
 	
 	private World world;
@@ -23,7 +26,7 @@ public class Portal {
 	private Set<Block> portalBlocks;
 	private Set<Block> frameBlocks;
 	
-	//bounds containing all portal blocks including frame
+	//bounds containing the whole portal structure
 	private BlockVec min;
 	private BlockVec max;
 	
@@ -51,10 +54,6 @@ public class Portal {
 		this.max = max;
 		
 		this.exists = true;
-	}
-	
-	public void remove() {
-		this.exists = false;
 	}
 	
 	public World getWorld() {
@@ -109,19 +108,7 @@ public class Portal {
 	}
 	
 	public boolean isLinked() {
-		
-		if (counterPortal == null) { return false; }
-		
-		if (!counterPortal.exists()) {
-			removeLink();
-			return false;
-		}
-		
-		return true;
-	}
-	
-	private boolean exists() {
-		return exists;
+		return counterPortal != null;
 	}
 	
 	public void setBlockCaches(Map.Entry<BlockCache, BlockCache> blockCaches) {

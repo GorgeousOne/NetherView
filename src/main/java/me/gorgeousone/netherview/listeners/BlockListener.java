@@ -9,7 +9,7 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
-import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
@@ -40,6 +40,9 @@ import org.bukkit.event.world.StructureGrowEvent;
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * Listens to block changes in portal block caches to let the ViewHandler update portal animations live.
+ */
 public class BlockListener implements Listener {
 	
 	private NetherView main;
@@ -59,6 +62,9 @@ public class BlockListener implements Listener {
 		addBlockUpdateInterceptor();
 	}
 	
+	/**
+	 * Prevents
+	 */
 	private void addBlockUpdateInterceptor() {
 		
 		ProtocolLibrary.getProtocolManager().addPacketListener(
@@ -80,11 +86,6 @@ public class BlockListener implements Listener {
 						
 						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
 						BlockVec blockPosVec = new BlockVec(blockPos);
-						
-						//cannot limit location check to projection cache size because the portal itself is not included in that area, yet needed
-//						if (!projection.contains(blockPosVec)) {
-//							return;
-//						}
 						
 						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
 						

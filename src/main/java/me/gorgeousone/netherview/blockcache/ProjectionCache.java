@@ -1,11 +1,15 @@
 package me.gorgeousone.netherview.blockcache;
 
-import me.gorgeousone.netherview.blocktype.Axis;
-import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
 
+/**
+ * The equivalent to a BlockCache used to store information about all blocks that will be displayed in the animation of a portal.
+ * For each of the 2 sides of a portal there will be a separate ProjectionCache.
+ */
 public class ProjectionCache {
 	
 	private Portal portal;

@@ -5,7 +5,7 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
-import me.gorgeousone.netherview.blocktype.Axis;
+import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
@@ -291,14 +291,14 @@ public class PortalHandler {
 			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Un-linking " + linkedToPortals.size() + " portal projections.");
 		}
 		
-		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
+		for (Portal linkedPortal : linkedToPortals) {
 			linkedPortal.removeLink();
 		}
 		
-		portal.removeLink();
-		
 		recentlyViewedPortals.remove(portal);
 		getPortals(portal.getWorld()).remove(portal);
+		
+		portal.removeLink();
 	}
 	
 	/**

@@ -1,12 +1,16 @@
 package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.utils.FacingUtils;
-import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+/**
+ * One big array of BlockTypes used to store information about all blocks in a cuboid area around a portal.
+ * For each of the 2 sides of a portal there is a separate BlockCache.
+ */
 public class BlockCache {
 	
 	private Portal portal;

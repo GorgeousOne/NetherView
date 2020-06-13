@@ -8,6 +8,9 @@ import org.bukkit.util.Vector;
 
 import java.util.Objects;
 
+/**
+ * A simple 3D vector class with int coordinates only designed for storing block locations.
+ */
 public class BlockVec {
 	
 	private int x;

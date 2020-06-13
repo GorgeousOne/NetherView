@@ -4,7 +4,7 @@ import me.gorgeousone.netherview.threedstuff.Line;
 import org.bukkit.util.Vector;
 
 /**
- * An euclidean line where only points between the start and the end of it can be accessed.
+ * An euclidean line where only points between the given start and end can be accessed.
  */
 public class DefinedLine extends Line {
 	

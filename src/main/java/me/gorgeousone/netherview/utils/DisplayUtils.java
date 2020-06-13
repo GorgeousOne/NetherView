@@ -6,7 +6,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
-import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -16,7 +16,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DisplayUtils {
+/**
+ * Utils for creating and sending multi block change packets via ProtocolLib
+ */
+public final class DisplayUtils {
+	
+	private DisplayUtils() {}
 	
 	public static void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		

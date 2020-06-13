@@ -5,8 +5,8 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
-import me.gorgeousone.netherview.blocktype.Axis;
-import me.gorgeousone.netherview.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Handler class for running and updating the portal animations for players.
+ */
 public class ViewHandler {
 	
 	private NetherView main;
@@ -90,7 +93,7 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Locates the nearest portal to a player and displays a portal animation to them with fake blocks (if in view range).
+	 * Locates the nearest portal to a player and displays a portal animation to them (if in view range) with fake blocks .
 	 */
 	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
 		
@@ -114,11 +117,11 @@ public class ViewHandler {
 		
 		//display the portal totally normal if the player is not standing next to or in the portal
 		if (getDistanceToPortal(playerEyeLoc, portalRect) > 0.5) {
-			displayPortalTo(player, playerEyeLoc, portal, true, main.hidePortalBlocks());
+			displayPortalTo(player, playerEyeLoc, portal, true, main.hidePortalBlocksEnabled());
 			
-			//keep portal blocks hidden (if requested) if the player is standing next to the portal to avoid light flickering
+			//keep portal blocks hidden (if requested) if the player is standing next to the portal to avoid light flickering when moving around the portal
 		} else if (!portalRect.contains(playerEyeLoc.toVector())) {
-			displayPortalTo(player, playerEyeLoc, portal, false, main.hidePortalBlocks());
+			displayPortalTo(player, playerEyeLoc, portal, false, main.hidePortalBlocksEnabled());
 			
 			//if the player is standing inside the portal projection should be dropped
 		} else {
@@ -140,7 +143,7 @@ public class ViewHandler {
 		return Math.abs(distanceToPortal);
 	}
 	
-	public void displayPortalTo(Player player,
+	private void displayPortalTo(Player player,
 	                            Location playerEyeLoc,
 	                            Portal portal,
 	                            boolean displayFrustum,
@@ -170,8 +173,13 @@ public class ViewHandler {
 		}
 		
 		if (hidePortalBlocks) {
-			for (Block portalBlock : portal.getPortalBlocks())
+			
+			for (Block portalBlock : portal.getPortalBlocks()) {
 				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
+			}
+			
+//			for (Block frameBlock : portal.getFrameBlocks())
+//				visibleBlocks.put(new BlockVec(frameBlock), BlockType.of("GRAY_STAINED_GLASS"));
 		}
 		
 		displayBlocks(player, visibleBlocks);
@@ -242,38 +250,32 @@ public class ViewHandler {
 	 * Adding new blocks to the portal animation for a player.
 	 * But first redundant blocks are filtered out and outdated blocks are refreshed for the player.
 	 */
-	private void displayBlocks(Player player, Map<BlockVec, BlockType> blocksToDisplay) {
+	private void displayBlocks(Player player, Map<BlockVec, BlockType> newBlocksToDisplay) {
 		
 		Map<BlockVec, BlockType> viewSession = getViewSession(player);
 		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
-		Iterator<BlockVec> iterator = viewSession.keySet().iterator();
 		
-		while (iterator.hasNext()) {
+		Iterator<BlockVec> viewSessionIter = viewSession.keySet().iterator();
+		
+		while (viewSessionIter.hasNext()) {
 			
-			BlockVec blockPos = iterator.next();
+			BlockVec blockPos = viewSessionIter.next();
 			
-			if (!blocksToDisplay.containsKey(blockPos)) {
+			if (!newBlocksToDisplay.containsKey(blockPos)) {
 				removedBlocks.put(blockPos, viewSession.get(blockPos));
-				iterator.remove();
+				viewSessionIter.remove();
 			}
 		}
 		
-		iterator = blocksToDisplay.keySet().iterator();
+		newBlocksToDisplay.keySet().removeIf(viewSession::containsKey);
+		viewSession.putAll(newBlocksToDisplay);
 		
-		while (iterator.hasNext()) {
-			
-			if (viewSession.containsKey(iterator.next())) {
-				iterator.remove();
-			}
-		}
-		
-		viewSession.putAll(blocksToDisplay);
 		DisplayUtils.removeFakeBlocks(player, removedBlocks);
-		DisplayUtils.displayFakeBlocks(player, blocksToDisplay);
+		DisplayUtils.displayFakeBlocks(player, newBlocksToDisplay);
 	}
 	
 	/**
-	 * Removes a portal and related portal animations.
+	 * Removes all to a portal related animations.
 	 */
 	public void removePortal(Portal portal) {
 		

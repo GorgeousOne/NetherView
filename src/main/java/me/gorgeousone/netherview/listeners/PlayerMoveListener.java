@@ -42,10 +42,6 @@ public class PlayerMoveListener implements Listener {
 		}
 		
 		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
-			
-			if (viewHandler.hasViewSession(player)) {
-				viewHandler.hideViewSession(player);
-			}
 			return;
 		}
 		
@@ -58,10 +54,9 @@ public class PlayerMoveListener implements Listener {
 		Vector fromVec = from.toVector();
 		Vector toVec = to.toVector();
 		
-		//check if the player moved in space, not only the head rotation
-		if (!fromVec.equals(toVec)) {
+		if (!from.toVector().equals(to.toVector())) {
 			
-			Vector playerMovement = toVec.subtract(fromVec);
+			Vector playerMovement = to.clone().subtract(from).toVector();
 			viewHandler.displayNearestPortalTo(player, player.getEyeLocation().add(playerMovement));
 		}
 	}
@@ -92,13 +87,7 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (player.getGameMode() == GameMode.SPECTATOR) {
-			return;
-		}
-		
-		World.Environment worldType = player.getWorld().getEnvironment();
-		
-		if (worldType == World.Environment.NORMAL || worldType == World.Environment.NETHER) {
+		if (viewHandler.hasViewSession(player)) {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
@@ -111,7 +100,7 @@ public class PlayerMoveListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
-		if (event.getNewGameMode() == GameMode.SPECTATOR) {
+		if (event.getPlayer().hasPermission(NetherView.VIEW_PERM) && event.getNewGameMode() == GameMode.SPECTATOR) {
 			viewHandler.hideViewSession(event.getPlayer());
 		}
 	}
