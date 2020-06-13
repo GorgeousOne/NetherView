@@ -106,7 +106,7 @@ public final class NetherView extends JavaPlugin {
 		return portalDisplayRangeSquared;
 	}
 	
-	public boolean hidePortalBlocks() {
+	public boolean hidePortalBlocksEnabled() {
 		return hidePortalBlocks;
 	}
 	
@@ -181,12 +181,13 @@ public final class NetherView extends JavaPlugin {
 		addVersionDependentDefaults();
 		saveConfig();
 		
-		portalProjectionDist = getConfig().getInt("portal-projection-view-distance", 8);
-		portalDisplayRangeSquared = (int) Math.pow(getConfig().getInt("portal-display-range", 32), 2);
-		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks", true);
-		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals", true);
+		int portalDisplayRange  = clamp(getConfig().getInt("portal-display-range"), 1, 128);
+		portalDisplayRangeSquared =  (int) Math.pow(portalDisplayRange, 2);
+		portalProjectionDist = clamp(getConfig().getInt("portal-projection-view-distance"), 1, 32);
+		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
+		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
 		
-		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages", false));
+		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));
 		
 		loadWorldBorderBlockTypes();
 		loadWorldsWithPortalViewing();
@@ -236,7 +237,6 @@ public final class NetherView extends JavaPlugin {
 		
 		String configValue = getConfig().getString(configPath);
 		String defaultValue = getConfig().getDefaults().getString(configPath);
-		
 		BlockType worldBorder;
 		
 		try {
@@ -311,5 +311,9 @@ public final class NetherView extends JavaPlugin {
 				getLogger().info("Unable to check for new versions...");
 			}
 		}).check();
+	}
+	
+	private int clamp(int value, int min, int max) {
+		return Math.max(min, Math.min(value, max));
 	}
 }

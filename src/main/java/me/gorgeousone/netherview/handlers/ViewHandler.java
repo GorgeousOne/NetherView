@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.DisplayUtils;
+import me.gorgeousone.netherview.utils.DisplayUtils;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -117,11 +117,11 @@ public class ViewHandler {
 		
 		//display the portal totally normal if the player is not standing next to or in the portal
 		if (getDistanceToPortal(playerEyeLoc, portalRect) > 0.5) {
-			displayPortalTo(player, playerEyeLoc, portal, true, main.hidePortalBlocks());
+			displayPortalTo(player, playerEyeLoc, portal, true, main.hidePortalBlocksEnabled());
 			
-			//keep portal blocks hidden (if requested) if the player is standing next to the portal to avoid light flickering
+			//keep portal blocks hidden (if requested) if the player is standing next to the portal to avoid light flickering when moving around the portal
 		} else if (!portalRect.contains(playerEyeLoc.toVector())) {
-			displayPortalTo(player, playerEyeLoc, portal, false, main.hidePortalBlocks());
+			displayPortalTo(player, playerEyeLoc, portal, false, main.hidePortalBlocksEnabled());
 			
 			//if the player is standing inside the portal projection should be dropped
 		} else {
@@ -173,8 +173,13 @@ public class ViewHandler {
 		}
 		
 		if (hidePortalBlocks) {
-			for (Block portalBlock : portal.getPortalBlocks())
+			
+			for (Block portalBlock : portal.getPortalBlocks()) {
 				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
+			}
+			
+//			for (Block frameBlock : portal.getFrameBlocks())
+//				visibleBlocks.put(new BlockVec(frameBlock), BlockType.of("GRAY_STAINED_GLASS"));
 		}
 		
 		displayBlocks(player, visibleBlocks);

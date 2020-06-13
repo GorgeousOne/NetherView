@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview;
+package me.gorgeousone.netherview.utils;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -19,7 +19,9 @@ import java.util.Map;
 /**
  * Utils for creating and sending multi block change packets via ProtocolLib
  */
-public class DisplayUtils {
+public final class DisplayUtils {
+	
+	private DisplayUtils() {}
 	
 	public static void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		

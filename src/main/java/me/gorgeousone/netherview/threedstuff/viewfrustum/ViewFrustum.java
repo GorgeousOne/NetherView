@@ -143,7 +143,7 @@ public class ViewFrustum {
 				for (int x = (int) Math.ceil(currentLayerMinPoint.getX()); isFirstColumn || x <= currentLayerMaxPoint.getX(); x++) {
 					isFirstBlock = true;
 					
-					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); isFirstBlock ||y <= currentLayerMaxPoint.getY(); y++) {
+					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); isFirstBlock || y <= currentLayerMaxPoint.getY(); y++) {
 						
 						addSurroundingBlocks(x, y, z, projection, blocksInFrustum);
 						isFirstBlock = false;
@@ -177,15 +177,6 @@ public class ViewFrustum {
 		}
 		
 		return blocksInFrustum;
-	}
-	
-	private void addBlock(int x, int y, int z, ProjectionCache projection, Map<BlockVec, BlockType> blocksInFrustum) {
-		
-		BlockType blockType = projection.getBlockTypeAt(x, y, z);
-		
-		if (blockType != null) {
-			blocksInFrustum.put(new BlockVec(x, y, z), blockType);
-		}
 	}
 	
 	/**

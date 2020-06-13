@@ -43,8 +43,9 @@ public class PlayerMoveListener implements Listener {
 		Location to = event.getTo();
 		
 		if (!from.toVector().equals(to.toVector())) {
-			Vector movement = to.clone().subtract(from).toVector();
-			viewHandler.displayNearestPortalTo(player, player.getEyeLocation().add(movement));
+			
+			Vector playerMovement = to.clone().subtract(from).toVector();
+			viewHandler.displayNearestPortalTo(player, player.getEyeLocation().add(playerMovement));
 		}
 	}
 	

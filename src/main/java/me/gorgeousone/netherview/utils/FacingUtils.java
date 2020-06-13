@@ -1,9 +1,11 @@
-package me.gorgeousone.netherview;
+package me.gorgeousone.netherview.utils;
 
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import org.bukkit.block.BlockFace;
 
-public class FacingUtils {
+public final class FacingUtils {
+	
+	private FacingUtils() {}
 	
 	public static BlockFace[] getAxesFaces() {
 		return new BlockFace[]{
