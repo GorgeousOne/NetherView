@@ -132,17 +132,23 @@ public class ViewFrustum {
 		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
+		boolean isFirstColumn;
+		boolean isFirstBlock;
+		
 		if (nearPlaneRect.getAxis() == Axis.X) {
 			
 			for (int z = currentLayerMinPoint.getBlockZ(); z <= iterationMaxPoint.getZ(); z++) {
+				isFirstColumn = true;
 				
-				double minX = currentLayerMinPoint.getX();
-				double maxX = currentLayerMaxPoint.getX();
-				
-				for (double x = currentLayerMinPoint.getX(); x <= currentLayerMaxPoint.getX(); x++) {
-					for (double y = currentLayerMinPoint.getY(); y <= currentLayerMaxPoint.getY(); y++) {
+				for (int x = (int) Math.ceil(currentLayerMinPoint.getX()); isFirstColumn || x <= currentLayerMaxPoint.getX(); x++) {
+					isFirstBlock = true;
 					
+					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); isFirstBlock ||y <= currentLayerMaxPoint.getY(); y++) {
+						
+						addSurroundingBlocks(x, y, z, projection, blocksInFrustum);
+						isFirstBlock = false;
 					}
+					isFirstColumn = false;
 				}
 				
 				currentLayerMinPoint.add(layerMinPointStep);
@@ -152,22 +158,17 @@ public class ViewFrustum {
 		} else {
 			
 			for (int x = currentLayerMinPoint.getBlockX(); x <= iterationMaxPoint.getX(); x++) {
+				isFirstColumn = true;
 				
-//				addBlock(currentLayerMinPoint.getBlockX(),
-//				         currentLayerMinPoint.getBlockY(),
-//				         currentLayerMinPoint.getBlockZ(),
-//				         projection, blocksInFrustum);
-//
-//				addBlock(currentLayerMaxPoint.getBlockX(),
-//				         currentLayerMaxPoint.getBlockY(),
-//				         currentLayerMaxPoint.getBlockZ(),
-//				         projection, blocksInFrustum);
-				
-				for (int z = (int) Math.ceil(currentLayerMinPoint.getZ()); z <= currentLayerMaxPoint.getZ(); z++) {
-					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); y <= currentLayerMaxPoint.getY(); y++) {
-						
+				for (int z = (int) Math.ceil(currentLayerMinPoint.getZ()); isFirstColumn || z <= currentLayerMaxPoint.getZ(); z++) {
+					isFirstBlock = true;
+					
+					for (int y = (int) Math.ceil(currentLayerMinPoint.getY()); isFirstBlock || y <= currentLayerMaxPoint.getY(); y++) {
+
 						addSurroundingBlocks(x, y, z, projection, blocksInFrustum);
+						isFirstBlock = false;
 					}
+					isFirstColumn = false;
 				}
 				
 				currentLayerMinPoint.add(layerMinPointStep);

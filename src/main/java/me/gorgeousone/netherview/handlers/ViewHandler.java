@@ -175,9 +175,6 @@ public class ViewHandler {
 		if (hidePortalBlocks) {
 			for (Block portalBlock : portal.getPortalBlocks())
 				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
-			
-			for (Block portalBlock : portal.getFrameBlocks())
-				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of("stained_glass:7"));
 		}
 		
 		displayBlocks(player, visibleBlocks);

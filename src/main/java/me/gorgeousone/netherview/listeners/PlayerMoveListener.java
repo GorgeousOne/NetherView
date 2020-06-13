@@ -29,12 +29,7 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
-			
-			if (viewHandler.hasViewSession(player)) {
-				viewHandler.hideViewSession(player);
-			}
-			
+		if (player.getGameMode() == GameMode.SPECTATOR || !player.hasPermission(NetherView.VIEW_PERM)) {
 			return;
 		}
 		
@@ -58,13 +53,7 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (player.getGameMode() == GameMode.SPECTATOR) {
-			return;
-		}
-		
-		World.Environment worldType = player.getWorld().getEnvironment();
-		
-		if (worldType == World.Environment.NORMAL || worldType == World.Environment.NETHER) {
+		if (viewHandler.hasViewSession(player)) {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
@@ -77,7 +66,7 @@ public class PlayerMoveListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
-		if (event.getNewGameMode() == GameMode.SPECTATOR) {
+		if (event.getPlayer().hasPermission(NetherView.VIEW_PERM) && event.getNewGameMode() == GameMode.SPECTATOR) {
 			viewHandler.hideViewSession(event.getPlayer());
 		}
 	}
