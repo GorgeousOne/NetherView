@@ -189,9 +189,6 @@ public class ViewHandler {
 			for (Block portalBlock : portal.getPortalBlocks()) {
 				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
 			}
-			
-//			for (Block frameBlock : portal.getFrameBlocks())
-//				visibleBlocks.put(new BlockVec(frameBlock), BlockType.of("GRAY_STAINED_GLASS"));
 		}
 		
 		displayBlocks(player, visibleBlocks);

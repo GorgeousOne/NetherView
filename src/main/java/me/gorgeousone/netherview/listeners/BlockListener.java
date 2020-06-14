@@ -43,9 +43,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -81,7 +79,6 @@ public class BlockListener implements Listener {
 		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
 		
 		protocolManager.addPacketListener(
-				
 			new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.BLOCK_CHANGE) {
 				
 				@Override
@@ -110,8 +107,8 @@ public class BlockListener implements Listener {
 			}
 		);
 		
+		//intercepts multi block edits any changed block data inside a portal animation back to the animation block data
 		protocolManager.addPacketListener(
-
 			new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
 
 				@Override
@@ -119,7 +116,7 @@ public class BlockListener implements Listener {
 
 					PacketContainer packet = event.getPacket();
 					
-					if (packetHandler.isCustomPacket(packet) || event.isCancelled()) {
+					if (packetHandler.isCustomViewPacket(packet) || event.isCancelled()) {
 						return;
 					}
 					
@@ -130,7 +127,6 @@ public class BlockListener implements Listener {
 					}
 
 					MultiBlockChangeInfo[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().getValues().get(0);
-					List<MultiBlockChangeInfo> approvedBlockInfoList = new ArrayList<>();
 
 					Portal viewedPortal = viewHandler.getViewedPortal(player);
 					ProjectionCache viewedProjection = viewHandler.getViewedProjection(player);
@@ -148,22 +144,12 @@ public class BlockListener implements Listener {
 								blockInfo.getY(),
 								blockInfo.getZ() + worldZ);
 						
-						System.out.println(blockPos);
-						
-						if (!viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession))
-							approvedBlockInfoList.add(blockInfo);
+						if (viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession)) {
+							blockInfo.setData(viewSession.get(blockPos).getWrapped());
+						}
 					}
-
-					event.getPlayer().sendMessage("filtered " + (blockInfoArray.length - approvedBlockInfoList.size()) + " blocks");
-
-					if (blockInfoArray.length == approvedBlockInfoList.size()) {
-						return;
-					}
-
-					//modify the packet so only the filtered block changes are sent to the player
-					MultiBlockChangeInfo[] approvedBlockInfoArray = new MultiBlockChangeInfo[approvedBlockInfoList.size()];
-					approvedBlockInfoList.toArray(approvedBlockInfoArray);
-					event.getPacket().getMultiBlockChangeInfoArrays().write(0, approvedBlockInfoArray);
+					
+					packet.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
 				}
 			}
 		);

@@ -33,10 +33,10 @@ public class PacketHandler {
 	}
 	
 	/**
-	 * Returns true if the packets system ID matches any packet's ID sent with this object.
-	 * The method will only work once for each packet.
+	 * Returns true if the packets system ID matches any packet's ID sent by nether view for viewing a portal.
+	 * The method will delete matching the packet from the custom packet list, so this method only works once!
 	 */
-	public boolean isCustomPacket(PacketContainer packet) {
+	public boolean isCustomViewPacket(PacketContainer packet) {
 		
 		int packetID = System.identityHashCode(packet.getHandle());
 		

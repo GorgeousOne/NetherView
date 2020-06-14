@@ -228,8 +228,9 @@ public class PortalHandler {
 		return portal;
 	}
 	
+	
 	private void loadBlockCachesOf(Portal portal) {
-		
+	
 		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(
 				portal,
 				main.getPortalProjectionDist(),
