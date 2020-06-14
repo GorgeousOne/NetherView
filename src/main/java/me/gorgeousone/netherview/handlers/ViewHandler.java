@@ -1,7 +1,5 @@
 package me.gorgeousone.netherview.handlers;
 
-import com.comphenix.protocol.events.PacketContainer;
-import me.gorgeousone.netherview.utils.DisplayUtils;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -21,7 +19,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -34,23 +31,23 @@ public class ViewHandler {
 	
 	private NetherView main;
 	private PortalHandler portalHandler;
+	private PacketHandler packetHandler;
 	
 	private Map<UUID, Portal> viewedPortals;
 	private Map<UUID, ProjectionCache> viewedProjections;
 	private Map<UUID, Map<BlockVec, BlockType>> playerViewSessions;
 	
-	private Set<PacketContainer> customSentPackets;
-	
-	public ViewHandler(NetherView main, PortalHandler portalHandler) {
+	public ViewHandler(NetherView main,
+	                   PortalHandler portalHandler,
+	                   PacketHandler packetHandler) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
+		this.packetHandler = packetHandler;
 		
 		viewedProjections = new HashMap<>();
 		playerViewSessions = new HashMap<>();
 		viewedPortals = new HashMap<>();
-		
-		customSentPackets = new HashSet<>();
 	}
 	
 	public void reset() {
@@ -94,7 +91,7 @@ public class ViewHandler {
 	 * Removes the players view session and removes all sent fake blocks.
 	 */
 	public void hideViewSession(Player player) {
-		DisplayUtils.removeFakeBlocks(player, getViewSession(player));
+		packetHandler.removeFakeBlocks(player, getViewSession(player));
 		removeVieSession(player);
 	}
 	
@@ -102,6 +99,7 @@ public class ViewHandler {
 	 * Only removes the player reference.
 	 */
 	public void removeVieSession(Player player) {
+		
 		playerViewSessions.remove(player.getUniqueId());
 		viewedPortals.remove(player.getUniqueId());
 	}
@@ -255,7 +253,7 @@ public class ViewHandler {
 					}
 				}
 				
-				DisplayUtils.displayFakeBlocks(player, blocksInFrustum);
+				packetHandler.displayFakeBlocks(player, blocksInFrustum);
 			}
 		}
 	}
@@ -284,8 +282,8 @@ public class ViewHandler {
 		newBlocksToDisplay.keySet().removeIf(viewSession::containsKey);
 		viewSession.putAll(newBlocksToDisplay);
 		
-		DisplayUtils.removeFakeBlocks(player, removedBlocks);
-		DisplayUtils.displayFakeBlocks(player, newBlocksToDisplay);
+		packetHandler.removeFakeBlocks(player, removedBlocks);
+		packetHandler.displayFakeBlocks(player, newBlocksToDisplay);
 	}
 	
 	/**

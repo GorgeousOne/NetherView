@@ -67,7 +67,6 @@ public class PlayerMoveListener implements Listener {
 	private boolean mortalEnteredPortal(Player player, Location from, Location to) {
 		
 		GameMode gameMode = player.getGameMode();
-		
 		return
 				(gameMode == GameMode.SURVIVAL || gameMode == GameMode.ADVENTURE) &&
 				playerMovedIntoNewBlock(from, to) &&

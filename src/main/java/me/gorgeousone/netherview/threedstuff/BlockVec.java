@@ -36,10 +36,6 @@ public class BlockVec {
 		this(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
 	}
 	
-	public BlockVec(MultiBlockChangeInfo blockInfo) {
-		this(blockInfo.getX(), blockInfo.getY(), blockInfo.getZ());
-	}
-	
 	public BlockVec(int x, int y, int z) {
 		this.x = x;
 		this.y = y;

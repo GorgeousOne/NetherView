@@ -8,10 +8,12 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
+import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -54,17 +56,20 @@ public class BlockListener implements Listener {
 	private NetherView main;
 	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
+	private PacketHandler packetHandler;
+	
 	private Material portalMaterial;
 	
 	public BlockListener(NetherView main,
 	                     PortalHandler portalHandler,
-	                     ViewHandler viewHandler,
-	                     Material portalMaterial) {
+	                     ViewHandler viewHandler, PacketHandler packetHandler, Material portalMaterial) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;
+		this.packetHandler = packetHandler;
 		this.portalMaterial = portalMaterial;
+		
 		addBlockUpdateInterceptor();
 	}
 	
@@ -106,56 +111,66 @@ public class BlockListener implements Listener {
 		);
 		
 		protocolManager.addPacketListener(
-				
-				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+
+			new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+
+				@Override
+				public void onPacketSending(PacketEvent event) {
+
+					PacketContainer packet = event.getPacket();
 					
-					@Override
-					public void onPacketSending(PacketEvent event) {
-						
-						PacketContainer packet = event.getPacket();
-						
-						if (event.isCancelled()) {
-							return;
-						}
-						
-						Player player = event.getPlayer();
-						
-						if (!viewHandler.isViewingAPortal(player)) {
-							return;
-						}
-						
-						MultiBlockChangeInfo[] blockInfoArray = event.getPacket().getMultiBlockChangeInfoArrays().getValues().get(0);
-						List<MultiBlockChangeInfo> approvedBlockInfoList = new ArrayList<>();
-						
-						Portal viewedPortal = viewHandler.getViewedPortal(player);
-						ProjectionCache viewedProjection = viewHandler.getViewedProjection(player);
-						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
-						
-						//filter all block changes that are not happening inside a projection
-						for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
-							BlockVec blockPos = new BlockVec(blockInfo);
-							
-							if (!viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession))
-								approvedBlockInfoList.add(blockInfo);
-						}
-						
-						event.getPlayer().sendMessage("filtered " + (blockInfoArray.length - approvedBlockInfoList.size()) + " blocks");
-						
-						if (blockInfoArray.length == approvedBlockInfoList.size()) {
-							return;
-						}
-						
-						//modify the packet so only the filtered block changes are sent to the player
-						MultiBlockChangeInfo[] approvedBlockInfoArray = new MultiBlockChangeInfo[approvedBlockInfoList.size()];
-						approvedBlockInfoList.toArray(approvedBlockInfoArray);
-						event.getPacket().getMultiBlockChangeInfoArrays().write(0, approvedBlockInfoArray);
+					if (packetHandler.isCustomPacket(packet) || event.isCancelled()) {
+						return;
 					}
+					
+					Player player = event.getPlayer();
+
+					if (!viewHandler.isViewingAPortal(player)) {
+						return;
+					}
+
+					MultiBlockChangeInfo[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().getValues().get(0);
+					List<MultiBlockChangeInfo> approvedBlockInfoList = new ArrayList<>();
+
+					Portal viewedPortal = viewHandler.getViewedPortal(player);
+					ProjectionCache viewedProjection = viewHandler.getViewedProjection(player);
+					Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+					
+					ChunkCoordIntPair chunkCoords = packet.getChunkCoordIntPairs().getValues().get(0);
+					int worldX = chunkCoords.getChunkX() << 4;
+					int worldZ = chunkCoords.getChunkZ() << 4;
+					
+					//filter all block changes that are happening inside a projection
+					for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
+						
+						BlockVec blockPos = new BlockVec(
+								blockInfo.getX() + worldX,
+								blockInfo.getY(),
+								blockInfo.getZ() + worldZ);
+						
+						System.out.println(blockPos);
+						
+						if (!viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession))
+							approvedBlockInfoList.add(blockInfo);
+					}
+
+					event.getPlayer().sendMessage("filtered " + (blockInfoArray.length - approvedBlockInfoList.size()) + " blocks");
+
+					if (blockInfoArray.length == approvedBlockInfoList.size()) {
+						return;
+					}
+
+					//modify the packet so only the filtered block changes are sent to the player
+					MultiBlockChangeInfo[] approvedBlockInfoArray = new MultiBlockChangeInfo[approvedBlockInfoList.size()];
+					approvedBlockInfoList.toArray(approvedBlockInfoArray);
+					event.getPacket().getMultiBlockChangeInfoArrays().write(0, approvedBlockInfoArray);
 				}
+			}
 		);
 	}
 	
 	private boolean viewSessionContainsVec(BlockVec blockPos, Portal viewedPortal, ProjectionCache viewedCache, Map<BlockVec, BlockType> viewSession) {
-		return (viewedPortal.contains(blockPos) || !viewedCache.contains(blockPos)) && viewSession.containsKey(blockPos);
+		return (viewedPortal.contains(blockPos) || viewedCache.contains(blockPos)) && viewSession.containsKey(blockPos);
 	}
 	
 	private void removeDamagedPortals(Block block) {
@@ -284,17 +299,20 @@ public class BlockListener implements Listener {
 	//water, lava, dragon eggs
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockSpill(BlockFromToEvent event) {
+		
 		Block block = event.getToBlock();
 		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBurn(BlockBurnEvent event) {
+		
 		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 	}
 	
 	private void onAnyGrowEvent(BlockGrowEvent event) {
+		
 		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(event.getNewState()), block.getType().isOccluding());
 	}
@@ -320,6 +338,7 @@ public class BlockListener implements Listener {
 	//ice melting
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockFade(BlockFadeEvent event) {
+		
 		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(event.getNewState()), block.getType().isOccluding());
 	}
@@ -327,8 +346,9 @@ public class BlockListener implements Listener {
 	//falling sand and maybe endermen (actually also sheeps but that doesn't work)
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-		Block block = event.getBlock();
+		
 		//TODO check what 1.8 uses instead of event.getBlockData()
+		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
 	}
 	

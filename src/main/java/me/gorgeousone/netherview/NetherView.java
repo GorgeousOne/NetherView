@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview;
 
+import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
@@ -48,6 +49,7 @@ public final class NetherView extends JavaPlugin {
 	private Material portalMaterial;
 	
 	private PortalHandler portalHandler;
+	private PacketHandler packetHandler;
 	private ViewHandler viewHandler;
 	
 	private Set<UUID> worldsWithPortalViewing;
@@ -74,7 +76,8 @@ public final class NetherView extends JavaPlugin {
 		PortalLocator.configureVersion(portalMaterial);
 		
 		portalHandler = new PortalHandler(this);
-		viewHandler = new ViewHandler(this, portalHandler);
+		packetHandler = new PacketHandler();
+		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
 		
 		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
@@ -175,7 +178,7 @@ public final class NetherView extends JavaPlugin {
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
-		manager.registerEvents(new BlockListener(this, portalHandler, viewHandler, portalMaterial), this);
+		manager.registerEvents(new BlockListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 	}
 	
@@ -191,6 +194,7 @@ public final class NetherView extends JavaPlugin {
 		portalProjectionDist = clamp(getConfig().getInt("portal-projection-view-distance"), 1, 32);
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
+		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
 		
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));
 		

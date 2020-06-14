@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.utils;
+package me.gorgeousone.netherview.handlers;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -14,16 +14,41 @@ import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Utils for creating and sending multi block change packets via ProtocolLib
  */
-public final class DisplayUtils {
+public class PacketHandler {
 	
-	private DisplayUtils() {}
+	private ProtocolManager protocolManager;
+	private Set<Integer> customPacketIDs;
 	
-	public static PacketContainer removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
+	public PacketHandler() {
+		
+		protocolManager = ProtocolLibrary.getProtocolManager();
+		customPacketIDs = new HashSet<>();
+	}
+	
+	/**
+	 * Returns true if the packets system ID matches any packet's ID sent with this object.
+	 * The method will only work once for each packet.
+	 */
+	public boolean isCustomPacket(PacketContainer packet) {
+		
+		int packetID = System.identityHashCode(packet.getHandle());
+		
+		if (customPacketIDs.contains(packetID)) {
+			customPacketIDs.remove(packetID);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
 		World playerWorld = player.getWorld();
 		Map<BlockVec, BlockType> updatedBlockCopies = new HashMap<>();
@@ -31,50 +56,36 @@ public final class DisplayUtils {
 		for (BlockVec blockPos : blockCopies.keySet())
 			updatedBlockCopies.put(blockPos.clone(), BlockType.of(blockPos.toBlock(playerWorld)));
 		
-		return displayFakeBlocks(player, updatedBlockCopies);
+		displayFakeBlocks(player, updatedBlockCopies);
 	}
 	
-	public static PacketContainer displayFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
+	public void displayFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
-		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-		
-		World playerWorld = player.getWorld();
 		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockTypes = getSortedByChunks(blockCopies);
 		
 		for (Map.Entry<BlockVec, Map<BlockVec, BlockType>> chunkEntry : sortedBlockTypes.entrySet()) {
 			
 			BlockVec chunkPos = chunkEntry.getKey();
-			Map<BlockVec, BlockType> chunkBlockTypes = chunkEntry.getValue();
 			
-			//create an empty multi block change packet
 			PacketContainer fakeBlocksPacket = protocolManager.createPacket(PacketType.Play.Server.MULTI_BLOCK_CHANGE);
 			fakeBlocksPacket.getChunkCoordIntPairs().write(0, new ChunkCoordIntPair(chunkPos.getX(), chunkPos.getZ()));
+			fakeBlocksPacket.getMultiBlockChangeInfoArrays().write(0, createBlockInfoArray(chunkEntry.getValue(), player.getWorld()));
 			
-			MultiBlockChangeInfo[] blockInfoArray = new MultiBlockChangeInfo[chunkBlockTypes.size()];
-			int i = 0;
-			
-			for (Map.Entry<BlockVec, BlockType> entry : chunkBlockTypes.entrySet()) {
-				
-				Location blockLoc = entry.getKey().toLocation(playerWorld);
-				blockInfoArray[i] = new MultiBlockChangeInfo(blockLoc, entry.getValue().getWrapped());
-				i++;
-			}
-			
-			fakeBlocksPacket.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
+			int packetID = System.identityHashCode(fakeBlocksPacket.getHandle());
 			
 			try {
+				customPacketIDs.add(packetID);
 				protocolManager.sendServerPacket(player, fakeBlocksPacket);
-				return fakeBlocksPacket;
-			
+				
 			} catch (InvocationTargetException e) {
+				
+				customPacketIDs.remove(packetID);
 				throw new RuntimeException("Failed to send packet " + fakeBlocksPacket, e);
 			}
 		}
-		
-		return null;
 	}
 	
-	private static Map<BlockVec, Map<BlockVec, BlockType>> getSortedByChunks(Map<BlockVec, BlockType> blockCopies) {
+	private Map<BlockVec, Map<BlockVec, BlockType>> getSortedByChunks(Map<BlockVec, BlockType> blockCopies) {
 		
 		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockCopies = new HashMap<>();
 		
@@ -88,5 +99,20 @@ public final class DisplayUtils {
 		}
 		
 		return sortedBlockCopies;
+	}
+	
+	private MultiBlockChangeInfo[] createBlockInfoArray(Map<BlockVec, BlockType> blocksTypesInChunk, World world) {
+		
+		MultiBlockChangeInfo[] blockInfoArray = new MultiBlockChangeInfo[blocksTypesInChunk.size()];
+		int i = 0;
+		
+		for (Map.Entry<BlockVec, BlockType> entry : blocksTypesInChunk.entrySet()) {
+			
+			Location blockLoc = entry.getKey().toLocation(world);
+			blockInfoArray[i] = new MultiBlockChangeInfo(blockLoc, entry.getValue().getWrapped());
+			i++;
+		}
+		
+		return blockInfoArray;
 	}
 }
