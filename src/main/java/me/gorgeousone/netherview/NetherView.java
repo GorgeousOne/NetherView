@@ -176,7 +176,7 @@ public final class NetherView extends JavaPlugin {
 	private void registerListeners() {
 		
 		PluginManager manager = Bukkit.getPluginManager();
-		manager.registerEvents(new TeleportListener(this, portalHandler), this);
+		manager.registerEvents(new TeleportListener(this, portalHandler, viewHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
 		manager.registerEvents(new BlockListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
