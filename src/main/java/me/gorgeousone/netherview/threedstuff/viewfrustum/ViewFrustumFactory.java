@@ -30,8 +30,8 @@ public final class ViewFrustumFactory {
 		threshold.setY(1);
 		threshold.multiply(0.15);
 		
-		Vector viewingRectMin = maxViewingRect.getMin(); //.subtract(threshold);
-		Vector viewingRectMax = maxViewingRect.getMax(); //.add(threshold);
+		Vector viewingRectMin = maxViewingRect.getMin().subtract(threshold);
+		Vector viewingRectMax = maxViewingRect.getMax().add(threshold);
 		
 		//depending on which portal frame blocks will block the view, the viewing rect bounds are contracted by casting rays along the block edges
 		//here for the height of the rect...

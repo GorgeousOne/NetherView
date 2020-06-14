@@ -41,7 +41,7 @@ public class PlayerMoveListener implements Listener {
 			InvulnerabilityReflection.setTemporarilyInvulnerable(player, main, 2);
 		}
 		
-		if (!player.hasPermission(NetherView.VIEW_PERM) || player.getGameMode() == GameMode.SPECTATOR) {
+		if (player.getGameMode() == GameMode.SPECTATOR || !player.hasPermission(NetherView.VIEW_PERM)) {
 			return;
 		}
 		
@@ -54,9 +54,9 @@ public class PlayerMoveListener implements Listener {
 		Vector fromVec = from.toVector();
 		Vector toVec = to.toVector();
 		
-		if (!from.toVector().equals(to.toVector())) {
+		if (!fromVec.equals(toVec)) {
 			
-			Vector playerMovement = to.clone().subtract(from).toVector();
+			Vector playerMovement = toVec.subtract(fromVec);
 			viewHandler.displayNearestPortalTo(player, player.getEyeLocation().add(playerMovement));
 		}
 	}
@@ -67,7 +67,6 @@ public class PlayerMoveListener implements Listener {
 	private boolean mortalEnteredPortal(Player player, Location from, Location to) {
 		
 		GameMode gameMode = player.getGameMode();
-		
 		return
 				(gameMode == GameMode.SURVIVAL || gameMode == GameMode.ADVENTURE) &&
 				playerMovedIntoNewBlock(from, to) &&
@@ -87,7 +86,7 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (viewHandler.hasViewSession(player)) {
+		if (viewHandler.isViewingAPortal(player)) {
 			new BukkitRunnable() {
 				@Override
 				public void run() {

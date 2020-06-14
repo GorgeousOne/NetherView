@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.utils.DisplayUtils;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -32,15 +31,19 @@ public class ViewHandler {
 	
 	private NetherView main;
 	private PortalHandler portalHandler;
+	private PacketHandler packetHandler;
 	
 	private Map<UUID, Portal> viewedPortals;
 	private Map<UUID, ProjectionCache> viewedProjections;
 	private Map<UUID, Map<BlockVec, BlockType>> playerViewSessions;
 	
-	public ViewHandler(NetherView main, PortalHandler portalHandler) {
+	public ViewHandler(NetherView main,
+	                   PortalHandler portalHandler,
+	                   PacketHandler packetHandler) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
+		this.packetHandler = packetHandler;
 		
 		viewedProjections = new HashMap<>();
 		playerViewSessions = new HashMap<>();
@@ -50,7 +53,7 @@ public class ViewHandler {
 	public void reset() {
 		
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (hasViewSession(player)) {
+			if (isViewingAPortal(player)) {
 				hideViewSession(player);
 			}
 		}
@@ -72,15 +75,23 @@ public class ViewHandler {
 		return playerViewSessions.get(uuid);
 	}
 	
-	public boolean hasViewSession(Player player) {
-		return playerViewSessions.containsKey(player.getUniqueId());
+	public Portal getViewedPortal(Player player) {
+		return viewedPortals.get(player.getUniqueId());
+	}
+	
+	public ProjectionCache getViewedProjection(Player player) {
+		return viewedProjections.get(player.getUniqueId());
+	}
+	
+	public boolean isViewingAPortal(Player player) {
+		return viewedPortals.containsKey(player.getUniqueId());
 	}
 	
 	/**
 	 * Removes the players view session and removes all sent fake blocks.
 	 */
 	public void hideViewSession(Player player) {
-		DisplayUtils.removeFakeBlocks(player, getViewSession(player));
+		packetHandler.removeFakeBlocks(player, getViewSession(player));
 		removeVieSession(player);
 	}
 	
@@ -88,6 +99,7 @@ public class ViewHandler {
 	 * Only removes the player reference.
 	 */
 	public void removeVieSession(Player player) {
+		
 		playerViewSessions.remove(player.getUniqueId());
 		viewedPortals.remove(player.getUniqueId());
 	}
@@ -177,9 +189,6 @@ public class ViewHandler {
 			for (Block portalBlock : portal.getPortalBlocks()) {
 				visibleBlocks.put(new BlockVec(portalBlock), BlockType.of(Material.AIR));
 			}
-			
-//			for (Block frameBlock : portal.getFrameBlocks())
-//				visibleBlocks.put(new BlockVec(frameBlock), BlockType.of("GRAY_STAINED_GLASS"));
 		}
 		
 		displayBlocks(player, visibleBlocks);
@@ -241,7 +250,7 @@ public class ViewHandler {
 					}
 				}
 				
-				DisplayUtils.displayFakeBlocks(player, blocksInFrustum);
+				packetHandler.displayFakeBlocks(player, blocksInFrustum);
 			}
 		}
 	}
@@ -270,8 +279,8 @@ public class ViewHandler {
 		newBlocksToDisplay.keySet().removeIf(viewSession::containsKey);
 		viewSession.putAll(newBlocksToDisplay);
 		
-		DisplayUtils.removeFakeBlocks(player, removedBlocks);
-		DisplayUtils.displayFakeBlocks(player, newBlocksToDisplay);
+		packetHandler.removeFakeBlocks(player, removedBlocks);
+		packetHandler.displayFakeBlocks(player, newBlocksToDisplay);
 	}
 	
 	/**

@@ -2,14 +2,20 @@ package me.gorgeousone.netherview.listeners;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
+import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
+import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
@@ -48,17 +54,20 @@ public class BlockListener implements Listener {
 	private NetherView main;
 	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
+	private PacketHandler packetHandler;
+	
 	private Material portalMaterial;
 	
 	public BlockListener(NetherView main,
 	                     PortalHandler portalHandler,
-	                     ViewHandler viewHandler,
-	                     Material portalMaterial) {
+	                     ViewHandler viewHandler, PacketHandler packetHandler, Material portalMaterial) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;
+		this.packetHandler = packetHandler;
 		this.portalMaterial = portalMaterial;
+		
 		addBlockUpdateInterceptor();
 	}
 	
@@ -67,34 +76,87 @@ public class BlockListener implements Listener {
 	 */
 	private void addBlockUpdateInterceptor() {
 		
-		ProtocolLibrary.getProtocolManager().addPacketListener(
+		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+		
+		protocolManager.addPacketListener(
+			new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.BLOCK_CHANGE) {
 				
-				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.BLOCK_CHANGE) {
+				@Override
+				public void onPacketSending(PacketEvent event) {
 					
-					@Override
-					public void onPacketSending(PacketEvent event) {
-						
-						if (event.isCancelled() || event.getPacketType() != PacketType.Play.Server.BLOCK_CHANGE) {
-							return;
-						}
-						
-						Player player = event.getPlayer();
-						
-						if (!viewHandler.hasViewSession(player)) {
-							return;
-						}
-						
-						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
-						BlockVec blockPosVec = new BlockVec(blockPos);
-						
-						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
-						
-						if (viewSession.containsKey(blockPosVec)) {
-							event.getPacket().getBlockData().write(0, viewSession.get(blockPosVec).getWrapped());
-						}
+					Player player = event.getPlayer();
+					
+					if (event.isCancelled() || !viewHandler.isViewingAPortal(player)) {
+						return;
+					}
+					
+					BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
+					BlockVec blockPosVec = new BlockVec(blockPos);
+					
+					//execute some light weight bounding box checks before searching the block in the huge map of displayed blocks? Does that save time?
+					if (!viewHandler.getViewedProjection(player).contains(blockPosVec) && !viewHandler.getViewedPortal(player).contains(blockPosVec)) {
+						return;
+					}
+					
+					Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+					
+					if (viewSession.containsKey(new BlockVec(blockPos))) {
+						event.setCancelled(true);
 					}
 				}
+			}
 		);
+		
+		//intercepts multi block edits any changed block data inside a portal animation back to the animation block data
+		protocolManager.addPacketListener(
+			new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+
+				@Override
+				public void onPacketSending(PacketEvent event) {
+
+					PacketContainer packet = event.getPacket();
+					
+					if (packetHandler.isCustomViewPacket(packet) || event.isCancelled()) {
+						return;
+					}
+					
+					Player player = event.getPlayer();
+
+					if (!viewHandler.isViewingAPortal(player)) {
+						return;
+					}
+
+					MultiBlockChangeInfo[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().getValues().get(0);
+
+					Portal viewedPortal = viewHandler.getViewedPortal(player);
+					ProjectionCache viewedProjection = viewHandler.getViewedProjection(player);
+					Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+					
+					ChunkCoordIntPair chunkCoords = packet.getChunkCoordIntPairs().getValues().get(0);
+					int worldX = chunkCoords.getChunkX() << 4;
+					int worldZ = chunkCoords.getChunkZ() << 4;
+					
+					//filter all block changes that are happening inside a projection
+					for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
+						
+						BlockVec blockPos = new BlockVec(
+								blockInfo.getX() + worldX,
+								blockInfo.getY(),
+								blockInfo.getZ() + worldZ);
+						
+						if (viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession)) {
+							blockInfo.setData(viewSession.get(blockPos).getWrapped());
+						}
+					}
+					
+					packet.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
+				}
+			}
+		);
+	}
+	
+	private boolean viewSessionContainsVec(BlockVec blockPos, Portal viewedPortal, ProjectionCache viewedCache, Map<BlockVec, BlockType> viewSession) {
+		return (viewedPortal.contains(blockPos) || viewedCache.contains(blockPos)) && viewSession.containsKey(blockPos);
 	}
 	
 	private void removeDamagedPortals(Block block) {
@@ -149,7 +211,7 @@ public class BlockListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewHandler.hasViewSession(player)) {
+		if (!viewHandler.isViewingAPortal(player)) {
 			return;
 		}
 		
@@ -182,7 +244,7 @@ public class BlockListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewHandler.hasViewSession(player)) {
+		if (!viewHandler.isViewingAPortal(player)) {
 			return;
 		}
 		
@@ -223,17 +285,20 @@ public class BlockListener implements Listener {
 	//water, lava, dragon eggs
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockSpill(BlockFromToEvent event) {
+		
 		Block block = event.getToBlock();
 		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBurn(BlockBurnEvent event) {
+		
 		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 	}
 	
 	private void onAnyGrowEvent(BlockGrowEvent event) {
+		
 		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(event.getNewState()), block.getType().isOccluding());
 	}
@@ -259,6 +324,7 @@ public class BlockListener implements Listener {
 	//ice melting
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockFade(BlockFadeEvent event) {
+		
 		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(event.getNewState()), block.getType().isOccluding());
 	}
@@ -266,8 +332,9 @@ public class BlockListener implements Listener {
 	//falling sand and maybe endermen (actually also sheeps but that doesn't work)
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-		Block block = event.getBlock();
+		
 		//TODO check what 1.8 uses instead of event.getBlockData()
+		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
 	}
 	

@@ -2,6 +2,7 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.PortalHandler;
+import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
@@ -26,13 +27,17 @@ public class TeleportListener implements Listener {
 	
 	private NetherView main;
 	private PortalHandler portalHandler;
+	private ViewHandler viewHandler;
 	
 	private HashMap<UUID, Location> portalTravellingEntities;
 	
-	public TeleportListener(NetherView main, PortalHandler portalHandler) {
-		
+	public TeleportListener(NetherView main,
+	                        PortalHandler portalHandler,
+	                        ViewHandler viewHandler) {
+	
 		this.main = main;
 		this.portalHandler = portalHandler;
+		this.viewHandler = viewHandler;
 		
 		portalTravellingEntities = new HashMap<>();
 	}
@@ -57,16 +62,26 @@ public class TeleportListener implements Listener {
 	
 	//I did not use the PlayerPortalEvent because it only give information about where the player should theoretically perfectly teleport to
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onPortalTravel(PlayerTeleportEvent event) {
+	public void onTeleport(PlayerTeleportEvent event) {
 		
 		Player player = event.getPlayer();
+		Location to = event.getTo();
+		
+		if (player.getGameMode() == GameMode.SPECTATOR) {
+			return;
+		}
+		
+		//updates portal view when player teleports
+		if (event.getFrom().getWorld() == to.getWorld() && player.hasPermission(NetherView.VIEW_PERM)) {
+			viewHandler.displayNearestPortalTo(player, to.clone().add(0, player.getEyeHeight(), 0));
+		}
 		
 		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL ||
 		    !player.hasPermission(NetherView.LINK_PERM)) {
 			return;
 		}
 		
-		boolean successfullyCreatedPortalView = createPortalView(event.getFrom(), event.getTo(), player);
+		boolean successfullyCreatedPortalView = createPortalView(event.getFrom(), to, player);
 		
 		if (successfullyCreatedPortalView && (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinking())) {
 			event.setCancelled(true);
