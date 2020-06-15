@@ -71,7 +71,7 @@ public class TeleportListener implements Listener {
 			return;
 		}
 		
-		//updates portal view when player teleports
+		//updates portal animation when player teleports
 		if (event.getFrom().getWorld() == to.getWorld() && player.hasPermission(NetherView.VIEW_PERM)) {
 			viewHandler.displayNearestPortalTo(player, to.clone().add(0, player.getEyeHeight(), 0));
 		}
