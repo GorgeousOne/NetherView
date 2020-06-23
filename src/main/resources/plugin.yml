@@ -4,7 +4,7 @@ api-version: 1.13
 
 main: me.gorgeousone.netherview.NetherView
 
-depend: [ProtocolLib]
+softdepend: [ProtocolLib]
 
 commands:
   netherview:
