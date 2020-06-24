@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.threedstuff;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -18,7 +17,8 @@ public class BlockVec {
 	private int y;
 	private int z;
 	
-	public BlockVec() {}
+	public BlockVec() {
+	}
 	
 	public BlockVec(Block block) {
 		this(block.getX(), block.getY(), block.getZ());

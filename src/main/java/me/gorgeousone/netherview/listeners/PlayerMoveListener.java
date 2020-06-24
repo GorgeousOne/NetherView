@@ -76,9 +76,9 @@ public class PlayerMoveListener implements Listener {
 	
 	private boolean playerMovedIntoNewBlock(Location from, Location to) {
 		return
-			from.getBlockX() != to.getBlockX() ||
-			from.getBlockY() != to.getBlockY() ||
-			from.getBlockZ() != to.getBlockZ();
+				from.getBlockX() != to.getBlockX() ||
+				from.getBlockY() != to.getBlockY() ||
+				from.getBlockZ() != to.getBlockZ();
 	}
 	
 	@EventHandler

@@ -4,13 +4,13 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
-import me.gorgeousone.netherview.wrapping.Axis;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustumFactory;
+import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -156,10 +156,10 @@ public class ViewHandler {
 	}
 	
 	private void displayPortalTo(Player player,
-	                            Location playerEyeLoc,
-	                            Portal portal,
-	                            boolean displayFrustum,
-	                            boolean hidePortalBlocks) {
+	                             Location playerEyeLoc,
+	                             Portal portal,
+	                             boolean displayFrustum,
+	                             boolean hidePortalBlocks) {
 		
 		if (!portal.isLinked()) {
 			return;

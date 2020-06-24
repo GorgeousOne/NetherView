@@ -90,7 +90,11 @@ public abstract class BasicCommand {
 	
 	public String getUsage() {
 		
-		if (isChild()) { return getParent().getParentUsage() + " " + getName(); } else { return "/" + getName(); }
+		if (isChild()) {
+			return getParent().getParentUsage() + " " + getName();
+		} else {
+			return "/" + getName();
+		}
 	}
 	
 	public void sendUsage(CommandSender sender) {

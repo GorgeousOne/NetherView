@@ -1,9 +1,9 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.utils.FacingUtils;
-import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.utils.FacingUtils;
+import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

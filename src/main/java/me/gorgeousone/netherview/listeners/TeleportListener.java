@@ -34,7 +34,7 @@ public class TeleportListener implements Listener {
 	public TeleportListener(NetherView main,
 	                        PortalHandler portalHandler,
 	                        ViewHandler viewHandler) {
-	
+		
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;

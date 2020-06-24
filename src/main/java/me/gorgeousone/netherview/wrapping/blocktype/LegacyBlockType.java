@@ -97,7 +97,7 @@ public class LegacyBlockType extends BlockType {
 			for (BlockFace paintedFace : paintedFaces) {
 				mushroom.setFacePainted(RotationUtils.getRotatedFace(paintedFace, quarterTurns), true);
 			}
-		}   
+		}
 		return this;
 	}
 	

@@ -129,12 +129,14 @@ public class ViewFrustum {
 		
 		if (nearPlaneRect.getAxis() == Axis.X) {
 			return getBlocksInXAlignedFrustum(projection, startLayer, endLayer);
-		}else {
+		} else {
 			return getBlocksInZAlignedFrustum(projection, startLayer, endLayer);
 		}
 	}
 	
-	private Map<BlockVec, BlockType> getBlocksInXAlignedFrustum(ProjectionCache projection, AxisAlignedRect startLayer, AxisAlignedRect endLayer) {
+	private Map<BlockVec, BlockType> getBlocksInXAlignedFrustum(ProjectionCache projection,
+	                                                            AxisAlignedRect startLayer,
+	                                                            AxisAlignedRect endLayer) {
 		
 		Vector iterationMaxPoint = endLayer.getMax();
 		Vector currentLayerMinPoint = startLayer.getMin();
@@ -145,7 +147,7 @@ public class ViewFrustum {
 		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
-		for (int layerZ = currentLayerMinPoint.getBlockZ(); layerZ <= iterationMaxPoint.getZ(); layerZ++) {
+		for (int layerZ = (int) Math.round(currentLayerMinPoint.getZ()); layerZ <= iterationMaxPoint.getZ(); layerZ++) {
 			
 			int layerMax = currentLayerMaxPoint.getBlockX();
 			boolean isFirstColumn = true;
@@ -161,22 +163,21 @@ public class ViewFrustum {
 					isLastColumn = true;
 				}
 				
-				for (int blockY = (int) Math.ceil(currentLayerMinPoint.getY()); isFirstRow || blockY <= columnMax; blockY++) {
+				for (int rowY = (int) Math.ceil(currentLayerMinPoint.getY()); isFirstRow || rowY <= columnMax; rowY++) {
 					
-					if (blockY == columnMax) {
+					if (rowY == columnMax) {
 						isLastRow = true;
 					}
 					
 					//since the iteration only passes every block at one point, the surrounding blocks have to be added on edges for accurately determining all blocks
 					if (isFirstColumn || isLastColumn || isFirstRow || isLastRow) {
-						addSurroundingBlocks(columnX, blockY, layerZ, projection, blocksInFrustum);
-					}else {
-						addBlock(columnX, blockY, layerZ, projection, blocksInFrustum);
+						addSurroundingBlocks(columnX, rowY, layerZ, projection, blocksInFrustum);
+					} else {
+						addBlock(columnX, rowY, layerZ, projection, blocksInFrustum);
 					}
 					
 					isFirstRow = false;
 				}
-				
 				isFirstColumn = false;
 			}
 			
@@ -187,7 +188,9 @@ public class ViewFrustum {
 		return blocksInFrustum;
 	}
 	
-	private Map<BlockVec, BlockType> getBlocksInZAlignedFrustum(ProjectionCache projection, AxisAlignedRect startLayer, AxisAlignedRect endLayer) {
+	private Map<BlockVec, BlockType> getBlocksInZAlignedFrustum(ProjectionCache projection,
+	                                                            AxisAlignedRect startLayer,
+	                                                            AxisAlignedRect endLayer) {
 		
 		Vector iterationMaxPoint = endLayer.getMax();
 		Vector currentLayerMinPoint = startLayer.getMin();
@@ -198,7 +201,7 @@ public class ViewFrustum {
 		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
-		for (int layerX = currentLayerMinPoint.getBlockX(); layerX <= iterationMaxPoint.getX(); layerX++) {
+		for (int layerX = (int) Math.round(currentLayerMinPoint.getX()); layerX <= iterationMaxPoint.getX(); layerX++) {
 			
 			int layerMax = currentLayerMaxPoint.getBlockZ();
 			boolean isFirstColumn = true;
@@ -222,7 +225,7 @@ public class ViewFrustum {
 					
 					if (isFirstColumn || isLastColumn || isFirstRow || isLastRow) {
 						addSurroundingBlocks(layerX, rowY, columnZ, projection, blocksInFrustum);
-					}else {
+					} else {
 						addBlock(layerX, rowY, columnZ, projection, blocksInFrustum);
 					}
 					
@@ -242,16 +245,16 @@ public class ViewFrustum {
 	 * Adds a blocks from the projection cache to the visible blocks in the frustum.
 	 */
 	private void addBlock(int x,
-                          int y,
-                          int z,
-                          ProjectionCache projection,
-                          Map<BlockVec, BlockType> blocksInFrustum) {
+	                      int y,
+	                      int z,
+	                      ProjectionCache projection,
+	                      Map<BlockVec, BlockType> blocksInFrustum) {
 		
-			BlockType blockType = projection.getBlockTypeAt(x, y, z);
-			
-			if (blockType != null) {
-				blocksInFrustum.put(new BlockVec(x, y, z), blockType);
-			}
+		BlockType blockType = projection.getBlockTypeAt(x, y, z);
+		
+		if (blockType != null) {
+			blocksInFrustum.put(new BlockVec(x, y, z), blockType);
+		}
 	}
 	
 	/**
@@ -270,6 +273,7 @@ public class ViewFrustum {
 					BlockType blockType = projection.getBlockTypeAt(x + dx, y + dy, z + dz);
 					
 					if (blockType != null) {
+						//trying to reduce the object creation (the BlockVec)
 						blocksInFrustum.put(new BlockVec(x + dx, y + dy, z + dz), blockType);
 					}
 				}
