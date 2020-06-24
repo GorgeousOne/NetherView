@@ -5,10 +5,10 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
-import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -230,7 +230,7 @@ public class PortalHandler {
 	
 	
 	private void loadBlockCachesOf(Portal portal) {
-	
+		
 		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(
 				portal,
 				main.getPortalProjectionDist(),

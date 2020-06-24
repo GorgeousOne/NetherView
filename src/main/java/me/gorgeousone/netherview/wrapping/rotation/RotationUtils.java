@@ -29,7 +29,7 @@ public class RotationUtils {
 			BlockFace.WEST,
 			BlockFace.WEST_NORTH_WEST
 	));
-
+	
 	/**
 	 * Returns the rotated version of a block face
 	 *

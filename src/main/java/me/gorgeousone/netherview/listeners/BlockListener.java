@@ -13,13 +13,13 @@ import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
-import me.gorgeousone.netherview.handlers.PacketHandler;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
+import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -79,83 +79,86 @@ public class BlockListener implements Listener {
 		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
 		
 		protocolManager.addPacketListener(
-			new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.BLOCK_CHANGE) {
-				
-				@Override
-				public void onPacketSending(PacketEvent event) {
+				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.BLOCK_CHANGE) {
 					
-					Player player = event.getPlayer();
-					
-					if (event.isCancelled() || !viewHandler.isViewingAPortal(player)) {
-						return;
-					}
-					
-					BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
-					BlockVec blockPosVec = new BlockVec(blockPos);
-					
-					//execute some light weight bounding box checks before searching the block in the huge map of displayed blocks? Does that save time?
-					if (!viewHandler.getViewedProjection(player).contains(blockPosVec) && !viewHandler.getViewedPortal(player).contains(blockPosVec)) {
-						return;
-					}
-					
-					Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
-					
-					if (viewSession.containsKey(new BlockVec(blockPos))) {
-						event.setCancelled(true);
+					@Override
+					public void onPacketSending(PacketEvent event) {
+						
+						Player player = event.getPlayer();
+						
+						if (event.isCancelled() || !viewHandler.isViewingAPortal(player)) {
+							return;
+						}
+						
+						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
+						BlockVec blockPosVec = new BlockVec(blockPos);
+						
+						//execute some light weight bounding box checks before searching the block in the huge map of displayed blocks? Does that save time?
+						if (!viewHandler.getViewedProjection(player).contains(blockPosVec) && !viewHandler.getViewedPortal(player).contains(blockPosVec)) {
+							return;
+						}
+						
+						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+						
+						if (viewSession.containsKey(new BlockVec(blockPos))) {
+							event.setCancelled(true);
+						}
 					}
 				}
-			}
 		);
 		
 		//intercepts multi block edits any changed block data inside a portal animation back to the animation block data
 		protocolManager.addPacketListener(
-			new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
-
-				@Override
-				public void onPacketSending(PacketEvent event) {
-
-					PacketContainer packet = event.getPacket();
+				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
 					
-					if (packetHandler.isCustomViewPacket(packet) || event.isCancelled()) {
-						return;
-					}
-					
-					Player player = event.getPlayer();
-
-					if (!viewHandler.isViewingAPortal(player)) {
-						return;
-					}
-
-					MultiBlockChangeInfo[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().getValues().get(0);
-
-					Portal viewedPortal = viewHandler.getViewedPortal(player);
-					ProjectionCache viewedProjection = viewHandler.getViewedProjection(player);
-					Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
-					
-					ChunkCoordIntPair chunkCoords = packet.getChunkCoordIntPairs().getValues().get(0);
-					int worldX = chunkCoords.getChunkX() << 4;
-					int worldZ = chunkCoords.getChunkZ() << 4;
-					
-					//filter all block changes that are happening inside a projection
-					for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
+					@Override
+					public void onPacketSending(PacketEvent event) {
 						
-						BlockVec blockPos = new BlockVec(
-								blockInfo.getX() + worldX,
-								blockInfo.getY(),
-								blockInfo.getZ() + worldZ);
+						PacketContainer packet = event.getPacket();
 						
-						if (viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession)) {
-							blockInfo.setData(viewSession.get(blockPos).getWrapped());
+						if (packetHandler.isCustomViewPacket(packet) || event.isCancelled()) {
+							return;
 						}
+						
+						Player player = event.getPlayer();
+						
+						if (!viewHandler.isViewingAPortal(player)) {
+							return;
+						}
+						
+						MultiBlockChangeInfo[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().getValues().get(0);
+						
+						Portal viewedPortal = viewHandler.getViewedPortal(player);
+						ProjectionCache viewedProjection = viewHandler.getViewedProjection(player);
+						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+						
+						ChunkCoordIntPair chunkCoords = packet.getChunkCoordIntPairs().getValues().get(0);
+						int worldX = chunkCoords.getChunkX() << 4;
+						int worldZ = chunkCoords.getChunkZ() << 4;
+						
+						//filter all block changes that are happening inside a projection
+						for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
+							
+							BlockVec blockPos = new BlockVec(
+									blockInfo.getX() + worldX,
+									blockInfo.getY(),
+									blockInfo.getZ() + worldZ);
+							
+							if (viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession)) {
+								blockInfo.setData(viewSession.get(blockPos).getWrapped());
+							}
+						}
+						
+						packet.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
 					}
-					
-					packet.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
 				}
-			}
 		);
 	}
 	
-	private boolean viewSessionContainsVec(BlockVec blockPos, Portal viewedPortal, ProjectionCache viewedCache, Map<BlockVec, BlockType> viewSession) {
+	private boolean viewSessionContainsVec(BlockVec blockPos,
+	                                       Portal viewedPortal,
+	                                       ProjectionCache viewedCache,
+	                                       Map<BlockVec, BlockType> viewSession) {
 		return (viewedPortal.contains(blockPos) || viewedCache.contains(blockPos)) && viewSession.containsKey(blockPos);
 	}
 	

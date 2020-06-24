@@ -1,15 +1,16 @@
 package me.gorgeousone.netherview.threedstuff.viewfrustum;
 
-import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.Line;
+import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public final class ViewFrustumFactory {
 	
-	private ViewFrustumFactory() {}
+	private ViewFrustumFactory() {
+	}
 	
 	/**
 	 * Returns a viewing frustum with a near plane precisely representing the area the player can see through the portal.

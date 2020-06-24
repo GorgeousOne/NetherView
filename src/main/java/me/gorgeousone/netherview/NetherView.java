@@ -1,7 +1,5 @@
 package me.gorgeousone.netherview;
 
-import me.gorgeousone.netherview.handlers.PacketHandler;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
@@ -9,6 +7,7 @@ import me.gorgeousone.netherview.commmands.EnableDebugCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
+import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockListener;
@@ -18,6 +17,7 @@ import me.gorgeousone.netherview.listeners.TeleportListener;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
+import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -189,8 +189,8 @@ public final class NetherView extends JavaPlugin {
 		addVersionDependentDefaults();
 		saveConfig();
 		
-		int portalDisplayRange  = clamp(getConfig().getInt("portal-display-range"), 1, 128);
-		portalDisplayRangeSquared =  (int) Math.pow(portalDisplayRange, 2);
+		int portalDisplayRange = clamp(getConfig().getInt("portal-display-range"), 1, 128);
+		portalDisplayRangeSquared = (int) Math.pow(portalDisplayRange, 2);
 		portalProjectionDist = clamp(getConfig().getInt("portal-projection-view-distance"), 1, 32);
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
@@ -268,7 +268,9 @@ public final class NetherView extends JavaPlugin {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
 		
-		if (!portalConfigFile.exists()) { return; }
+		if (!portalConfigFile.exists()) {
+			return;
+		}
 		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		portalHandler.loadPortals(portalConfig);
