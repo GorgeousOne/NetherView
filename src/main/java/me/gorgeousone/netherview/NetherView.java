@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview;
 
+import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
@@ -24,6 +25,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -63,9 +65,23 @@ public final class NetherView extends JavaPlugin {
 	private boolean debugMessagesEnabled;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
+
+	Plugin protocolLib = null;
 	
 	@Override
 	public void onEnable() {
+
+		protocolLib =  getServer().getPluginManager().getPlugin("ProtocolLib");
+		if(protocolLib == null || !(protocolLib instanceof ProtocolLib)) {
+			getLogger().severe("====================================================");
+			getLogger().severe("Error: You must have ProtocolLib installed to use");
+			getLogger().severe("NetherView! Please download ProtocolLib and then");
+			getLogger().severe("restart your server:");
+			getLogger().severe("https://www.spigotmc.org/resources/protocollib.1997/");
+			getLogger().severe("====================================================");
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
 		
 		Metrics metrics = new Metrics(this, 7571);
 		registerTotalPortalsChart(metrics);
@@ -96,6 +112,8 @@ public final class NetherView extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
+
+		if(protocolLib==null) return;
 		
 		savePortalsToConfig();
 		viewHandler.reset();
