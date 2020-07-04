@@ -85,6 +85,17 @@ public class Transform {
 		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
 	}
 	
+	public float rotateYaw(float playerYaw) {
+		
+		float rotatedYaw = playerYaw + getQuarterTurns() * 90;
+		
+		if (Math.abs(rotatedYaw) > 360) {
+			rotatedYaw -= Math.signum(rotatedYaw) * 360;
+		}
+		
+		return rotatedYaw;
+	}
+	
 	public int getQuarterTurns() {
 		
 		if (isRotY90DegLeft()) {

@@ -2,6 +2,7 @@ package me.gorgeousone.netherview.portal;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
+import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.wrapping.Axis;
@@ -31,11 +32,10 @@ public class Portal {
 	private BlockVec max;
 	
 	private Portal counterPortal;
+	private Transform tpTransform;
 	
 	private Map.Entry<BlockCache, BlockCache> blockCaches;
 	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
-	
-	private boolean exists;
 	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
@@ -52,8 +52,6 @@ public class Portal {
 		
 		this.min = min;
 		this.max = max;
-		
-		this.exists = true;
 	}
 	
 	public World getWorld() {
@@ -80,6 +78,9 @@ public class Portal {
 		return frameBlocks;
 	}
 	
+	/**
+	 * Returns true if the given BlockVec is inside portal structure including the frame.
+	 */
 	public boolean contains(BlockVec loc) {
 		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
 		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
@@ -98,12 +99,21 @@ public class Portal {
 		return counterPortal;
 	}
 	
+	public void setTpTransform(Transform tpTransform) {
+		this.tpTransform = tpTransform;
+	}
+	
+	public Transform getTpTransform() {
+		return tpTransform;
+	}
+	
 	public void setLinkedTo(Portal counterPortal) {
 		this.counterPortal = counterPortal;
 	}
 	
 	public void removeLink() {
 		this.counterPortal = null;
+		this.tpTransform = null;
 		removeProjectionCaches();
 	}
 	

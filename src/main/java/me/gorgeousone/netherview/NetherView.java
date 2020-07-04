@@ -18,6 +18,7 @@ import me.gorgeousone.netherview.listeners.TeleportListener;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
+import me.gorgeousone.netherview.utils.ConsoleUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -65,14 +66,15 @@ public final class NetherView extends JavaPlugin {
 	private boolean debugMessagesEnabled;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
-
+	
 	Plugin protocolLib = null;
 	
 	@Override
 	public void onEnable() {
-
-		protocolLib =  getServer().getPluginManager().getPlugin("ProtocolLib");
-		if(protocolLib == null || !(protocolLib instanceof ProtocolLib)) {
+		
+		protocolLib = getServer().getPluginManager().getPlugin("ProtocolLib");
+		
+		if (protocolLib == null || !(protocolLib instanceof ProtocolLib)) {
 			getLogger().severe("====================================================");
 			getLogger().severe("Error: You must have ProtocolLib installed to use");
 			getLogger().severe("NetherView! Please download ProtocolLib and then");
@@ -112,8 +114,10 @@ public final class NetherView extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
-
-		if(protocolLib==null) return;
+		
+		if (protocolLib == null) {
+			return;
+		}
 		
 		savePortalsToConfig();
 		viewHandler.reset();
@@ -132,7 +136,7 @@ public final class NetherView extends JavaPlugin {
 		return hidePortalBlocks;
 	}
 	
-	public boolean cancelTeleportWhenLinking() {
+	public boolean cancelTeleportWhenLinkingPortalsEnabled() {
 		return cancelTeleportWhenLinking;
 	}
 	
@@ -157,7 +161,7 @@ public final class NetherView extends JavaPlugin {
 		if (debugMessagesEnabled != state) {
 			
 			debugMessagesEnabled = state;
-			PortalLocator.setDebugMessagesEnabled(debugMessagesEnabled);
+			ConsoleUtils.setDebugMessagesEnabled(debugMessagesEnabled);
 			getConfig().set("debug-messages", debugMessagesEnabled);
 			saveConfig();
 			return true;
@@ -204,7 +208,7 @@ public final class NetherView extends JavaPlugin {
 		
 		reloadConfig();
 		getConfig().options().copyDefaults(true);
-		addVersionDependentDefaults();
+		addVersionSpecificDefaults();
 		saveConfig();
 		
 		int portalDisplayRange = clamp(getConfig().getInt("portal-display-range"), 1, 128);
@@ -221,7 +225,7 @@ public final class NetherView extends JavaPlugin {
 		loadRegisteredPortals();
 	}
 	
-	private void addVersionDependentDefaults() {
+	private void addVersionSpecificDefaults() {
 		
 		if (isLegacyServer) {
 			getConfig().addDefault("overworld-border", "stained_clay");
@@ -329,6 +333,7 @@ public final class NetherView extends JavaPlugin {
 			if (versionResponse == VersionResponse.FOUND_NEW) {
 				
 				for (Player player : Bukkit.getOnlinePlayers()) {
+					
 					if (player.isOp()) {
 						player.sendMessage("A new version of NetherView is available: " + ChatColor.LIGHT_PURPLE + newVersion);
 					}
@@ -337,7 +342,8 @@ public final class NetherView extends JavaPlugin {
 				Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "A new version of NetherView is available: " + newVersion);
 				
 			} else if (versionResponse == VersionResponse.UNAVAILABLE) {
-				getLogger().info("Unable to check for new versions...");
+				
+				getLogger().info("Unable to check for new versions of NetherView...");
 			}
 		}).check();
 	}

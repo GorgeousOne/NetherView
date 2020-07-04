@@ -2,7 +2,7 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import me.gorgeousone.netherview.utils.InvulnerabilityReflection;
+import me.gorgeousone.netherview.utils.InvulnerabilityUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,6 +16,10 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+/**
+ * A listener class that informs the view handler to update the portal view for players when they move.
+ * It also takes care of the instant teleportation feature.
+ */
 public class PlayerMoveListener implements Listener {
 	
 	private NetherView main;
@@ -38,7 +42,7 @@ public class PlayerMoveListener implements Listener {
 		
 		//sets player temporarily invulnerable so the game will instantly teleport them on entering a portal
 		if (main.isInstantTeleportEnabled() && mortalEnteredPortal(player, from, to)) {
-			InvulnerabilityReflection.setTemporarilyInvulnerable(player, main, 2);
+			InvulnerabilityUtils.setTemporarilyInvulnerable(player, main, 2);
 		}
 		
 		if (player.getGameMode() == GameMode.SPECTATOR || !player.hasPermission(NetherView.VIEW_PERM)) {

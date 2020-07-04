@@ -2,16 +2,15 @@ package me.gorgeousone.netherview.portal;
 
 import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.utils.ConsoleUtils;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.wrapping.Axis;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -20,14 +19,9 @@ import java.util.Set;
 public class PortalLocator {
 	
 	private static Material PORTAL_MATERIAL;
-	private static boolean debugMessagesEnabled;
 	
 	public static void configureVersion(Material portalMaterial) {
 		PortalLocator.PORTAL_MATERIAL = portalMaterial;
-	}
-	
-	public static void setDebugMessagesEnabled(boolean isDebugModeEnabled) {
-		PortalLocator.debugMessagesEnabled = isDebugModeEnabled;
 	}
 	
 	/**
@@ -85,8 +79,7 @@ public class PortalLocator {
 	 */
 	private static AxisAlignedRect getPortalRect(Block portalBlock) {
 		
-		MaterialData data = portalBlock.getState().getData();
-		Axis portalAxis = data.getData() == 2 ? Axis.Z : Axis.X;
+		Axis portalAxis = FacingUtils.getAxis(portalBlock);
 		
 		Vector position = new Vector(
 				portalBlock.getX(),
@@ -134,10 +127,7 @@ public class PortalLocator {
 			blockIterator = nextBlock;
 		}
 		
-		if (debugMessagesEnabled) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Detection stopped after exceeding 21 portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
-		}
-		
+		ConsoleUtils.printDebug("Detection stopped after exceeding 21 portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
 		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");
 	}
 	
@@ -159,10 +149,7 @@ public class PortalLocator {
 						
 					} else {
 						
-						if (debugMessagesEnabled) {
-							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Portal block expected at " + new BlockVec(x, y, z).toString());
-						}
-						
+						ConsoleUtils.printDebug("Expected portal block at " + new BlockVec(x, y, z).toString());
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is not rectangular.");
 					}
 				}
@@ -204,14 +191,12 @@ public class PortalLocator {
 					
 					if (portalBlock.getType() == Material.OBSIDIAN) {
 						frameBlocks.add(portalBlock);
+						
 					} else {
 						
-						if (debugMessagesEnabled) {
-							Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Block at "
-							                                      + portalBlock.getWorld().getName() + ", "
-							                                      + new BlockVec(portalBlock).toString()
-							                                      + " is not out of " + Material.OBSIDIAN.name());
-						}
+						ConsoleUtils.printDebug("Expected obsidian block at "
+						                        + portalBlock.getWorld().getName() + ", "
+						                        + new BlockVec(portalBlock).toString());
 						
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "Something about this portal frame seems to be incomplete...");
 					}

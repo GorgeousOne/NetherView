@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Utils for creating and sending multi block change packets via ProtocolLib
+ * Handler class for creating and managing multi block change packets via ProtocolLib
  */
 public class PacketHandler {
 	
@@ -34,7 +34,7 @@ public class PacketHandler {
 	
 	/**
 	 * Returns true if the packets system ID matches any packet's ID sent by nether view for viewing a portal.
-	 * The method will delete matching the packet from the custom packet list, so this method only works once!
+	 * The method will delete matching packets from the custom packet list, so this method only works once!
 	 */
 	public boolean isCustomViewPacket(PacketContainer packet) {
 		
@@ -85,6 +85,9 @@ public class PacketHandler {
 		}
 	}
 	
+	/**
+	 * Returns the passed block copies sorted by their chunks so multi block change packets can be created with them.
+	 */
 	private Map<BlockVec, Map<BlockVec, BlockType>> getSortedByChunks(Map<BlockVec, BlockType> blockCopies) {
 		
 		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockCopies = new HashMap<>();
