@@ -23,20 +23,20 @@ public class BlockCache {
 	
 	public BlockCache(Portal portal,
 	                  BlockVec offset,
-	                  BlockType[][][] blockCopies,
+	                  BlockVec size,
 	                  Vector facing,
 	                  BlockType borderType) {
 		
 		this.portal = portal;
-		this.blockCopies = blockCopies;
+		this.blockCopies = new BlockType[size.getX()][size.getY()][size.getZ()];
 		this.min = offset.clone();
-		this.max = offset.clone().add(sourceCacheSize());
+		this.max = offset.clone().add(size());
 		
 		this.facing = facing;
 		this.borderType = borderType;
 	}
 	
-	private BlockVec sourceCacheSize() {
+	private BlockVec size() {
 		return new BlockVec(blockCopies.length, blockCopies[0].length, blockCopies[0][0].length);
 	}
 	
@@ -62,17 +62,18 @@ public class BlockCache {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
+	public boolean isBorder(BlockVec loc) {
+		return isBorder(loc.getX(), loc.getY(), loc.getZ());
+	}
+	
 	/**
 	 * Returns true if the block is at any position bordering the cuboid except the side facing the portal.
 	 */
-	public boolean isBorder(BlockVec loc) {
+	public boolean isBorder(int x, int y, int z) {
 		
-		if (loc.getY() == min.getY() || loc.getY() == max.getY() - 1) {
+		if (y == min.getY() || y == max.getY() - 1) {
 			return true;
 		}
-		
-		int x = loc.getX();
-		int z = loc.getZ();
 		
 		int minX = min.getX();
 		int minZ = min.getZ();
@@ -117,10 +118,18 @@ public class BlockCache {
 	}
 	
 	public void setBlockTypeAt(BlockVec blockPos, BlockType blockType) {
+		setBlockTypeAt(
+				blockPos.getX(),
+				blockPos.getY(),
+				blockPos.getZ(),
+				blockType);
+	}
+	
+	public void setBlockTypeAt(int x, int y, int z, BlockType blockType) {
 		blockCopies
-				[blockPos.getX() - min.getX()]
-				[blockPos.getY() - min.getY()]
-				[blockPos.getZ() - min.getZ()] = blockType;
+			[x - min.getX()]
+			[y - min.getY()]
+			[z - min.getZ()] = blockType;
 	}
 	
 	public void removeBlockDataAt(BlockVec blockPos) {

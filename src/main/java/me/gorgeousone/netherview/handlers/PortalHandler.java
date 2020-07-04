@@ -254,6 +254,7 @@ public class PortalHandler {
 		
 		Portal counterPortal = portal.getCounterPortal();
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
+		portal.setTpTransform(linkTransform.clone().invert());
 		
 		if (!counterPortal.blockCachesAreLoaded()) {
 			loadBlockCachesOf(counterPortal);
@@ -262,12 +263,7 @@ public class PortalHandler {
 		BlockCache frontCache = counterPortal.getFrontCache();
 		BlockCache backCache = counterPortal.getBackCache();
 		
-		//the projections caches are switching positions because of the transform
-		ProjectionCache frontProjection = new ProjectionCache(portal, backCache, linkTransform);
-		ProjectionCache backProjection = new ProjectionCache(portal, frontCache, linkTransform);
-		
-		portal.setTpTransform(linkTransform.clone().invert());
-		portal.setProjectionCaches(new AbstractMap.SimpleEntry<>(frontProjection, backProjection));
+		portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
 		addPortalToExpirationTimer(portal);
 	}
 	

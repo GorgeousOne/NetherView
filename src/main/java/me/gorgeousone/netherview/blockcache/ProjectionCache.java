@@ -4,8 +4,8 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
-import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.util.Vector;
 
 /**
  * The equivalent to a BlockCache used to store information about all blocks that will be displayed in the animation of a portal.
@@ -14,26 +14,42 @@ import org.bukkit.World;
 public class ProjectionCache {
 	
 	private Portal portal;
-	private Transform blockTransform;
-	
 	private BlockType[][][] blockCopies;
 	private BlockVec min;
 	private BlockVec max;
 	
+	private Transform blockTransform;
 	private int cacheLength;
+	private Vector facing;
+	private BlockType borderType;
 	
-	public ProjectionCache(Portal projectedPortal, BlockCache sourceCache, Transform blockTransform) {
+	public ProjectionCache(Portal portal,
+	                  BlockVec offset,
+	                  BlockVec size,
+	                  Vector facing,
+	                  BlockType borderType) {
 		
-		this.portal = projectedPortal;
-		this.blockTransform = blockTransform;
+		this.portal = portal;
+		this.blockCopies = new BlockType[size.getX()][size.getY()][size.getZ()];
+		this.min = offset.clone();
+		this.max = offset.clone().add(size());
 		
-		createBlockCopies(sourceCache);
+		this.facing = facing;
+		this.borderType = borderType;
 		
 		if (portal.getAxis() == Axis.X) {
 			cacheLength = blockCopies[0][0].length;
 		} else {
 			cacheLength = blockCopies.length;
 		}
+	}
+	
+	private BlockVec size() {
+		return new BlockVec(blockCopies.length, blockCopies[0].length, blockCopies[0][0].length);
+	}
+	
+	public void setBlockTransform(Transform blockTransform) {
+		this.blockTransform = blockTransform;
 	}
 	
 	public Portal getPortal() {
@@ -88,54 +104,18 @@ public class ProjectionCache {
 				[z - min.getZ()];
 	}
 	
-	public void setBlockTypeAt(BlockVec blockPos, BlockType newBlockData) {
-		
-		blockCopies
-				[blockPos.getX() - min.getX()]
-				[blockPos.getY() - min.getY()]
-				[blockPos.getZ() - min.getZ()] = newBlockData;
+	public void setBlockTypeAt(BlockVec blockPos, BlockType blockType) {
+		setBlockTypeAt(
+				blockPos.getX(),
+				blockPos.getY(),
+				blockPos.getZ(),
+				blockType);
 	}
 	
-	private void createBlockCopies(BlockCache sourceCache) {
-		
-		BlockVec sourceMin = sourceCache.getMin();
-		BlockVec sourceMax = sourceCache.getMax();
-		
-		BlockVec corner1 = blockTransform.transformVec(sourceMin.clone());
-		BlockVec corner2 = blockTransform.transformVec(sourceMax.clone());
-		
-		min = BlockVec.getMinimum(corner1, corner2);
-		max = BlockVec.getMaximum(corner1, corner2).add(1, 0, 1);
-		
-		int minX = min.getX();
-		int minY = min.getY();
-		int minZ = min.getZ();
-		
-		blockCopies = new BlockType
-				[max.getX() - minX]
-				[max.getY() - minY]
-				[max.getZ() - minZ];
-		
-		for (int x = sourceMin.getX(); x < sourceMax.getX(); x++) {
-			for (int y = sourceMin.getY(); y < sourceMax.getY(); y++) {
-				for (int z = sourceMin.getZ(); z < sourceMax.getZ(); z++) {
-					
-					BlockVec blockPos = new BlockVec(x, y, z);
-					BlockType blockType = sourceCache.getBlockTypeAt(blockPos);
-					
-					if (blockType == null) {
-						continue;
-					}
-					
-					BlockType rotatedBlockType = blockType.clone().rotate(blockTransform.getQuarterTurns());
-					BlockVec newBlockPos = blockTransform.transformVec(blockPos);
-					
-					blockCopies
-							[newBlockPos.getX() - minX]
-							[newBlockPos.getY() - minY]
-							[newBlockPos.getZ() - minZ] = rotatedBlockType;
-				}
-			}
-		}
+	public void setBlockTypeAt(int x, int y, int z, BlockType blockType) {
+		blockCopies
+				[x - min.getX()]
+				[y - min.getY()]
+				[z - min.getZ()] = blockType;
 	}
 }

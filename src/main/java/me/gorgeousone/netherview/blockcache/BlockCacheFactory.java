@@ -23,26 +23,24 @@ public class BlockCacheFactory {
 		
 		//theoretically the view distance needs to be increased by 1 for the extra layer of border around the cuboid of blocks.
 		//but somehow it's 2. Don't ask me.
-		viewDist += 2;
+		viewDist += 1;
 		
 		AxisAlignedRect portalRect = portal.getPortalRect();
 		Vector portalFacing = portalRect.getNormal();
 		Vector widthFacing = portalRect.getCrossNormal();
 		
-		//the view distance in blocks to the front shall be greater than at the sides
-		int frontViewDist = viewDist;
-		int horizontalViewDist = (int) Math.max(2, viewDist - portalRect.width()) / 2;
-		int verticalViewDist = (int) Math.max(2, viewDist - portalRect.height()) / 2;
 		
 		Vector cacheCorner1 = portalRect.getMin();
-		cacheCorner1.subtract(new Vector(0, verticalViewDist, 0));
-		cacheCorner1.subtract(widthFacing.clone().multiply(horizontalViewDist));
-		
+		cacheCorner1.subtract(new Vector(0, viewDist, 0));
+		cacheCorner1.subtract(widthFacing.clone().multiply(viewDist));
+
 		Vector cacheCorner2 = portalRect.getMax();
-		cacheCorner2.add(new Vector(0, verticalViewDist, 0));
-		cacheCorner2.add(widthFacing.clone().multiply(horizontalViewDist));
+		cacheCorner2.add(new Vector(0, viewDist, 0));
+		cacheCorner2.add(widthFacing.clone().multiply(viewDist));
 		
-		//TODO pass parameters more efficient?
+		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
+		int frontViewDist = (minPortalExtent + 2*viewDist);
+
 		BlockCache front = copyBlocksInBounds(
 				portal,
 				cacheCorner1.clone().add(portalFacing),
@@ -60,7 +58,6 @@ public class BlockCacheFactory {
 		return new AbstractMap.SimpleEntry<>(front, back);
 	}
 	
-	//TODO rather copy the blocs into an empty BlockCache?
 	private static BlockCache copyBlocksInBounds(Portal portal,
 	                                             Vector cacheCorner1,
 	                                             Vector cacheCorner2,
@@ -81,7 +78,8 @@ public class BlockCacheFactory {
 			throw new IllegalArgumentException("Cannot create a BlockCache smaller than 1 block.");
 		}
 		
-		BlockType[][][] copiedBlocks = new BlockType[maxX - minX][maxY - minY][maxZ - minZ];
+		BlockVec cacheSize = new BlockVec(cacheMax.clone().subtract(cacheMin));
+		BlockCache blockCache = new BlockCache(portal, new BlockVec(cacheMin), cacheSize, cacheFacing, cacheBorderBlockType);
 		World cacheWorld = portal.getWorld();
 		
 		for (int x = minX; x < maxX; x++) {
@@ -97,16 +95,65 @@ public class BlockCacheFactory {
 					BlockType blockType = BlockType.of(block);
 					
 					//make sure that the cache border onl consists of occluding blocks
-					if (!blockType.isOccluding() && isCacheBorder(x, y, z, minX, minY, minZ, maxX, maxY, maxZ, cacheFacing)) {
+					if (!blockType.isOccluding() && blockCache.isBorder(x, y, z)) {
 						blockType = cacheBorderBlockType.clone();
 					}
 					
-					copiedBlocks[x - minX][y - minY][z - minZ] = blockType;
+					blockCache.setBlockTypeAt(x, y, z, blockType);
 				}
 			}
 		}
 		
-		return new BlockCache(portal, new BlockVec(cacheMin), copiedBlocks, cacheFacing, cacheBorderBlockType);
+		return blockCache;
+	}
+	
+	public static Map.Entry<ProjectionCache, ProjectionCache> createProjectionCaches(BlockCache frontCache, BlockCache backCache, Transform portalLinkTransform) {
+		
+		return new AbstractMap.SimpleEntry<>(
+				createProjection(backCache, portalLinkTransform),
+				createProjection(frontCache, portalLinkTransform));
+	}
+	
+	public static ProjectionCache createProjection(BlockCache sourceCache, Transform blockTransform) {
+		
+		BlockVec sourceMin = sourceCache.getMin();
+		BlockVec sourceMax = sourceCache.getMax();
+		
+		BlockVec corner1 = blockTransform.transformVec(sourceMin.clone());
+		BlockVec corner2 = blockTransform.transformVec(sourceMax.clone());
+		
+		BlockVec projectionMin = BlockVec.getMinimum(corner1, corner2);
+		BlockVec projectionMax = BlockVec.getMaximum(corner1, corner2).add(1, 0, 1);
+		BlockVec projectionSize = projectionMax.clone().subtract(projectionMin);
+		
+		ProjectionCache projectionCache = new ProjectionCache(
+				sourceCache.getPortal(),
+				projectionMin,
+				projectionSize,
+				null,
+				null);
+		
+		projectionCache.setBlockTransform(blockTransform);
+		
+		for (int x = sourceMin.getX(); x < sourceMax.getX(); x++) {
+			for (int y = sourceMin.getY(); y < sourceMax.getY(); y++) {
+				for (int z = sourceMin.getZ(); z < sourceMax.getZ(); z++) {
+					
+					BlockVec blockPos = new BlockVec(x, y, z);
+					BlockType blockType = sourceCache.getBlockTypeAt(blockPos);
+					
+					if (blockType == null) {
+						continue;
+					}
+					
+					BlockType rotatedBlockType = blockType.clone().rotate(blockTransform.getQuarterTurns());
+					BlockVec newBlockPos = blockTransform.transformVec(blockPos);
+					projectionCache.setBlockTypeAt(newBlockPos, rotatedBlockType);
+				}
+			}
+		}
+		
+		return projectionCache;
 	}
 	
 	/**
@@ -184,50 +231,6 @@ public class BlockCacheFactory {
 		
 		changedBlocks.put(blockPos, newBlockType);
 		return changedBlocks;
-	}
-
-//		private static boolean isCacheBorder(BlockVec blockPos, BlockCache cache) {
-//
-//			BlockVec cacheMin = cache.getMin();
-//			BlockVec cacheMax = cache.getMax();
-//
-//			return isCacheBorder(
-//					blockPos.getX(), blockPos.getY(), blockPos.getZ(),
-//					cacheMin.getX(), cacheMin.getY(), cacheMin.getZ(),
-//					cacheMax.getX(), cacheMax.getY(), cacheMax.getZ(),
-//					cache.getFacing());
-//		}
-	
-	/**
-	 * Returns true if the block is part of the border of the cache cuboid except the side where the portal is
-	 */
-	private static boolean isCacheBorder(
-			int x, int y, int z,
-			int minX, int minY, int minZ,
-			int maxX, int maxY, int maxZ,
-			Vector cacheFacing) {
-		
-		if (y == minY || y == maxY - 1) {
-			return true;
-		}
-		
-		if (cacheFacing.getZ() != 0) {
-			if (x == minX || x == maxX - 1) {
-				return true;
-			}
-		} else if (z == minZ || z == maxZ - 1) {
-			return true;
-		}
-		
-		if (cacheFacing.getX() == 1) {
-			return x == maxX - 1;
-		} else if (cacheFacing.getX() == -1) {
-			return x == minX;
-		} else if (cacheFacing.getZ() == 1) {
-			return z == maxZ - 1;
-		} else {
-			return z == minZ;
-		}
 	}
 	
 	public static boolean isVisible(Block block) {
