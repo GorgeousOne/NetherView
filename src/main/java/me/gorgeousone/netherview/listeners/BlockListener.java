@@ -168,9 +168,9 @@ public class BlockListener implements Listener {
 	 * Returns null if no block is being displayed at the position.
 	 */
 	private BlockType getViewedBlockType(BlockVec blockPos,
-	                                   Portal viewedPortal,
-	                                   ProjectionCache viewedCache,
-	                                   Map<BlockVec, BlockType> viewSession) {
+	                                     Portal viewedPortal,
+	                                     ProjectionCache viewedCache,
+	                                     Map<BlockVec, BlockType> viewSession) {
 		
 		return (viewedPortal.contains(blockPos) || viewedCache.contains(blockPos)) ? viewSession.get(blockPos) : null;
 	}
@@ -220,20 +220,20 @@ public class BlockListener implements Listener {
 	
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onBlockInteract(PlayerInteractEvent event) {
-
+		
 		if (event.getAction() != Action.LEFT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
 			return;
 		}
-
+		
 		Player player = event.getPlayer();
-
+		
 		if (!viewHandler.isViewingAPortal(player)) {
 			return;
 		}
-
+		
 		Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
 		BlockVec blockPos = new BlockVec(event.getClickedBlock());
-
+		
 		if (viewSession.containsKey(blockPos)) {
 			event.setCancelled(true);
 		}

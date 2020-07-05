@@ -29,18 +29,17 @@ public class BlockCacheFactory {
 		Vector portalFacing = portalRect.getNormal();
 		Vector widthFacing = portalRect.getCrossNormal();
 		
-		
 		Vector cacheCorner1 = portalRect.getMin();
 		cacheCorner1.subtract(new Vector(0, viewDist, 0));
 		cacheCorner1.subtract(widthFacing.clone().multiply(viewDist));
-
+		
 		Vector cacheCorner2 = portalRect.getMax();
 		cacheCorner2.add(new Vector(0, viewDist, 0));
 		cacheCorner2.add(widthFacing.clone().multiply(viewDist));
 		
 		int minPortalExtent = (int) Math.min(portalRect.width(), portalRect.height());
-		int frontViewDist = (minPortalExtent + 2*viewDist);
-
+		int frontViewDist = minPortalExtent + 2 * viewDist;
+		
 		BlockCache front = copyBlocksInBounds(
 				portal,
 				cacheCorner1.clone().add(portalFacing),
@@ -78,9 +77,15 @@ public class BlockCacheFactory {
 			throw new IllegalArgumentException("Cannot create a BlockCache smaller than 1 block.");
 		}
 		
-		BlockVec cacheSize = new BlockVec(cacheMax.clone().subtract(cacheMin));
-		BlockCache blockCache = new BlockCache(portal, new BlockVec(cacheMin), cacheSize, cacheFacing, cacheBorderBlockType);
 		World cacheWorld = portal.getWorld();
+		BlockVec cacheSize = new BlockVec(cacheMax.clone().subtract(cacheMin));
+		
+		BlockCache blockCache = new BlockCache(
+				portal,
+				new BlockVec(cacheMin),
+				cacheSize,
+				new BlockVec(cacheFacing),
+				cacheBorderBlockType);
 		
 		for (int x = minX; x < maxX; x++) {
 			for (int y = minY; y < maxY; y++) {
@@ -107,7 +112,9 @@ public class BlockCacheFactory {
 		return blockCache;
 	}
 	
-	public static Map.Entry<ProjectionCache, ProjectionCache> createProjectionCaches(BlockCache frontCache, BlockCache backCache, Transform portalLinkTransform) {
+	public static Map.Entry<ProjectionCache, ProjectionCache> createProjectionCaches(BlockCache frontCache,
+	                                                                                 BlockCache backCache,
+	                                                                                 Transform portalLinkTransform) {
 		
 		return new AbstractMap.SimpleEntry<>(
 				createProjection(backCache, portalLinkTransform),
@@ -130,10 +137,9 @@ public class BlockCacheFactory {
 				sourceCache.getPortal(),
 				projectionMin,
 				projectionSize,
-				null,
-				null);
-		
-		projectionCache.setBlockTransform(blockTransform);
+				blockTransform.transformVec(sourceCache.getFacing()),
+				sourceCache.getBorderBlockType(),
+				blockTransform);
 		
 		for (int x = sourceMin.getX(); x < sourceMax.getX(); x++) {
 			for (int y = sourceMin.getY(); y < sourceMax.getY(); y++) {
@@ -189,47 +195,68 @@ public class BlockCacheFactory {
 			return changedBlocks;
 		}
 		
-		World cacheWorld = cache.getWorld();
-		
-		//hide other block copies that are now covered by this occluding block
-		//but they don't need to be updated in the projections
 		if (newBlockType.isOccluding()) {
+			changedBlocks.putAll(hideCoveredBlocks(cache, blockPos));
 			
-			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
-				
-				BlockVec touchingBlockPos = blockPos.clone().add(facing);
-				
-				if (cache.contains(touchingBlockPos) && !cache.isBlockNowVisible(touchingBlockPos)) {
-					cache.removeBlockDataAt(touchingBlockPos);
-				}
-			}
-			
-			//re-add fake blocks that are revealed by the new transparent block
 		} else {
-			
-			for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
-				
-				BlockVec touchingBlockPos = blockPos.clone().add(facing);
-				
-				if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos)) {
-					continue;
-				}
-				
-				BlockType touchingBlockType = BlockType.of(cacheWorld.getBlockAt(
-						touchingBlockPos.getX(),
-						touchingBlockPos.getY(),
-						touchingBlockPos.getZ()));
-				
-				if (!touchingBlockType.isOccluding() && cache.isBorder(touchingBlockPos)) {
-					touchingBlockType = cache.getBorderBlockType();
-				}
-				
-				cache.setBlockTypeAt(touchingBlockPos, touchingBlockType);
-				changedBlocks.put(touchingBlockPos, touchingBlockType);
-			}
+			changedBlocks.putAll(reincludeRevealedBlocks(cache, blockPos));
 		}
 		
 		changedBlocks.put(blockPos, newBlockType);
+		return changedBlocks;
+	}
+	
+	/**
+	 * Removes all block copies from a block cache that have been covered by a new occluding block.
+	 */
+	private static Map<BlockVec, BlockType> hideCoveredBlocks(BlockCache cache, BlockVec addedBlock) {
+		
+		Map<BlockVec, BlockType> changedBlocks = new HashMap<>();
+		
+		for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+			
+			BlockVec touchingBlockPos = addedBlock.clone().add(facing);
+			
+			if (cache.contains(touchingBlockPos) && !cache.isBlockNowVisible(touchingBlockPos)) {
+				cache.removeBlockDataAt(touchingBlockPos);
+				changedBlocks.put(touchingBlockPos.clone(), null);
+			}
+		}
+		
+		return changedBlocks;
+	}
+	
+	/**
+	 * Re-includes block copies to the cache that have been revealed by a new transparent block.
+	 *
+	 * @return a map of all changed blocks
+	 */
+	private static Map<BlockVec, BlockType> reincludeRevealedBlocks(BlockCache cache, BlockVec removedBlock) {
+		
+		Map<BlockVec, BlockType> changedBlocks = new HashMap<>();
+		World cacheWorld = cache.getWorld();
+		
+		for (BlockVec facing : FacingUtils.getAxesBlockVecs()) {
+			
+			BlockVec touchingBlockPos = removedBlock.clone().add(facing);
+			
+			if (!cache.contains(touchingBlockPos) || cache.isBlockListedVisible(touchingBlockPos)) {
+				continue;
+			}
+			
+			BlockType touchingBlockType = BlockType.of(cacheWorld.getBlockAt(
+					touchingBlockPos.getX(),
+					touchingBlockPos.getY(),
+					touchingBlockPos.getZ()));
+			
+			if (!touchingBlockType.isOccluding() && cache.isBorder(touchingBlockPos)) {
+				touchingBlockType = cache.getBorderBlockType();
+			}
+			
+			cache.setBlockTypeAt(touchingBlockPos, touchingBlockType);
+			changedBlocks.put(touchingBlockPos, touchingBlockType);
+		}
+		
 		return changedBlocks;
 	}
 	

@@ -38,29 +38,29 @@ public class TeleportListener implements Listener {
 	
 	//I did not use the PlayerPortalEvent because it only give information about where the player should theoretically perfectly teleport to
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-		public void onTeleport(PlayerTeleportEvent event) {
-			
-			Player player = event.getPlayer();
-			Location from = event.getFrom();
-			Location to = event.getTo();
-			
-			if (to == null) {
-				return;
-			}
-			
+	public void onTeleport(PlayerTeleportEvent event) {
+		
+		Player player = event.getPlayer();
+		Location from = event.getFrom();
+		Location to = event.getTo();
+		
+		if (to == null) {
+			return;
+		}
+		
 		//updates portal animation for the player if they teleport with e.g. an ender pearl
 		if (from.getWorld() == to.getWorld() && player.hasPermission(NetherView.VIEW_PERM)) {
 			viewHandler.displayNearestPortalTo(player, to.clone().add(0, player.getEyeHeight(), 0));
 			return;
 		}
-
+		
 		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL ||
 		    !player.hasPermission(NetherView.LINK_PERM)) {
 			return;
 		}
-
+		
 		boolean createdNewPortalView = createPortalView(event);
-
+		
 		if (createdNewPortalView && (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinkingPortalsEnabled())) {
 			event.setCancelled(true);
 		}
