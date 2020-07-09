@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.threedstuff;
+package me.gorgeousone.netherview.geometry;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
 import org.bukkit.Location;

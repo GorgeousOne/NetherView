@@ -1,6 +1,8 @@
 package me.gorgeousone.netherview.utils;
 
-import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.wrapping.Axis;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
 public final class FacingUtils {
@@ -26,5 +28,9 @@ public final class FacingUtils {
 				new BlockVec(-1, 0, 0),
 				new BlockVec(0, -1, 0),
 				new BlockVec(0, 0, -1)};
+	}
+	
+	public static Axis getAxis(Block portalBlock) {
+		return portalBlock.getData() == 2 ? Axis.Z : Axis.X;
 	}
 }

@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.threedstuff;
+package me.gorgeousone.netherview.geometry;
 
 import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.util.Vector;

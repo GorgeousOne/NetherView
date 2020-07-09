@@ -1,8 +1,9 @@
-package me.gorgeousone.netherview.threedstuff.viewfrustum;
+package me.gorgeousone.netherview.geometry.viewfrustum;
 
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
+import me.gorgeousone.netherview.geometry.Line;
+import me.gorgeousone.netherview.geometry.Plane;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.Line;
 import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -20,32 +21,29 @@ public final class ViewFrustumFactory {
 		boolean isPlayerBehindPortal = isPlayerBehindPortal(viewPoint, portalRect);
 		
 		Vector portalNormal = portalRect.getPlane().getNormal();
-		Vector playerFacingToPortal = portalNormal.clone().multiply(isPlayerBehindPortal ? 1 : -1);
+		Vector playerFacingToPortal = portalNormal.multiply(isPlayerBehindPortal ? 1 : -1);
 		
 		//this will become near plane of the viewing frustum. It will be cropped to fit the actual player view through the portal
-		AxisAlignedRect maxViewingRect = portalRect.clone().translate(playerFacingToPortal.clone().multiply(0.5));
+		AxisAlignedRect totalViewingRect = portalRect.clone().translate(playerFacingToPortal.clone().multiply(0.5));
+		Plane portalPlane = totalViewingRect.getPlane();
 		
-		//widen the rectangle bounds a bit so the projection becomes smoother/more consistent when moving quickly
-		//side effects are blocks slightly sticking out at the sides when standing further away
-		Vector threshold = portalRect.getCrossNormal();
-		threshold.setY(1);
-		threshold.multiply(0.15);
+		Vector viewingRectMin = totalViewingRect.getMin();
+		Vector viewingRectMax = totalViewingRect.getMax();
 		
-		Vector viewingRectMin = maxViewingRect.getMin().subtract(threshold);
-		Vector viewingRectMax = maxViewingRect.getMax().add(threshold);
+		addTolerance(viewingRectMin, viewingRectMax, portalRect, 0.15);
 		
 		//depending on which portal frame blocks will block the view, the viewing rect bounds are contracted by casting rays along the block edges
 		//here for the height of the rect...
 		if (viewPoint.getY() < viewingRectMin.getY()) {
 			
 			Vector closeRectMin = viewingRectMin.clone().subtract(playerFacingToPortal);
-			Vector newRectMin = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMin));
+			Vector newRectMin = portalPlane.getIntersection(new Line(viewPoint, closeRectMin));
 			viewingRectMin.setY(newRectMin.getY());
 			
 		} else if (viewPoint.getY() > viewingRectMax.getY()) {
 			
 			Vector closeRectMax = viewingRectMax.clone().subtract(playerFacingToPortal);
-			Vector newRectMax = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMax));
+			Vector newRectMax = portalPlane.getIntersection(new Line(viewPoint, closeRectMax));
 			viewingRectMax.setY(newRectMax.getY());
 		}
 		
@@ -57,13 +55,13 @@ public final class ViewFrustumFactory {
 			if (viewPoint.getX() < viewingRectMin.getX()) {
 				
 				Vector closeRectMin = viewingRectMin.clone().subtract(playerFacingToPortal);
-				Vector newRectMin = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMin));
+				Vector newRectMin = portalPlane.getIntersection(new Line(viewPoint, closeRectMin));
 				viewingRectMin.setX(newRectMin.getX());
 				
 			} else if (viewPoint.getX() > viewingRectMax.getX()) {
 				
 				Vector closeRectMax = viewingRectMax.clone().subtract(playerFacingToPortal);
-				Vector newRectMax = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMax));
+				Vector newRectMax = portalPlane.getIntersection(new Line(viewPoint, closeRectMax));
 				viewingRectMax.setX(newRectMax.getX());
 			}
 			
@@ -72,13 +70,13 @@ public final class ViewFrustumFactory {
 			if (viewPoint.getZ() < viewingRectMin.getZ()) {
 				
 				Vector closeRectMin = viewingRectMin.clone().subtract(playerFacingToPortal);
-				Vector newRectMin = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMin));
+				Vector newRectMin = portalPlane.getIntersection(new Line(viewPoint, closeRectMin));
 				viewingRectMin.setZ(newRectMin.getZ());
 				
 			} else if (viewPoint.getZ() > viewingRectMax.getZ()) {
 				
 				Vector closeRectMax = viewingRectMax.clone().subtract(playerFacingToPortal);
-				Vector newRectMax = maxViewingRect.getPlane().getIntersection(new Line(viewPoint, closeRectMax));
+				Vector newRectMax = portalPlane.getIntersection(new Line(viewPoint, closeRectMax));
 				viewingRectMax.setZ(newRectMax.getZ());
 			}
 		}
@@ -87,11 +85,11 @@ public final class ViewFrustumFactory {
 		double rectWidth = portalAxis == Axis.X ? viewingRectSize.getX() : viewingRectSize.getZ();
 		double rectHeight = viewingRectSize.getY();
 		
-		if (rectWidth < 0) {
+		if (rectWidth < 0 || rectHeight < 0) {
 			return null;
 		}
 		
-		AxisAlignedRect actualViewingRect = new AxisAlignedRect(maxViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
+		AxisAlignedRect actualViewingRect = new AxisAlignedRect(totalViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
 		return new ViewFrustum(viewPoint, actualViewingRect, frustumLength);
 	}
 	
@@ -106,5 +104,17 @@ public final class ViewFrustumFactory {
 		return portalRect.getAxis() == Axis.X ?
 				viewPoint.getZ() < portalPos.getZ() :
 				viewPoint.getX() < portalPos.getX();
+	}
+	
+	//widen the rectangle bounds a bit so the projection becomes smoother/more consistent when moving quickly
+	//side effects are blocks slightly sticking out at the sides when standing further away
+	private static void addTolerance(Vector rectMin, Vector rectMax, AxisAlignedRect portalRect, double tolerance) {
+		
+		Vector toleranceVec = portalRect.getCrossNormal();
+		toleranceVec.setY(1);
+		toleranceVec.multiply(tolerance);
+		
+		rectMin.subtract(toleranceVec);
+		rectMax.add(toleranceVec);
 	}
 }

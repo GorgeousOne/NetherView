@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.blockcache;
 
-import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.geometry.BlockVec;
 
 /**
  * A class for storing a translation and rotation between two portals and applying it to BlockVecs.
@@ -23,8 +23,8 @@ public class Transform {
 		this.rotYMatrix = rotationY;
 	}
 	
-	public void setTranslation(BlockVec delta) {
-		this.translation = delta;
+	public void setTranslation(BlockVec pos) {
+		this.translation = pos.clone();
 	}
 	
 	public void translate(BlockVec delta) {
@@ -32,7 +32,7 @@ public class Transform {
 	}
 	
 	public void setRotCenter(BlockVec rotCenter) {
-		this.rotCenter = rotCenter;
+		this.rotCenter = rotCenter.clone();
 	}
 	
 	public void setRotY90DegRight() {
@@ -83,6 +83,17 @@ public class Transform {
 		
 		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
 		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
+	}
+	
+	public float rotateYaw(float playerYaw) {
+		
+		float rotatedYaw = playerYaw + getQuarterTurns() * 90;
+		
+		if (Math.abs(rotatedYaw) > 360) {
+			rotatedYaw -= Math.signum(rotatedYaw) * 360;
+		}
+		
+		return rotatedYaw;
 	}
 	
 	public int getQuarterTurns() {

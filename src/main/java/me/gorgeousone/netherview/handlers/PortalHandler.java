@@ -5,9 +5,10 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.utils.ConsoleUtils;
 import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,12 +18,10 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +31,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Handler class for storing portals and managing their cached blocks.
+ */
 public class PortalHandler {
 	
 	private NetherView main;
@@ -55,6 +57,9 @@ public class PortalHandler {
 		
 		worldsWithPortals.clear();
 		recentlyViewedPortals.clear();
+		
+		expirationTimer.cancel();
+		expirationTimer = null;
 	}
 	
 	public Set<Portal> getPortals(World world) {
@@ -221,10 +226,7 @@ public class PortalHandler {
 		worldsWithPortals.putIfAbsent(worldID, new HashSet<>());
 		worldsWithPortals.get(worldID).add(portal);
 		
-		if (main.debugMessagesEnabled()) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Located portal at " + portal.toString());
-		}
-		
+		ConsoleUtils.printDebug("Located portal at " + portal.toString());
 		return portal;
 	}
 	
@@ -238,10 +240,10 @@ public class PortalHandler {
 		
 		addPortalToExpirationTimer(portal);
 		
-		if (main.debugMessagesEnabled()) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Loaded block data for portal " + portal.toString());
-		}
+		
+		ConsoleUtils.printDebug("Loaded block data for portal " + portal.toString());
 	}
+	
 	
 	public void loadProjectionCachesOf(Portal portal) {
 		
@@ -251,6 +253,7 @@ public class PortalHandler {
 		
 		Portal counterPortal = portal.getCounterPortal();
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
+		portal.setTpTransform(linkTransform.clone().invert());
 		
 		if (!counterPortal.blockCachesAreLoaded()) {
 			loadBlockCachesOf(counterPortal);
@@ -259,11 +262,7 @@ public class PortalHandler {
 		BlockCache frontCache = counterPortal.getFrontCache();
 		BlockCache backCache = counterPortal.getBackCache();
 		
-		//the projections caches are switching positions because of the transform
-		ProjectionCache frontProjection = new ProjectionCache(portal, backCache, linkTransform);
-		ProjectionCache backProjection = new ProjectionCache(portal, frontCache, linkTransform);
-		
-		portal.setProjectionCaches(new AbstractMap.SimpleEntry<>(frontProjection, backProjection));
+		portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
 		addPortalToExpirationTimer(portal);
 	}
 	
@@ -287,10 +286,8 @@ public class PortalHandler {
 		
 		Set<Portal> linkedToPortals = getPortalsLinkedTo(portal);
 		
-		if (main.debugMessagesEnabled()) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Removing portal at " + portal.toString());
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Un-linking " + linkedToPortals.size() + " portal projections.");
-		}
+		ConsoleUtils.printDebug("Removing portal at " + portal.toString());
+		ConsoleUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections.");
 		
 		for (Portal linkedPortal : linkedToPortals) {
 			linkedPortal.removeLink();
@@ -309,22 +306,18 @@ public class PortalHandler {
 		
 		if (!counterPortal.equalsInSize(portal)) {
 			
-			if (main.debugMessagesEnabled()) {
-				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Cannot connect portal with size "
-				                                      + (int) portal.getPortalRect().width() + "x" + (int) portal.getPortalRect().height() + " to portal with size "
-				                                      + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
-			}
+			ConsoleUtils.printDebug("Cannot connect portal with size "
+			                        + (int) portal.getPortalRect().width() + "x" + (int) portal.getPortalRect().height() + " to portal with size "
+			                        + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
 			
 			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are not the same size.");
 		}
 		
 		portal.setLinkedTo(counterPortal);
 		
-		if (main.debugMessagesEnabled()) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Linked portal "
-			                                      + portal.toString() + " to portal "
-			                                      + counterPortal.toString());
-		}
+		ConsoleUtils.printDebug("Linked portal "
+		                        + portal.toString() + " to portal "
+		                        + counterPortal.toString());
 	}
 	
 	public void savePortals(FileConfiguration portalConfig) {
@@ -413,35 +406,29 @@ public class PortalHandler {
 	 */
 	private Transform calculateLinkTransform(Portal portal, Portal counterPortal) {
 		
-		Transform linkTransform;
-		Vector distance = portal.getLocation().toVector().subtract(counterPortal.getLocation().toVector());
+		Transform linkTransform = new Transform();
+		BlockVec portalLoc1 = portal.getMinBlock();
+		BlockVec portalLoc2;
+		Axis counterPortalAxis = counterPortal.getAxis();
 		
-		linkTransform = new Transform();
-		linkTransform.setTranslation(new BlockVec(distance));
-		linkTransform.setRotCenter(new BlockVec(counterPortal.getPortalRect().getMin()));
-		
-		//during the rotation some weird shifts happen
-		//I did not figure out where they come from, for now some extra translations are a good workaround
-		if (portal.getAxis() == counterPortal.getAxis()) {
+		if (portal.getAxis() == counterPortalAxis) {
 			
+			portalLoc2 = counterPortal.getMaxBlock();
+			portalLoc2.setY(counterPortal.getMinBlock().getY());
 			linkTransform.setRotY180Deg();
-			int portalBlockWidth = (int) portal.getPortalRect().width() - 1;
-			
-			if (counterPortal.getAxis() == Axis.X) {
-				linkTransform.translate(new BlockVec(portalBlockWidth, 0, 0));
-			} else {
-				linkTransform.translate(new BlockVec(0, 0, portalBlockWidth));
-			}
-			
-		} else if (counterPortal.getAxis() == Axis.X) {
-			linkTransform.setRotY90DegRight();
-			linkTransform.translate(new BlockVec(0, 0, 1));
 			
 		} else {
-			linkTransform.setRotY90DegLeft();
-			linkTransform.translate(new BlockVec(1, 0, 0));
+			portalLoc2 = counterPortal.getMinBlock();
+			
+			if (counterPortalAxis == Axis.X) {
+				linkTransform.setRotY90DegRight();
+			} else {
+				linkTransform.setRotY90DegLeft();
+			}
 		}
 		
+		linkTransform.setRotCenter(portalLoc2);
+		linkTransform.setTranslation(portalLoc1.subtract(portalLoc2));
 		return linkTransform;
 	}
 	
@@ -450,9 +437,7 @@ public class PortalHandler {
 	 */
 	private void startCacheExpirationTimer() {
 		
-		if (main.debugMessagesEnabled()) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Starting cache expiration timer");
-		}
+		ConsoleUtils.printDebug("Starting cache expiration timer");
 		
 		expirationTimer = new BukkitRunnable() {
 			@Override
@@ -468,11 +453,11 @@ public class PortalHandler {
 					Portal portal = entry.getKey();
 					
 					if (timeSinceLastUse > cacheExpirationDuration) {
+						
 						portal.removeProjectionCaches();
 						portal.removeBlockCaches();
 						entries.remove();
-						
-						Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "[Debug] Removed cached blocks of portal " + portal.toString());
+						ConsoleUtils.printDebug("Removed cached blocks of portal " + portal.toString());
 					}
 				}
 				

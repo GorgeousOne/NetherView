@@ -1,11 +1,11 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.World;
-import org.bukkit.util.Vector;
+import org.bukkit.block.Block;
 
 /**
  * One big array of BlockTypes used to store information about all blocks in a cuboid area around a portal.
@@ -18,25 +18,25 @@ public class BlockCache {
 	private BlockVec min;
 	private BlockVec max;
 	
-	private Vector facing;
+	private BlockVec facing;
 	private BlockType borderType;
 	
 	public BlockCache(Portal portal,
 	                  BlockVec offset,
-	                  BlockType[][][] blockCopies,
-	                  Vector facing,
+	                  BlockVec size,
+	                  BlockVec facing,
 	                  BlockType borderType) {
 		
 		this.portal = portal;
-		this.blockCopies = blockCopies;
+		this.blockCopies = new BlockType[size.getX()][size.getY()][size.getZ()];
 		this.min = offset.clone();
-		this.max = offset.clone().add(sourceCacheSize());
+		this.max = offset.clone().add(size());
 		
 		this.facing = facing;
 		this.borderType = borderType;
 	}
 	
-	private BlockVec sourceCacheSize() {
+	private BlockVec size() {
 		return new BlockVec(blockCopies.length, blockCopies[0].length, blockCopies[0][0].length);
 	}
 	
@@ -56,23 +56,36 @@ public class BlockCache {
 		return max.clone();
 	}
 	
+	public BlockVec getFacing() {
+		return facing.clone();
+	}
+	
 	public boolean contains(BlockVec loc) {
-		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
-		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
-		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
+		return contains(loc.getX(), loc.getY(), loc.getZ());
+	}
+	
+	public boolean contains(int x, int y, int z) {
+		return x >= min.getX() && x < max.getX() &&
+		       y >= min.getY() && y < max.getY() &&
+		       z >= min.getZ() && z < max.getZ();
+	}
+	
+	public boolean isBorder(BlockVec loc) {
+		return isBorder(loc.getX(), loc.getY(), loc.getZ());
+	}
+	
+	public BlockType getBorderBlockType() {
+		return borderType.clone();
 	}
 	
 	/**
 	 * Returns true if the block is at any position bordering the cuboid except the side facing the portal.
 	 */
-	public boolean isBorder(BlockVec loc) {
+	public boolean isBorder(int x, int y, int z) {
 		
-		if (loc.getY() == min.getY() || loc.getY() == max.getY() - 1) {
+		if (y == min.getY() || y == max.getY() - 1) {
 			return true;
 		}
-		
-		int x = loc.getX();
-		int z = loc.getZ();
 		
 		int minX = min.getX();
 		int minZ = min.getZ();
@@ -100,27 +113,37 @@ public class BlockCache {
 		}
 	}
 	
-	public BlockType getBorderBlockType() {
-		return borderType;
+	public BlockType getBlockTypeAt(BlockVec blockPos) {
+		return getBlockTypeAt(blockPos.getX(),
+		                      blockPos.getY(),
+		                      blockPos.getZ());
 	}
 	
-	public BlockType getBlockTypeAt(BlockVec blockPos) {
+	public BlockType getBlockTypeAt(int x, int y, int z) {
 		
-		if (!contains(blockPos)) {
+		if (!contains(x, y, z)) {
 			return null;
 		}
 		
 		return blockCopies
-				[blockPos.getX() - min.getX()]
-				[blockPos.getY() - min.getY()]
-				[blockPos.getZ() - min.getZ()];
+				[x - min.getX()]
+				[y - min.getY()]
+				[z - min.getZ()];
 	}
 	
 	public void setBlockTypeAt(BlockVec blockPos, BlockType blockType) {
+		setBlockTypeAt(
+				blockPos.getX(),
+				blockPos.getY(),
+				blockPos.getZ(),
+				blockType);
+	}
+	
+	public void setBlockTypeAt(int x, int y, int z, BlockType blockType) {
 		blockCopies
-				[blockPos.getX() - min.getX()]
-				[blockPos.getY() - min.getY()]
-				[blockPos.getZ() - min.getZ()] = blockType;
+				[x - min.getX()]
+				[y - min.getY()]
+				[z - min.getZ()] = blockType;
 	}
 	
 	public void removeBlockDataAt(BlockVec blockPos) {
@@ -138,7 +161,7 @@ public class BlockCache {
 	}
 	
 	/**
-	 * Returns true if the block copy at the given position is visible by checking the surrounding block copies for transparent ones
+	 * Returns true if the block copy at the given position is visible by checking the surrounding blocks in the world for transparent ones
 	 */
 	public boolean isBlockNowVisible(BlockVec blockPos) {
 		
@@ -146,13 +169,13 @@ public class BlockCache {
 			
 			BlockVec touchingBlockPos = blockPos.clone().add(facing);
 			
-			if (!contains(touchingBlockPos)) {
-				continue;
-			}
+			Block touchingBlock = getWorld().getBlockAt(
+					touchingBlockPos.getX(),
+					touchingBlockPos.getY(),
+					touchingBlockPos.getZ());
 			
-			BlockType touchingBlock = getBlockTypeAt(touchingBlockPos);
 			
-			if (touchingBlock != null && !touchingBlock.isOccluding()) {
+			if (!BlockType.of(touchingBlock).isOccluding()) {
 				return true;
 			}
 		}

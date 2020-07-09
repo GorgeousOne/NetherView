@@ -14,11 +14,11 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
+import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -68,15 +68,15 @@ public class BlockListener implements Listener {
 		this.packetHandler = packetHandler;
 		this.portalMaterial = portalMaterial;
 		
-		addBlockUpdateInterceptor();
+		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+		addBlockUpdateInterception(protocolManager);
+		addMultiBlockUpdateInterception(protocolManager);
 	}
 	
 	/**
 	 * Prevents
 	 */
-	private void addBlockUpdateInterceptor() {
-		
-		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+	private void addBlockUpdateInterception(ProtocolManager protocolManager) {
 		
 		protocolManager.addPacketListener(
 				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.BLOCK_CHANGE) {
@@ -90,24 +90,29 @@ public class BlockListener implements Listener {
 							return;
 						}
 						
-						BlockPosition blockPos = event.getPacket().getBlockPositionModifier().getValues().get(0);
-						BlockVec blockPosVec = new BlockVec(blockPos);
+						PacketContainer packet = event.getPacket();
+						BlockPosition blockPos = packet.getBlockPositionModifier().getValues().get(0);
 						
-						//execute some light weight bounding box checks before searching the block in the huge map of displayed blocks? Does that save time?
-						if (!viewHandler.getViewedProjection(player).contains(blockPosVec) && !viewHandler.getViewedPortal(player).contains(blockPosVec)) {
-							return;
-						}
 						
-						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+						BlockType viewedBlockType = getViewedBlockType(
+								new BlockVec(blockPos),
+								viewHandler.getViewedPortal(player),
+								viewHandler.getViewedProjection(player),
+								viewHandler.getViewSession(player));
 						
-						if (viewSession.containsKey(new BlockVec(blockPos))) {
-							event.setCancelled(true);
+						if (viewedBlockType != null) {
+							packet.getBlockData().write(0, viewedBlockType.getWrapped());
 						}
 					}
 				}
 		);
+	}
+	
+	/**
+	 * Intercepts multi block changes and edits any changed block data inside a portal animation back to the animation block data
+	 */
+	private void addMultiBlockUpdateInterception(ProtocolManager protocolManager) {
 		
-		//intercepts multi block edits any changed block data inside a portal animation back to the animation block data
 		protocolManager.addPacketListener(
 				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
 					
@@ -116,6 +121,7 @@ public class BlockListener implements Listener {
 						
 						PacketContainer packet = event.getPacket();
 						
+						//call the custom packet check first so the packet handler will definitely flush the packet from the list
 						if (packetHandler.isCustomViewPacket(packet) || event.isCancelled()) {
 							return;
 						}
@@ -136,7 +142,7 @@ public class BlockListener implements Listener {
 						int worldX = chunkCoords.getChunkX() << 4;
 						int worldZ = chunkCoords.getChunkZ() << 4;
 						
-						//filter all block changes that are happening inside a projection
+						//filter all block changes that are happening inside the projection
 						for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
 							
 							BlockVec blockPos = new BlockVec(
@@ -144,7 +150,9 @@ public class BlockListener implements Listener {
 									blockInfo.getY(),
 									blockInfo.getZ() + worldZ);
 							
-							if (viewSessionContainsVec(blockPos, viewedPortal, viewedProjection, viewSession)) {
+							BlockType viewedBlockType = getViewedBlockType(blockPos, viewedPortal, viewedProjection, viewSession);
+							
+							if (viewedBlockType != null) {
 								blockInfo.setData(viewSession.get(blockPos).getWrapped());
 							}
 						}
@@ -155,11 +163,16 @@ public class BlockListener implements Listener {
 		);
 	}
 	
-	private boolean viewSessionContainsVec(BlockVec blockPos,
-	                                       Portal viewedPortal,
-	                                       ProjectionCache viewedCache,
-	                                       Map<BlockVec, BlockType> viewSession) {
-		return (viewedPortal.contains(blockPos) || viewedCache.contains(blockPos)) && viewSession.containsKey(blockPos);
+	/**
+	 * Returns the BlockType that is displayed the player in the projection.
+	 * Returns null if no block is being displayed at the position.
+	 */
+	private BlockType getViewedBlockType(BlockVec blockPos,
+	                                     Portal viewedPortal,
+	                                     ProjectionCache viewedCache,
+	                                     Map<BlockVec, BlockType> viewSession) {
+		
+		return (viewedPortal.contains(blockPos) || viewedCache.contains(blockPos)) ? viewSession.get(blockPos) : null;
 	}
 	
 	private void removeDamagedPortals(Block block) {

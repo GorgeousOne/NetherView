@@ -4,11 +4,11 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
+import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
+import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustum;
-import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Bukkit;
@@ -195,23 +195,13 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what the players see
+	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what the players see.
 	 */
-	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedCopies) {
+	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
 		
 		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(cache)) {
 			
-			Map<BlockVec, BlockType> projectionUpdates = new HashMap<>();
-			
-			for (Map.Entry<BlockVec, BlockType> entry : updatedCopies.entrySet()) {
-				
-				Transform blockTransform = projection.getTransform();
-				BlockVec projectionBlockPos = blockTransform.transformVec(entry.getKey().clone());
-				BlockType projectionBlockType = entry.getValue().clone().rotate(blockTransform.getQuarterTurns());
-				
-				projection.setBlockTypeAt(projectionBlockPos, projectionBlockType);
-				projectionUpdates.put(projectionBlockPos, projectionBlockType);
-			}
+			Map<BlockVec, BlockType> projectionUpdates = updateProjection(projection, updatedBlocks);
 			
 			//TODO stop iterating same players for each projection?
 			for (UUID playerID : viewedProjections.keySet()) {
@@ -220,8 +210,8 @@ public class ViewHandler {
 					continue;
 				}
 				
-				Portal portal = viewedPortals.get(playerID);
 				Player player = Bukkit.getPlayer(playerID);
+				Portal portal = viewedPortals.get(playerID);
 				
 				ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(
 						player.getEyeLocation().toVector(),
@@ -232,27 +222,54 @@ public class ViewHandler {
 					continue;
 				}
 				
-				Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
-				Map<BlockVec, BlockType> viewSession = getViewSession(player);
-				
-				for (Map.Entry<BlockVec, BlockType> entry : projectionUpdates.entrySet()) {
-					
-					BlockVec blockPos = entry.getKey();
-					BlockType blockType = entry.getValue();
-					
-					if (blockType == null) {
-						blockType = BlockType.of(blockPos.toBlock(player.getWorld()));
-					}
-					
-					if (playerFrustum.containsBlock(blockPos.toVector())) {
-						blocksInFrustum.put(blockPos, blockType);
-						viewSession.put(blockPos, blockType);
-					}
-				}
-				
-				packetHandler.displayFakeBlocks(player, blocksInFrustum);
+				Map<BlockVec, BlockType> newBlocksInFrustum = getBlocksInFrustum(playerFrustum, projectionUpdates);
+				getViewSession(player).putAll(newBlocksInFrustum);
+				packetHandler.displayFakeBlocks(player, newBlocksInFrustum);
 			}
 		}
+	}
+	
+	private Map<BlockVec, BlockType> updateProjection(ProjectionCache projection,
+	                                                  Map<BlockVec, BlockType> updatedBlocks) {
+		
+		Map<BlockVec, BlockType> projectionUpdates = new HashMap();
+		
+		for (Map.Entry<BlockVec, BlockType> entry : updatedBlocks.entrySet()) {
+			
+			Transform blockTransform = projection.getLinkTransform();
+			BlockVec projectionBlockPos = blockTransform.transformVec(entry.getKey());
+			BlockType sourceBlockType = entry.getValue();
+			
+			if (sourceBlockType == null) {
+				projection.removeBlockDataAt(projectionBlockPos);
+				continue;
+			}
+			
+			BlockType projectionBlockType = sourceBlockType.rotate(blockTransform.getQuarterTurns());
+			
+			projection.setBlockTypeAt(projectionBlockPos, projectionBlockType);
+			projectionUpdates.put(projectionBlockPos, projectionBlockType);
+		}
+		
+		return projectionUpdates;
+	}
+	
+	private Map<BlockVec, BlockType> getBlocksInFrustum(ViewFrustum playerFrustum,
+	                                                    Map<BlockVec, BlockType> projectionUpdates) {
+		
+		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
+		
+		for (Map.Entry<BlockVec, BlockType> entry : projectionUpdates.entrySet()) {
+			
+			BlockVec blockPos = entry.getKey();
+			BlockType blockType = entry.getValue();
+			
+			if (blockType != null && playerFrustum.containsBlock(blockPos.toVector())) {
+				blocksInFrustum.put(blockPos, blockType);
+			}
+		}
+		
+		return blocksInFrustum;
 	}
 	
 	/**
@@ -296,7 +313,7 @@ public class ViewHandler {
 			
 			Map.Entry<UUID, Portal> playerView = iter.next();
 			
-			//call iter.remove() first because otherwise hideViewSession() will create ConcurrentModificationException
+			//call iter.remove() first because otherwise hideViewSession() will create CurrentModificationException
 			if (affectedPortals.contains(playerView.getValue())) {
 				iter.remove();
 				hideViewSession(Bukkit.getPlayer(playerView.getKey()));
