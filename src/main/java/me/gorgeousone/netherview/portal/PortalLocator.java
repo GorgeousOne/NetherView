@@ -1,7 +1,7 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
+import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.ConsoleUtils;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.wrapping.Axis;

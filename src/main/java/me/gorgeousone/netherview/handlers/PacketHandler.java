@@ -6,7 +6,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Location;
 import org.bukkit.World;

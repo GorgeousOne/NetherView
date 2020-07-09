@@ -1,8 +1,8 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
+import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Location;
@@ -122,7 +122,8 @@ public class BlockCacheFactory {
 	
 	/**
 	 * Creates projection cache from the content of a block cache.
-	 * @param sourceCache block cache to be copied
+	 *
+	 * @param sourceCache   block cache to be copied
 	 * @param linkTransform transformation between the locations of the block cache and the projection cache
 	 */
 	public static ProjectionCache createProjection(BlockCache sourceCache, Transform linkTransform) {

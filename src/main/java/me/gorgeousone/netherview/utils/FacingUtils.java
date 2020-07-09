@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.utils;
 
-import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;

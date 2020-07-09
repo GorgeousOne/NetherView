@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.blockcache;
 
-import me.gorgeousone.netherview.threedstuff.BlockVec;
+import me.gorgeousone.netherview.geometry.BlockVec;
 
 /**
  * A class for storing a translation and rotation between two portals and applying it to BlockVecs.

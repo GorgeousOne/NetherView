@@ -1,11 +1,10 @@
-package me.gorgeousone.netherview.threedstuff.viewfrustum;
+package me.gorgeousone.netherview.geometry.viewfrustum;
 
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
+import me.gorgeousone.netherview.geometry.Line;
+import me.gorgeousone.netherview.geometry.Plane;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.Line;
-import me.gorgeousone.netherview.threedstuff.Plane;
 import me.gorgeousone.netherview.wrapping.Axis;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 

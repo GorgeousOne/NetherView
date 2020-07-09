@@ -1,6 +1,6 @@
-package me.gorgeousone.netherview.threedstuff.viewfrustum;
+package me.gorgeousone.netherview.geometry.viewfrustum;
 
-import me.gorgeousone.netherview.threedstuff.Line;
+import me.gorgeousone.netherview.geometry.Line;
 import org.bukkit.util.Vector;
 
 /**

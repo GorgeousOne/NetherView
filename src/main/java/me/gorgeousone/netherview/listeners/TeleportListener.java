@@ -2,11 +2,11 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
 import me.gorgeousone.netherview.utils.ConsoleUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;

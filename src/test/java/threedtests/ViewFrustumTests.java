@@ -1,9 +1,9 @@
 package threedtests;
 
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.wrapping.Axis;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustum;
+import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

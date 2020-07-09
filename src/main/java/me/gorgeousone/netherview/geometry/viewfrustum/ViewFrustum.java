@@ -1,10 +1,10 @@
-package me.gorgeousone.netherview.threedstuff.viewfrustum;
+package me.gorgeousone.netherview.geometry.viewfrustum;
 
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.threedstuff.Line;
-import me.gorgeousone.netherview.threedstuff.Plane;
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
+import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.Line;
+import me.gorgeousone.netherview.geometry.Plane;
 import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.util.Vector;

@@ -4,11 +4,11 @@ import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
+import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
+import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.threedstuff.AxisAlignedRect;
-import me.gorgeousone.netherview.threedstuff.BlockVec;
-import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustum;
-import me.gorgeousone.netherview.threedstuff.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Bukkit;
@@ -229,7 +229,8 @@ public class ViewHandler {
 		}
 	}
 	
-	private Map<BlockVec, BlockType> updateProjection(ProjectionCache projection, Map<BlockVec, BlockType> updatedBlocks) {
+	private Map<BlockVec, BlockType> updateProjection(ProjectionCache projection,
+	                                                  Map<BlockVec, BlockType> updatedBlocks) {
 		
 		Map<BlockVec, BlockType> projectionUpdates = new HashMap();
 		
@@ -253,7 +254,8 @@ public class ViewHandler {
 		return projectionUpdates;
 	}
 	
-	private Map<BlockVec, BlockType> getBlocksInFrustum(ViewFrustum playerFrustum, Map<BlockVec, BlockType> projectionUpdates) {
+	private Map<BlockVec, BlockType> getBlocksInFrustum(ViewFrustum playerFrustum,
+	                                                    Map<BlockVec, BlockType> projectionUpdates) {
 		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
