@@ -245,6 +245,7 @@ public class PortalHandler {
 		ConsoleUtils.printDebug("Loaded block data for portal " + portal.toString());
 	}
 	
+	
 	public void loadProjectionCachesOf(Portal portal) {
 		
 		if (!portal.isLinked()) {
@@ -406,37 +407,29 @@ public class PortalHandler {
 	 */
 	private Transform calculateLinkTransform(Portal portal, Portal counterPortal) {
 		
-		Transform linkTransform;
-		Vector distance = portal.getLocation().toVector().subtract(counterPortal.getLocation().toVector());
+		Transform linkTransform = new Transform();
+		BlockVec portalLoc1 = portal.getMinBlock();
+		BlockVec portalLoc2;
+		Axis counterPortalAxis = counterPortal.getAxis();
 		
-		linkTransform = new Transform();
-		linkTransform.setTranslation(new BlockVec(distance));
-		linkTransform.setRotCenter(new BlockVec(counterPortal.getPortalRect().getMin()));
-		
-		//during the rotation some weird shifts happen
-		//I did not figure out where they come from, for now some extra translations are a good workaround
-		if (portal.getAxis() == counterPortal.getAxis()) {
+		if (portal.getAxis() == counterPortalAxis) {
 			
+			portalLoc2 = counterPortal.getMaxBlock();
+			portalLoc2.setY(counterPortal.getMinBlock().getY());
 			linkTransform.setRotY180Deg();
-			int portalBlockWidth = (int) portal.getPortalRect().width() - 1;
-			
-			if (counterPortal.getAxis() == Axis.X) {
-				linkTransform.translate(new BlockVec(portalBlockWidth, 0, 0));
-			} else {
-				linkTransform.translate(new BlockVec(0, 0, portalBlockWidth));
-			}
-			
-		} else if (counterPortal.getAxis() == Axis.X) {
-			
-			linkTransform.setRotY90DegRight();
-			linkTransform.translate(new BlockVec(0, 0, 1));
 			
 		} else {
+			portalLoc2 = counterPortal.getMinBlock();
 			
-			linkTransform.setRotY90DegLeft();
-			linkTransform.translate(new BlockVec(1, 0, 0));
+			if (counterPortalAxis == Axis.X) {
+				linkTransform.setRotY90DegRight();
+			} else {
+				linkTransform.setRotY90DegLeft();
+			}
 		}
 		
+		linkTransform.setRotCenter(portalLoc2);
+		linkTransform.setTranslation(portalLoc1.subtract(portalLoc2));
 		return linkTransform;
 	}
 	

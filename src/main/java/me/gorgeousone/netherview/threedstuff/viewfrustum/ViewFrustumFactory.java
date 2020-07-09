@@ -90,7 +90,6 @@ public final class ViewFrustumFactory {
 			return null;
 		}
 		
-		Bukkit.broadcastMessage("" + ((int) (rectHeight * 100) / 100d));
 		AxisAlignedRect actualViewingRect = new AxisAlignedRect(totalViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
 		return new ViewFrustum(viewPoint, actualViewingRect, frustumLength);
 	}

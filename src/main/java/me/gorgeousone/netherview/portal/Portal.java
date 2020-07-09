@@ -62,6 +62,17 @@ public class Portal {
 		return portalRect.getMin().toLocation(world);
 	}
 	
+	public BlockVec getMinBlock() {
+		return min.clone();
+	}
+	
+	public BlockVec getMaxBlock() {
+		
+		BlockVec maxBlock = max.clone();
+		maxBlock.add(-1, 0, -1);
+		return maxBlock;
+	}
+	
 	public AxisAlignedRect getPortalRect() {
 		return portalRect.clone();
 	}

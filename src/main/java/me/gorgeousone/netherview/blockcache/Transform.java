@@ -23,8 +23,8 @@ public class Transform {
 		this.rotYMatrix = rotationY;
 	}
 	
-	public void setTranslation(BlockVec delta) {
-		this.translation = delta;
+	public void setTranslation(BlockVec pos) {
+		this.translation = pos.clone();
 	}
 	
 	public void translate(BlockVec delta) {
@@ -32,7 +32,7 @@ public class Transform {
 	}
 	
 	public void setRotCenter(BlockVec rotCenter) {
-		this.rotCenter = rotCenter;
+		this.rotCenter = rotCenter.clone();
 	}
 	
 	public void setRotY90DegRight() {

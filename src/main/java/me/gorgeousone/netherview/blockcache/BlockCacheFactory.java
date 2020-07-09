@@ -21,8 +21,7 @@ public class BlockCacheFactory {
 	                                                                  int viewDist,
 	                                                                  BlockType cacheBorderBlockType) {
 		
-		//theoretically the view distance needs to be increased by 1 for the extra layer of border around the cuboid of blocks.
-		//but somehow it's 2. Don't ask me.
+		//increasing the view distance by 1 to fit in the extra layer of border
 		viewDist += 1;
 		
 		AxisAlignedRect portalRect = portal.getPortalRect();
@@ -121,13 +120,18 @@ public class BlockCacheFactory {
 				createProjection(frontCache, portalLinkTransform));
 	}
 	
-	public static ProjectionCache createProjection(BlockCache sourceCache, Transform blockTransform) {
+	/**
+	 * Creates projection cache from the content of a block cache.
+	 * @param sourceCache block cache to be copied
+	 * @param linkTransform transformation between the locations of the block cache and the projection cache
+	 */
+	public static ProjectionCache createProjection(BlockCache sourceCache, Transform linkTransform) {
 		
 		BlockVec sourceMin = sourceCache.getMin();
 		BlockVec sourceMax = sourceCache.getMax();
 		
-		BlockVec corner1 = blockTransform.transformVec(sourceMin.clone());
-		BlockVec corner2 = blockTransform.transformVec(sourceMax.clone());
+		BlockVec corner1 = linkTransform.transformVec(sourceMin.clone());
+		BlockVec corner2 = linkTransform.transformVec(sourceMax.clone().add(-1, 0, -1));
 		
 		BlockVec projectionMin = BlockVec.getMinimum(corner1, corner2);
 		BlockVec projectionMax = BlockVec.getMaximum(corner1, corner2).add(1, 0, 1);
@@ -137,9 +141,9 @@ public class BlockCacheFactory {
 				sourceCache.getPortal(),
 				projectionMin,
 				projectionSize,
-				blockTransform.transformVec(sourceCache.getFacing()),
+				linkTransform.transformVec(sourceCache.getFacing()),
 				sourceCache.getBorderBlockType(),
-				blockTransform);
+				linkTransform);
 		
 		for (int x = sourceMin.getX(); x < sourceMax.getX(); x++) {
 			for (int y = sourceMin.getY(); y < sourceMax.getY(); y++) {
@@ -152,8 +156,8 @@ public class BlockCacheFactory {
 						continue;
 					}
 					
-					BlockType rotatedBlockType = blockType.clone().rotate(blockTransform.getQuarterTurns());
-					BlockVec newBlockPos = blockTransform.transformVec(blockPos);
+					BlockType rotatedBlockType = blockType.clone().rotate(linkTransform.getQuarterTurns());
+					BlockVec newBlockPos = linkTransform.transformVec(blockPos);
 					projectionCache.setBlockTypeAt(newBlockPos, rotatedBlockType);
 				}
 			}
