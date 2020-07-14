@@ -51,15 +51,15 @@ public class PortalHandler {
 		worldsWithPortals = new HashMap<>();
 		recentlyViewedPortals = new HashMap<>();
 		cacheExpirationDuration = Duration.ofMinutes(10).toMillis();
+		
+		startCacheExpirationTimer();
 	}
 	
 	public void reset() {
 		
 		worldsWithPortals.clear();
 		recentlyViewedPortals.clear();
-		
 		expirationTimer.cancel();
-		expirationTimer = null;
 	}
 	
 	public Set<Portal> getPortals(World world) {
@@ -267,12 +267,7 @@ public class PortalHandler {
 	}
 	
 	private void addPortalToExpirationTimer(Portal portal) {
-		
 		recentlyViewedPortals.put(portal, System.currentTimeMillis());
-		
-		if (expirationTimer == null) {
-			startCacheExpirationTimer();
-		}
 	}
 	
 	public void updateExpirationTime(Portal portal) {
@@ -310,7 +305,7 @@ public class PortalHandler {
 			                        + (int) portal.getPortalRect().width() + "x" + (int) portal.getPortalRect().height() + " to portal with size "
 			                        + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
 			
-			throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "These portals are not the same size.");
+			throw new IllegalStateException(ChatColor.GRAY + "These portals are not the same size.");
 		}
 		
 		portal.setLinkedTo(counterPortal);
@@ -459,11 +454,6 @@ public class PortalHandler {
 						entries.remove();
 						ConsoleUtils.printDebug("Removed cached blocks of portal " + portal.toString());
 					}
-				}
-				
-				if (recentlyViewedPortals.isEmpty()) {
-					this.cancel();
-					expirationTimer = null;
 				}
 			}
 		};
