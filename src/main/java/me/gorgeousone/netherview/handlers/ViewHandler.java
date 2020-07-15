@@ -100,8 +100,10 @@ public class ViewHandler {
 	 */
 	public void removeVieSession(Player player) {
 		
-		playerViewSessions.remove(player.getUniqueId());
-		viewedPortals.remove(player.getUniqueId());
+		UUID playerId = player.getUniqueId();
+		playerViewSessions.remove(playerId);
+		viewedPortals.remove(playerId);
+		viewedProjections.remove(playerId);
 	}
 	
 	/**

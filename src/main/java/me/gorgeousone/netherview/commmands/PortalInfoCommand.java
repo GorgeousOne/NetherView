@@ -6,6 +6,7 @@ import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -14,10 +15,12 @@ import java.util.Set;
 public class PortalInfoCommand extends BasicCommand {
 	
 	private PortalHandler portalHandler;
+	private NetherView main;
 	
-	public PortalInfoCommand(ParentCommand parent, PortalHandler portalHandler) {
+	public PortalInfoCommand(ParentCommand parent, NetherView main, PortalHandler portalHandler) {
 		
 		super("portalinfo", NetherView.INFO_PERM, true, parent);
+		this.main = main;
 		this.portalHandler = portalHandler;
 	}
 	
@@ -25,6 +28,14 @@ public class PortalInfoCommand extends BasicCommand {
 	protected void onCommand(CommandSender sender, String[] arguments) {
 		
 		Player player = (Player) sender;
+		World world = player.getWorld();
+		
+		if (!main.canCreatePortalViews(world)) {
+			sender.sendMessage(ChatColor.GRAY + "NetherView is not enabled for world '" + world.getName() + "'.");
+			sender.sendMessage(ChatColor.GRAY + "Enable it by adding it's name to 'worlds-with-portal-viewing' in the config.");
+			return;
+		}
+		
 		Portal portal = portalHandler.getNearestPortal(player.getLocation(), false);
 		
 		if (portal == null) {
