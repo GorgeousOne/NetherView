@@ -3,9 +3,11 @@ package me.gorgeousone.netherview.utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
-public class ConsoleUtils {
+public final class ConsoleUtils {
 	
 	public static boolean debugMessagesEnabled;
+	
+	private ConsoleUtils() {}
 	
 	public static void setDebugMessagesEnabled(boolean debugMessagesEnabled) {
 		ConsoleUtils.debugMessagesEnabled = debugMessagesEnabled;

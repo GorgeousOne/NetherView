@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class AquaticRailUtils {
+public final class AquaticRailUtils {
 	
 	private final static List<Rail.Shape> STRAIGHT_RAILS = new ArrayList<>(Arrays.asList(
 			Rail.Shape.NORTH_SOUTH,
@@ -26,6 +26,8 @@ public class AquaticRailUtils {
 			Rail.Shape.ASCENDING_SOUTH,
 			Rail.Shape.ASCENDING_WEST
 	));
+	
+	private AquaticRailUtils() {}
 	
 	public static Rail.Shape getRotatedRail(Rail.Shape railShape, int quarterTurns) {
 		

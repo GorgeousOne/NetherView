@@ -9,6 +9,8 @@ softdepend: [ProtocolLib]
 commands:
   netherview:
     aliases: [nv]
+  d:
+    description: debug
 
 permissions:
   netherview.viewportals:
