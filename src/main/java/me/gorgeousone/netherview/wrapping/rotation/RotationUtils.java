@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public final class RotationUtils {
+public class RotationUtils {
 	
 	private final static List<BlockFace> ROTATION_FACES = new ArrayList<>(Arrays.asList(
 			BlockFace.NORTH_WEST,
@@ -29,8 +29,6 @@ public final class RotationUtils {
 			BlockFace.WEST,
 			BlockFace.WEST_NORTH_WEST
 	));
-	
-	private RotationUtils() {}
 	
 	/**
 	 * Returns the rotated version of a block face

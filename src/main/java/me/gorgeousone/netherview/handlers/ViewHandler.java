@@ -2,7 +2,6 @@ package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.NetherView;
 import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.blockcache.FrustumFilter;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
@@ -182,7 +181,7 @@ public class ViewHandler {
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
 		if (playerFrustum != null && displayFrustum) {
-			visibleBlocks = FrustumFilter.getBlocksInFrustum(projection, playerFrustum);
+			visibleBlocks = playerFrustum.getContainedBlocks(projection);
 		}
 		
 		if (hidePortalBlocks) {

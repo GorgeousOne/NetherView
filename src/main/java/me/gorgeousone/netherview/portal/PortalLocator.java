@@ -16,11 +16,9 @@ import org.bukkit.util.Vector;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class PortalLocator {
+public class PortalLocator {
 	
 	private static Material PORTAL_MATERIAL;
-	
-	private PortalLocator() {}
 	
 	public static void configureVersion(Material portalMaterial) {
 		PortalLocator.PORTAL_MATERIAL = portalMaterial;

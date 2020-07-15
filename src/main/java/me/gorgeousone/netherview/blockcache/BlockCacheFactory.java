@@ -15,9 +15,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class BlockCacheFactory {
-	
-	private BlockCacheFactory() {}
+public class BlockCacheFactory {
 	
 	public static Map.Entry<BlockCache, BlockCache> createBlockCaches(Portal portal,
 	                                                                  int viewDist,
