@@ -76,7 +76,7 @@ public class TeleportListener implements Listener {
 		Location to = event.getTo();
 		
 		if (!main.canCreatePortalViews(from.getWorld())) {
-			ConsoleUtils.printDebug(ChatColor.GRAY + "[Debug] World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
+			ConsoleUtils.printDebug("World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
 			return false;
 		}
 		
@@ -84,14 +84,14 @@ public class TeleportListener implements Listener {
 		
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null) {
-			ConsoleUtils.printDebug("No portal found at starting point " + new BlockVec(from).toString());
+			ConsoleUtils.printDebug("No portal found at starting block " + new BlockVec(from).toString());
 			return false;
 		}
 		
 		Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
 		
 		if (counterPortalBlock == null) {
-			ConsoleUtils.printDebug("No portal found at destination point " + new BlockVec(to).toString());
+			ConsoleUtils.printDebug("No portal found at destination block " + new BlockVec(to).toString());
 			return false;
 		}
 		

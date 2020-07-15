@@ -42,7 +42,6 @@ public class PortalHandler {
 	private Map<Portal, Long> recentlyViewedPortals;
 	
 	private BukkitRunnable expirationTimer;
-	private long cacheExpirationDuration;
 	
 	public PortalHandler(NetherView main) {
 		
@@ -50,7 +49,6 @@ public class PortalHandler {
 		
 		worldsWithPortals = new HashMap<>();
 		recentlyViewedPortals = new HashMap<>();
-		cacheExpirationDuration = Duration.ofMinutes(10).toMillis();
 		
 		startCacheExpirationTimer();
 	}
@@ -432,6 +430,9 @@ public class PortalHandler {
 	 */
 	private void startCacheExpirationTimer() {
 		
+		long cacheExpirationDuration = Duration.ofMinutes(10).toMillis();
+		long timerPeriod = 10 * 20;
+		
 		ConsoleUtils.printDebug("Starting cache expiration timer");
 		
 		expirationTimer = new BukkitRunnable() {
@@ -452,13 +453,13 @@ public class PortalHandler {
 						portal.removeProjectionCaches();
 						portal.removeBlockCaches();
 						entries.remove();
-						ConsoleUtils.printDebug("Removed cached blocks of portal " + portal.toString());
+						ConsoleUtils.printDebug("Removed cached block data of portal " + portal.toString());
 					}
 				}
 			}
 		};
 		
-		expirationTimer.runTaskTimerAsynchronously(main, ticksTillNextMinute(), 10 * 20);
+		expirationTimer.runTaskTimerAsynchronously(main, ticksTillNextMinute(), timerPeriod);
 	}
 	
 	private long ticksTillNextMinute() {
