@@ -189,7 +189,7 @@ public final class NetherView extends JavaPlugin {
 		netherViewCommand.addChild(new ReloadCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new EnableDebugCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, this, portalHandler));
-		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, portalHandler));
+		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, this, portalHandler));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);

@@ -42,6 +42,12 @@ public class ListPortalsCommand extends ArgCommand {
 			return;
 		}
 		
+		if (!main.canCreatePortalViews(world)) {
+			sender.sendMessage(ChatColor.GRAY + "NetherView is not enabled for world '" + worldName + "'.");
+			sender.sendMessage(ChatColor.GRAY + "Enable it by adding it's name to 'worlds-with-portal-viewing' in the config.");
+			return;
+		}
+		
 		if (!portalHandler.hasPortals(world)) {
 			sender.sendMessage(ChatColor.GRAY + "No portals listed for world '" + worldName + "'.");
 			return;
