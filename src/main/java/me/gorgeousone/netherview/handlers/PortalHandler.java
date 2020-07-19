@@ -159,7 +159,7 @@ public class PortalHandler {
 		for (UUID worldID : worldsWithPortals.keySet()) {
 			for (Portal secondPortal : worldsWithPortals.get(worldID)) {
 				
-				if (secondPortal == portal) {
+				if (secondPortal.equals(portal)) {
 					continue;
 				}
 				

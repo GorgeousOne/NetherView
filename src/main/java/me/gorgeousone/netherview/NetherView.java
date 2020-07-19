@@ -67,7 +67,7 @@ public final class NetherView extends JavaPlugin {
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
 	
-	Plugin protocolLib = null;
+	private Plugin protocolLib = null;
 	
 	@Override
 	public void onEnable() {

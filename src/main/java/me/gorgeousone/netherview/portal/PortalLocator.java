@@ -199,7 +199,7 @@ public class PortalLocator {
 						                        + new BlockVec(portalBlock).toString());
 						
 						String worldType = world.getEnvironment().name().toLowerCase().replaceAll("_", " ");
-						throw new IllegalStateException(ChatColor.GRAY + "The frame of this " + worldType + "-world portal is not entirely made of obsidian.");
+						throw new IllegalStateException(ChatColor.GRAY + "The frame of this " + worldType + "-world portal is missing some obsidian blocks.");
 					}
 				}
 			}
