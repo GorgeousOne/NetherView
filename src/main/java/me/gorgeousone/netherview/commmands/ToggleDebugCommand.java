@@ -9,11 +9,11 @@ import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-public class EnableDebugCommand extends ArgCommand {
+public class ToggleDebugCommand extends ArgCommand {
 	
 	private NetherView main;
 	
-	public EnableDebugCommand(ParentCommand parent, NetherView main) {
+	public ToggleDebugCommand(ParentCommand parent, NetherView main) {
 		
 		super("debugmessages", NetherView.INFO_PERM, false, parent);
 		addArg(new Argument("true/false", ArgType.BOOLEAN));

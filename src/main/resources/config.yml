@@ -3,6 +3,7 @@ portal-display-range: 32
 hide-portal-blocks: true
 cancel-teleport-when-linking-portals: true
 instant-teleport: true
+warning-messages: true
 debug-messages: false
 worlds-with-portal-viewing:
   - world

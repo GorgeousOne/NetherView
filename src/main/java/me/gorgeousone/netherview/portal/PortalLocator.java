@@ -2,7 +2,7 @@ package me.gorgeousone.netherview.portal;
 
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
-import me.gorgeousone.netherview.utils.ConsoleUtils;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.ChatColor;
@@ -127,7 +127,7 @@ public class PortalLocator {
 			blockIterator = nextBlock;
 		}
 		
-		ConsoleUtils.printDebug("Detection stopped after exceeding 21 portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
+		MessageUtils.printDebug("Detection stopped after exceeding 21 portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
 		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");
 	}
 	
@@ -149,7 +149,7 @@ public class PortalLocator {
 						
 					} else {
 						
-						ConsoleUtils.printDebug("Expected portal block at " + new BlockVec(x, y, z).toString());
+						MessageUtils.printDebug("Expected portal block at " + new BlockVec(x, y, z).toString());
 						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is not rectangular.");
 					}
 				}
@@ -194,7 +194,7 @@ public class PortalLocator {
 						
 					} else {
 						
-						ConsoleUtils.printDebug("Expected obsidian block at "
+						MessageUtils.printDebug("Expected obsidian block at "
 						                        + portalBlock.getWorld().getName() + ", "
 						                        + new BlockVec(portalBlock).toString());
 						

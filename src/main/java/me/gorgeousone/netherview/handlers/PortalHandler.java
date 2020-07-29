@@ -8,7 +8,7 @@ import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
-import me.gorgeousone.netherview.utils.ConsoleUtils;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -224,7 +224,7 @@ public class PortalHandler {
 		worldsWithPortals.putIfAbsent(worldID, new HashSet<>());
 		worldsWithPortals.get(worldID).add(portal);
 		
-		ConsoleUtils.printDebug("Located portal at " + portal.toString());
+		MessageUtils.printDebug("Located portal at " + portal.toString());
 		return portal;
 	}
 	
@@ -239,7 +239,7 @@ public class PortalHandler {
 		addPortalToExpirationTimer(portal);
 		
 		
-		ConsoleUtils.printDebug("Loaded block data for portal " + portal.toString());
+		MessageUtils.printDebug("Loaded block data for portal " + portal.toString());
 	}
 	
 	
@@ -279,8 +279,8 @@ public class PortalHandler {
 		
 		Set<Portal> linkedToPortals = getPortalsLinkedTo(portal);
 		
-		ConsoleUtils.printDebug("Removing portal at " + portal.toString());
-		ConsoleUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections.");
+		MessageUtils.printDebug("Removing portal at " + portal.toString());
+		MessageUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections.");
 		
 		for (Portal linkedPortal : linkedToPortals) {
 			linkedPortal.removeLink();
@@ -299,7 +299,7 @@ public class PortalHandler {
 		
 		if (!counterPortal.equalsInSize(portal)) {
 			
-			ConsoleUtils.printDebug("Cannot connect portal with size "
+			MessageUtils.printDebug("Cannot connect portal with size "
 			                        + (int) portal.getPortalRect().width() + "x" + (int) portal.getPortalRect().height() + " to portal with size "
 			                        + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
 			
@@ -308,7 +308,7 @@ public class PortalHandler {
 		
 		portal.setLinkedTo(counterPortal);
 		
-		ConsoleUtils.printDebug("Linked portal "
+		MessageUtils.printDebug("Linked portal "
 		                        + portal.toString() + " to portal "
 		                        + counterPortal.toString());
 	}
@@ -433,7 +433,7 @@ public class PortalHandler {
 		long cacheExpirationDuration = Duration.ofMinutes(10).toMillis();
 		long timerPeriod = 10 * 20;
 		
-		ConsoleUtils.printDebug("Starting cache expiration timer");
+		MessageUtils.printDebug("Starting cache expiration timer");
 		
 		expirationTimer = new BukkitRunnable() {
 			@Override
@@ -453,7 +453,7 @@ public class PortalHandler {
 						portal.removeProjectionCaches();
 						portal.removeBlockCaches();
 						entries.remove();
-						ConsoleUtils.printDebug("Removed cached block data of portal " + portal.toString());
+						MessageUtils.printDebug("Removed cached block data of portal " + portal.toString());
 					}
 				}
 			}

@@ -7,7 +7,7 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
-import me.gorgeousone.netherview.utils.ConsoleUtils;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -76,7 +76,7 @@ public class TeleportListener implements Listener {
 		Location to = event.getTo();
 		
 		if (!main.canCreatePortalViews(from.getWorld())) {
-			ConsoleUtils.printDebug("World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
+			MessageUtils.printDebug("World '" + from.getWorld().getName() + "' not listed in config for portal viewing");
 			return false;
 		}
 		
@@ -84,14 +84,14 @@ public class TeleportListener implements Listener {
 		
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null) {
-			ConsoleUtils.printDebug("No portal found at starting block " + new BlockVec(from).toString());
+			MessageUtils.printDebug("No portal found at starting block " + new BlockVec(from).toString());
 			return false;
 		}
 		
 		Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
 		
 		if (counterPortalBlock == null) {
-			ConsoleUtils.printDebug("No portal found at destination block " + new BlockVec(to).toString());
+			MessageUtils.printDebug("No portal found at destination block " + new BlockVec(to).toString());
 			return false;
 		}
 		
@@ -116,7 +116,7 @@ public class TeleportListener implements Listener {
 			
 		} catch (IllegalArgumentException | IllegalStateException e) {
 			
-			player.sendMessage(e.getMessage());
+			MessageUtils.sendWarning(player, e.getMessage());
 			return false;
 		}
 	}

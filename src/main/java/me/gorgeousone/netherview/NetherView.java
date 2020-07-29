@@ -4,7 +4,8 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
-import me.gorgeousone.netherview.commmands.EnableDebugCommand;
+import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
+import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
@@ -18,7 +19,7 @@ import me.gorgeousone.netherview.listeners.TeleportListener;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
-import me.gorgeousone.netherview.utils.ConsoleUtils;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -63,6 +64,8 @@ public final class NetherView extends JavaPlugin {
 	private boolean hidePortalBlocks;
 	private boolean cancelTeleportWhenLinking;
 	private boolean instantTeleportEnabled;
+	
+	private boolean warningMessagesEnabled;
 	private boolean debugMessagesEnabled;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
@@ -152,8 +155,18 @@ public final class NetherView extends JavaPlugin {
 		return worldBorderBlockTypes.get(environment);
 	}
 	
-	public boolean debugMessagesEnabled() {
-		return debugMessagesEnabled;
+	public boolean setWarningMessagesEnabled(boolean state) {
+		
+		if (warningMessagesEnabled != state) {
+			
+			warningMessagesEnabled = state;
+			MessageUtils.setDebugMessagesEnabled(warningMessagesEnabled);
+			getConfig().set("warning-messages", warningMessagesEnabled);
+			saveConfig();
+			return true;
+		}
+		
+		return false;
 	}
 	
 	public boolean setDebugMessagesEnabled(boolean state) {
@@ -161,7 +174,7 @@ public final class NetherView extends JavaPlugin {
 		if (debugMessagesEnabled != state) {
 			
 			debugMessagesEnabled = state;
-			ConsoleUtils.setDebugMessagesEnabled(debugMessagesEnabled);
+			MessageUtils.setWarningMessagesEnabled(debugMessagesEnabled);
 			getConfig().set("debug-messages", debugMessagesEnabled);
 			saveConfig();
 			return true;
@@ -187,9 +200,10 @@ public final class NetherView extends JavaPlugin {
 		
 		ParentCommand netherViewCommand = new ParentCommand("netherview", null, false, "just tab");
 		netherViewCommand.addChild(new ReloadCommand(netherViewCommand, this));
-		netherViewCommand.addChild(new EnableDebugCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, this, portalHandler));
 		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, this, portalHandler));
+		netherViewCommand.addChild(new ToggleDebugCommand(netherViewCommand, this));
+		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
@@ -218,6 +232,7 @@ public final class NetherView extends JavaPlugin {
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
 		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
 		
+		setWarningMessagesEnabled(getConfig().getBoolean("warning-messages"));
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));
 		
 		loadWorldBorderBlockTypes();
