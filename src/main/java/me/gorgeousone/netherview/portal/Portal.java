@@ -37,6 +37,8 @@ public class Portal {
 	private Map.Entry<BlockCache, BlockCache> blockCaches;
 	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
 	
+	private boolean projectionsAreFlipped;
+	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
 	              Set<Block> portalBlocks,
@@ -172,9 +174,24 @@ public class Portal {
 		return projectionCaches.getValue();
 	}
 	
+	/**
+	 * Returns true if the the 2 projections of the portal were exchanged with each other via the FlipPortalCommand
+	 */
+	public boolean projectionsAreFlipped() {
+		return projectionsAreFlipped;
+	}
+	
+	public void setProjectionsFlipped(boolean projectionsAreFlipped) {
+		this.projectionsAreFlipped = projectionsAreFlipped;
+	}
+	
+	public void flipProjections() {
+		projectionsAreFlipped = !projectionsAreFlipped;
+	}
+	
 	@Override
 	public String toString() {
-		return '[' + world.getName() + ", " + new BlockVec(getLocation()).toString() + ']';
+		return '[' + world.getName() + "," + new BlockVec(getLocation()).toString() + ']';
 	}
 	
 	public String toWhiteString() {

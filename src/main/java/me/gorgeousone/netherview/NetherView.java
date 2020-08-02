@@ -4,11 +4,12 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
-import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
-import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
+import me.gorgeousone.netherview.commmands.FlipPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
+import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
+import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
@@ -48,6 +49,7 @@ public final class NetherView extends JavaPlugin {
 	public final static String LINK_PERM = "netherview.linkportals";
 	public final static String RELOAD_PERM = "netherview.reload";
 	public final static String INFO_PERM = "netherview.info";
+	public final static String PORTAL_FLIP_PERM = "netherview.flipportal";
 	
 	private boolean isLegacyServer;
 	private Material portalMaterial;
@@ -64,7 +66,6 @@ public final class NetherView extends JavaPlugin {
 	private boolean hidePortalBlocks;
 	private boolean cancelTeleportWhenLinking;
 	private boolean instantTeleportEnabled;
-	
 	private boolean warningMessagesEnabled;
 	private boolean debugMessagesEnabled;
 	
@@ -204,6 +205,7 @@ public final class NetherView extends JavaPlugin {
 		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, this, portalHandler));
 		netherViewCommand.addChild(new ToggleDebugCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
+		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
@@ -311,18 +313,13 @@ public final class NetherView extends JavaPlugin {
 		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		portalHandler.loadPortals(portalConfig);
-		portalHandler.loadPortalLinks(portalConfig);
-		
-		try {
-			portalConfig.save(portalConfigFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
-	private void savePortalsToConfig() {
+	public void savePortalsToConfig() {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
+		portalConfigFile.delete();
+		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		portalHandler.savePortals(portalConfig);
 		
