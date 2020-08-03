@@ -47,7 +47,7 @@ public final class NetherView extends JavaPlugin {
 	
 	public final static String VIEW_PERM = "netherview.viewportals";
 	public final static String LINK_PERM = "netherview.linkportals";
-	public final static String RELOAD_PERM = "netherview.reload";
+	public final static String CONFIG_PERM = "netherview.config";
 	public final static String INFO_PERM = "netherview.info";
 	public final static String PORTAL_FLIP_PERM = "netherview.flipportal";
 	
@@ -161,7 +161,7 @@ public final class NetherView extends JavaPlugin {
 		if (warningMessagesEnabled != state) {
 			
 			warningMessagesEnabled = state;
-			MessageUtils.setDebugMessagesEnabled(warningMessagesEnabled);
+			MessageUtils.setWarningMessagesEnabled(warningMessagesEnabled);
 			getConfig().set("warning-messages", warningMessagesEnabled);
 			saveConfig();
 			return true;
@@ -175,7 +175,7 @@ public final class NetherView extends JavaPlugin {
 		if (debugMessagesEnabled != state) {
 			
 			debugMessagesEnabled = state;
-			MessageUtils.setWarningMessagesEnabled(debugMessagesEnabled);
+			MessageUtils.setDebugMessagesEnabled(debugMessagesEnabled);
 			getConfig().set("debug-messages", debugMessagesEnabled);
 			saveConfig();
 			return true;
@@ -313,6 +313,7 @@ public final class NetherView extends JavaPlugin {
 		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		portalHandler.loadPortals(portalConfig);
+		savePortalsToConfig();
 	}
 	
 	public void savePortalsToConfig() {

@@ -359,10 +359,7 @@ public class PortalHandler {
 		}
 		
 		if (!portalConfig.contains("plugin-version")) {
-
 			loadDeprecatedPortalLinks(portalConfig);
-			main.savePortalsToConfig();
-
 		}else {
 			loadPortalData(portalConfig);
 		}
@@ -431,11 +428,21 @@ public class PortalHandler {
 		for (String portalHashString : portalData.getKeys(false)) {
 			
 			Portal portal = getPortalByHashCode(Integer.parseInt(portalHashString));
+			
+			if (portal == null) {
+				continue;
+			}
+			
 			portal.setViewFlipped(portalData.getBoolean(portalHashString + ".is-flipped"));
 			
 			if (portalData.contains(portalHashString + ".link")) {
 				
 				Portal counterPortal = getPortalByHashCode(portalData.getInt(portalHashString + ".link"));
+				
+				if (counterPortal == null) {
+					continue;
+				}
+				
 				linkPortalTo(portal, counterPortal);
 			}
 		}

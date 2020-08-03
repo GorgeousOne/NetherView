@@ -15,7 +15,7 @@ public class ToggleWarningsCommand extends ArgCommand {
 	
 	public ToggleWarningsCommand(ParentCommand parent, NetherView main) {
 		
-		super("warningmessages", NetherView.INFO_PERM, false, parent);
+		super("warningmessages", NetherView.CONFIG_PERM, false, parent);
 		addArg(new Argument("true/false", ArgType.BOOLEAN));
 		
 		this.main = main;
@@ -25,7 +25,7 @@ public class ToggleWarningsCommand extends ArgCommand {
 	protected void onCommand(CommandSender sender, ArgValue[] arguments) {
 		
 		boolean newState = arguments[0].getBoolean();
-		boolean stateChanged = main.setDebugMessagesEnabled(newState);
+		boolean stateChanged = main.setWarningMessagesEnabled(newState);
 		
 		if (stateChanged) {
 			sender.sendMessage(ChatColor.DARK_RED + "[" + ChatColor.DARK_PURPLE + "NV" + ChatColor.DARK_RED + "]"
