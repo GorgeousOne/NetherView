@@ -61,7 +61,7 @@ public class PlayerMoveListener implements Listener {
 		if (!fromVec.equals(toVec)) {
 			
 			Vector playerMovement = toVec.subtract(fromVec);
-			viewHandler.displayNearestPortalTo(player, player.getEyeLocation().add(playerMovement));
+			viewHandler.displayClosestPortalTo(player, player.getEyeLocation().add(playerMovement));
 		}
 	}
 	
@@ -94,7 +94,7 @@ public class PlayerMoveListener implements Listener {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					viewHandler.displayNearestPortalTo(player, player.getEyeLocation());
+					viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
 				}
 			}.runTaskLater(main, 2);
 		}

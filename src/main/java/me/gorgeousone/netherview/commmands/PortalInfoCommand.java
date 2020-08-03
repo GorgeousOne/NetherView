@@ -34,11 +34,11 @@ public class PortalInfoCommand extends BasicCommand {
 		if (!main.canCreatePortalViews(world)) {
 			
 			sender.sendMessage(ChatColor.GRAY + "NetherView is not enabled for world '" + world.getName() + "'.");
-			sender.sendMessage(ChatColor.GRAY + "Enable it by adding the world's name to 'worlds-with-portal-viewing' in the config.");
+			sender.sendMessage(ChatColor.GRAY + "You can enable it by adding the world's name to 'worlds-with-portal-viewing' in the config.");
 			return;
 		}
 		
-		Portal portal = portalHandler.getNearestPortal(player.getLocation(), false);
+		Portal portal = portalHandler.getClosestPortal(player.getLocation(), false);
 		
 		if (portal == null) {
 			
@@ -47,8 +47,7 @@ public class PortalInfoCommand extends BasicCommand {
 		}
 		
 		player.sendMessage(ChatColor.GRAY + "Info about portal at " + portal.toWhiteString() + ":");
-		player.sendMessage(ChatColor.GRAY + "  is flipped: " + ChatColor.RESET + portal.projectionsAreFlipped());
-		
+		player.sendMessage(ChatColor.GRAY + "  is flipped: " + ChatColor.RESET + portal.isViewFlipped());
 		
 		if (portal.isLinked()) {
 			

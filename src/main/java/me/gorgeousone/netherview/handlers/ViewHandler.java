@@ -109,9 +109,9 @@ public class ViewHandler {
 	/**
 	 * Locates the nearest portal to a player and displays a portal animation to them (if in view range) with fake blocks .
 	 */
-	public void displayNearestPortalTo(Player player, Location playerEyeLoc) {
+	public void displayClosestPortalTo(Player player, Location playerEyeLoc) {
 		
-		Portal portal = portalHandler.getNearestPortal(playerEyeLoc, true);
+		Portal portal = portalHandler.getClosestPortal(playerEyeLoc, true);
 		
 		if (portal == null) {
 			hideViewSession(player);

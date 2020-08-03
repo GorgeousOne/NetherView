@@ -127,7 +127,7 @@ public class PortalHandler {
 	 *
 	 * @param mustBeLinked specify if the returned portal should be linked already
 	 */
-	public Portal getNearestPortal(Location playerLoc, boolean mustBeLinked) {
+	public Portal getClosestPortal(Location playerLoc, boolean mustBeLinked) {
 		
 		Portal nearestPortal = null;
 		double minDist = -1;
@@ -249,11 +249,11 @@ public class PortalHandler {
 		}
 		
 		Portal counterPortal = portal.getCounterPortal();
-		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
+		Transform linkTransform = calculateLinkTransform(portal, counterPortal, portal.isViewFlipped());
 		
-		if (portal.projectionsAreFlipped()) {
-			linkTransform.invertRotation();
-		}
+//		if (portal.isViewFlipped()) {
+//			linkTransform.invertRotation();
+//		}
 		
 		portal.setTpTransform(linkTransform.clone().invert());
 		
@@ -264,7 +264,7 @@ public class PortalHandler {
 		BlockCache frontCache = counterPortal.getFrontCache();
 		BlockCache backCache = counterPortal.getBackCache();
 		
-		if (portal.projectionsAreFlipped()) {
+		if (portal.isViewFlipped()) {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(backCache, frontCache, linkTransform));
 		}else {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
@@ -339,7 +339,7 @@ public class PortalHandler {
 				int portalHash = portal.hashCode();
 
 				portalsInWorld.add(new BlockVec(portal.getLocation()).toString());
-				portalData.set(portalHash + ".isFlipped", portal.projectionsAreFlipped());
+				portalData.set(portalHash + ".is-flipped", portal.isViewFlipped());
 				
 				if (portal.isLinked()) {
 					portalData.set(portalHash + ".link", portal.getCounterPortal().hashCode());
@@ -431,7 +431,7 @@ public class PortalHandler {
 		for (String portalHashString : portalData.getKeys(false)) {
 			
 			Portal portal = getPortalByHashCode(Integer.parseInt(portalHashString));
-			portal.setProjectionsFlipped(portalData.getBoolean(portalHashString + ".isFlipped"));
+			portal.setViewFlipped(portalData.getBoolean(portalHashString + ".is-flipped"));
 			
 			if (portalData.contains(portalHashString + ".link")) {
 				
@@ -464,27 +464,33 @@ public class PortalHandler {
 	 * Calculates a Transform that is needed to translate and rotate block types at the positions of the block cache
 	 * of the counter portal to the related position in the projection cache of the portal.
 	 */
-	private Transform calculateLinkTransform(Portal portal, Portal counterPortal) {
+	private Transform calculateLinkTransform(Portal portal, Portal counterPortal, boolean isViewFlipped) {
 		
 		Transform linkTransform = new Transform();
+		Axis counterPortalAxis = counterPortal.getAxis();
+
 		BlockVec portalLoc1 = portal.getMinBlock();
 		BlockVec portalLoc2;
-		Axis counterPortalAxis = counterPortal.getAxis();
 		
 		if (portal.getAxis() == counterPortalAxis) {
-			
-			portalLoc2 = counterPortal.getMaxBlock();
-			portalLoc2.setY(counterPortal.getMinBlock().getY());
-			linkTransform.setRotY180Deg();
+
+			if (isViewFlipped) {
+				portalLoc2 = counterPortal.getMinBlock();
+				
+			}else {
+				portalLoc2 = counterPortal.getMaxBlockAtFloor();
+				linkTransform.setRotY180Deg();
+			}
 			
 		} else {
-			portalLoc2 = counterPortal.getMinBlock();
 			
-			if (counterPortalAxis == Axis.X) {
+			if (counterPortalAxis == Axis.X ^ isViewFlipped) {
 				linkTransform.setRotY90DegRight();
 			} else {
 				linkTransform.setRotY90DegLeft();
 			}
+			
+			portalLoc2 = isViewFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMinBlock();
 		}
 		
 		linkTransform.setRotCenter(portalLoc2);
