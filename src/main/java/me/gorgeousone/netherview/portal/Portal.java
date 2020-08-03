@@ -37,6 +37,8 @@ public class Portal {
 	private Map.Entry<BlockCache, BlockCache> blockCaches;
 	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
 	
+	private boolean isViewFlipped;
+	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
 	              Set<Block> portalBlocks,
@@ -66,10 +68,12 @@ public class Portal {
 		return min.clone();
 	}
 	
-	public BlockVec getMaxBlock() {
+	public BlockVec getMaxBlockAtFloor() {
 		
 		BlockVec maxBlock = max.clone();
 		maxBlock.add(-1, 0, -1);
+		maxBlock.setY(min.getY());
+		
 		return maxBlock;
 	}
 	
@@ -172,9 +176,28 @@ public class Portal {
 		return projectionCaches.getValue();
 	}
 	
+	/**
+	 * Returns true if the the 2 projections of the portal have been switched with each other for aesthetic reasons.
+	 */
+	public boolean isViewFlipped() {
+		return isViewFlipped;
+	}
+	
+	/**
+	 * Sets whether the 2 projections of the portal are switched with each other or not.
+	 * The {@link ProjectionCache}s have to be set again to realize this change.
+	 */
+	public void setViewFlipped(boolean isViewFlipped) {
+		this.isViewFlipped = isViewFlipped;
+	}
+	
+	public void flipView() {
+		isViewFlipped = !isViewFlipped;
+	}
+	
 	@Override
 	public String toString() {
-		return '[' + world.getName() + ", " + new BlockVec(getLocation()).toString() + ']';
+		return '[' + world.getName() + "," + new BlockVec(getLocation()).toString() + ']';
 	}
 	
 	public String toWhiteString() {

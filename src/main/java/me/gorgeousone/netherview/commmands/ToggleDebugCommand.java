@@ -15,7 +15,7 @@ public class ToggleDebugCommand extends ArgCommand {
 	
 	public ToggleDebugCommand(ParentCommand parent, NetherView main) {
 		
-		super("debugmessages", NetherView.INFO_PERM, false, parent);
+		super("debugmessages", NetherView.CONFIG_PERM, false, parent);
 		addArg(new Argument("true/false", ArgType.BOOLEAN));
 		
 		this.main = main;

@@ -127,7 +127,7 @@ public class PortalHandler {
 	 *
 	 * @param mustBeLinked specify if the returned portal should be linked already
 	 */
-	public Portal getNearestPortal(Location playerLoc, boolean mustBeLinked) {
+	public Portal getClosestPortal(Location playerLoc, boolean mustBeLinked) {
 		
 		Portal nearestPortal = null;
 		double minDist = -1;
@@ -238,7 +238,6 @@ public class PortalHandler {
 		
 		addPortalToExpirationTimer(portal);
 		
-		
 		MessageUtils.printDebug("Loaded block data for portal " + portal.toString());
 	}
 	
@@ -250,7 +249,12 @@ public class PortalHandler {
 		}
 		
 		Portal counterPortal = portal.getCounterPortal();
-		Transform linkTransform = calculateLinkTransform(portal, counterPortal);
+		Transform linkTransform = calculateLinkTransform(portal, counterPortal, portal.isViewFlipped());
+		
+//		if (portal.isViewFlipped()) {
+//			linkTransform.invertRotation();
+//		}
+		
 		portal.setTpTransform(linkTransform.clone().invert());
 		
 		if (!counterPortal.blockCachesAreLoaded()) {
@@ -260,7 +264,11 @@ public class PortalHandler {
 		BlockCache frontCache = counterPortal.getFrontCache();
 		BlockCache backCache = counterPortal.getBackCache();
 		
-		portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
+		if (portal.isViewFlipped()) {
+			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(backCache, frontCache, linkTransform));
+		}else {
+			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
+		}
 		addPortalToExpirationTimer(portal);
 	}
 	
@@ -315,11 +323,12 @@ public class PortalHandler {
 	
 	public void savePortals(FileConfiguration portalConfig) {
 		
+		portalConfig.set("plugin-version", main.getDescription().getVersion());
 		portalConfig.set("portal-locations", null);
-		portalConfig.set("linked-portals", null);
+		portalConfig.set("portal-data", null);
 		
 		ConfigurationSection portalLocations = portalConfig.createSection("portal-locations");
-		ConfigurationSection portalLinks = portalConfig.createSection("linked-portals");
+		ConfigurationSection portalData = portalConfig.createSection("portal-data");
 		
 		for (UUID worldID : worldsWithPortals.keySet()) {
 			
@@ -327,10 +336,13 @@ public class PortalHandler {
 			
 			for (Portal portal : worldsWithPortals.get(worldID)) {
 				
+				int portalHash = portal.hashCode();
+
 				portalsInWorld.add(new BlockVec(portal.getLocation()).toString());
+				portalData.set(portalHash + ".is-flipped", portal.isViewFlipped());
 				
 				if (portal.isLinked()) {
-					portalLinks.set(String.valueOf(portal.hashCode()), portal.getCounterPortal().hashCode());
+					portalData.set(portalHash + ".link", portal.getCounterPortal().hashCode());
 				}
 			}
 			
@@ -340,11 +352,28 @@ public class PortalHandler {
 	
 	public void loadPortals(FileConfiguration portalConfig) {
 		
-		if (!portalConfig.contains("portal-locations")) {
+		boolean portalsHaveBeenLoaded = loadPortalLocations(portalConfig);
+		
+		if (!portalsHaveBeenLoaded) {
 			return;
 		}
 		
+		if (!portalConfig.contains("plugin-version")) {
+			loadDeprecatedPortalLinks(portalConfig);
+		}else {
+			loadPortalData(portalConfig);
+		}
+	}
+	
+	private boolean loadPortalLocations(FileConfiguration portalConfig) {
+		
+		if (!portalConfig.contains("portal-locations")) {
+			return false;
+		}
+		
 		ConfigurationSection portalLocations = portalConfig.getConfigurationSection("portal-locations");
+		
+		boolean somePortalsCouldBeLoaded = false;
 		
 		for (String worldID : portalLocations.getKeys(false)) {
 			
@@ -359,22 +388,67 @@ public class PortalHandler {
 				continue;
 			}
 			
-			List<String> portalBlocksLocs = portalLocations.getStringList(worldID);
+			boolean somePortalsWereLoaded = deserializePortals(worldWithPortals, portalLocations.getStringList(worldID));
 			
-			for (String serializedBlockVec : portalBlocksLocs) {
+			if (somePortalsWereLoaded) {
+				somePortalsCouldBeLoaded = true;
+			}
+		}
+		
+		return somePortalsCouldBeLoaded;
+	}
+	
+	private boolean deserializePortals(World world, List<String> portalLocs) {
+		
+		boolean somePortalsCouldBeLoaded = false;
+		
+		for (String serializedBlockVec : portalLocs) {
+			
+			try {
+				BlockVec portalLoc = BlockVec.fromString(serializedBlockVec);
+				addPortalStructure(world.getBlockAt(portalLoc.getX(), portalLoc.getY(), portalLoc.getZ()));
+				somePortalsCouldBeLoaded = true;
 				
-				try {
-					BlockVec portalLoc = BlockVec.fromString(serializedBlockVec);
-					addPortalStructure(worldWithPortals.getBlockAt(portalLoc.getX(), portalLoc.getY(), portalLoc.getZ()));
-					
-				} catch (IllegalArgumentException | IllegalStateException e) {
-					main.getLogger().warning("Unable to load portal at [" + worldWithPortals.getName() + ", " + serializedBlockVec + "]: " + e.getMessage());
+			} catch (IllegalArgumentException | IllegalStateException e) {
+				main.getLogger().warning("Unable to load portal at [" + world.getName() + ", " + serializedBlockVec + "]: " + e.getMessage());
+			}
+		}
+		
+		return somePortalsCouldBeLoaded;
+	}
+	
+	private void loadPortalData(FileConfiguration portalConfig) {
+		
+		if (!portalConfig.contains("portal-data")) {
+			return;
+		}
+		
+		ConfigurationSection portalData = portalConfig.getConfigurationSection("portal-data");
+		
+		for (String portalHashString : portalData.getKeys(false)) {
+			
+			Portal portal = getPortalByHashCode(Integer.parseInt(portalHashString));
+			
+			if (portal == null) {
+				continue;
+			}
+			
+			portal.setViewFlipped(portalData.getBoolean(portalHashString + ".is-flipped"));
+			
+			if (portalData.contains(portalHashString + ".link")) {
+				
+				Portal counterPortal = getPortalByHashCode(portalData.getInt(portalHashString + ".link"));
+				
+				if (counterPortal == null) {
+					continue;
 				}
+				
+				linkPortalTo(portal, counterPortal);
 			}
 		}
 	}
 	
-	public void loadPortalLinks(FileConfiguration portalConfig) {
+	private void loadDeprecatedPortalLinks(FileConfiguration portalConfig) {
 		
 		if (!portalConfig.contains("linked-portals")) {
 			return;
@@ -397,27 +471,33 @@ public class PortalHandler {
 	 * Calculates a Transform that is needed to translate and rotate block types at the positions of the block cache
 	 * of the counter portal to the related position in the projection cache of the portal.
 	 */
-	private Transform calculateLinkTransform(Portal portal, Portal counterPortal) {
+	private Transform calculateLinkTransform(Portal portal, Portal counterPortal, boolean isViewFlipped) {
 		
 		Transform linkTransform = new Transform();
+		Axis counterPortalAxis = counterPortal.getAxis();
+
 		BlockVec portalLoc1 = portal.getMinBlock();
 		BlockVec portalLoc2;
-		Axis counterPortalAxis = counterPortal.getAxis();
 		
 		if (portal.getAxis() == counterPortalAxis) {
-			
-			portalLoc2 = counterPortal.getMaxBlock();
-			portalLoc2.setY(counterPortal.getMinBlock().getY());
-			linkTransform.setRotY180Deg();
+
+			if (isViewFlipped) {
+				portalLoc2 = counterPortal.getMinBlock();
+				
+			}else {
+				portalLoc2 = counterPortal.getMaxBlockAtFloor();
+				linkTransform.setRotY180Deg();
+			}
 			
 		} else {
-			portalLoc2 = counterPortal.getMinBlock();
 			
-			if (counterPortalAxis == Axis.X) {
+			if (counterPortalAxis == Axis.X ^ isViewFlipped) {
 				linkTransform.setRotY90DegRight();
 			} else {
 				linkTransform.setRotY90DegLeft();
 			}
+			
+			portalLoc2 = isViewFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMinBlock();
 		}
 		
 		linkTransform.setRotCenter(portalLoc2);

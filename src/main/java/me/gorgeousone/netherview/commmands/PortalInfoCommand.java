@@ -14,12 +14,13 @@ import java.util.Set;
 
 public class PortalInfoCommand extends BasicCommand {
 	
-	private PortalHandler portalHandler;
 	private NetherView main;
+	private PortalHandler portalHandler;
 	
 	public PortalInfoCommand(ParentCommand parent, NetherView main, PortalHandler portalHandler) {
 		
 		super("portalinfo", NetherView.INFO_PERM, true, parent);
+	
 		this.main = main;
 		this.portalHandler = portalHandler;
 	}
@@ -31,26 +32,30 @@ public class PortalInfoCommand extends BasicCommand {
 		World world = player.getWorld();
 		
 		if (!main.canCreatePortalViews(world)) {
+			
 			sender.sendMessage(ChatColor.GRAY + "NetherView is not enabled for world '" + world.getName() + "'.");
-			sender.sendMessage(ChatColor.GRAY + "Enable it by adding it's name to 'worlds-with-portal-viewing' in the config.");
+			sender.sendMessage(ChatColor.GRAY + "You can enable it by adding the world's name to 'worlds-with-portal-viewing' in the config.");
 			return;
 		}
 		
-		Portal portal = portalHandler.getNearestPortal(player.getLocation(), false);
+		Portal portal = portalHandler.getClosestPortal(player.getLocation(), false);
 		
 		if (portal == null) {
-			sender.sendMessage(ChatColor.GRAY + "No portals listed for world '" + player.getWorld().getName() + "'.");
+			
+			sender.sendMessage(ChatColor.GRAY + "There are no nether portals listed for world '" + player.getWorld().getName() + "'.");
 			return;
 		}
 		
 		player.sendMessage(ChatColor.GRAY + "Info about portal at " + portal.toWhiteString() + ":");
+		player.sendMessage(ChatColor.GRAY + "  is flipped: " + ChatColor.RESET + portal.isViewFlipped());
 		
 		if (portal.isLinked()) {
+			
 			player.sendMessage(ChatColor.GRAY + "  is linked to:");
 			player.sendMessage(ChatColor.GRAY + "  - " + portal.getCounterPortal().toWhiteString());
 			
 		} else {
-			player.sendMessage(ChatColor.GRAY + "  is linked: false");
+			player.sendMessage(ChatColor.GRAY + "  is linked to: -no portal-");
 		}
 		
 		Set<Portal> connectedPortals = portalHandler.getPortalsLinkedTo(portal);
@@ -60,8 +65,9 @@ public class PortalInfoCommand extends BasicCommand {
 			
 		} else {
 			
+			player.sendMessage(ChatColor.GRAY + "  portals linked to portal: ");
+			
 			for (Portal counterPortal : connectedPortals) {
-				player.sendMessage(ChatColor.GRAY + "  portals linked to portal: ");
 				player.sendMessage(ChatColor.GRAY + "  - " + counterPortal.toWhiteString());
 			}
 		}

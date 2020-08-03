@@ -113,11 +113,17 @@ public class Transform {
 		
 		rotCenter.add(translation);
 		translation.multiply(-1);
-		
-		rotYMatrix[0][1] *= -1;
-		rotYMatrix[1][0] *= -1;
+		invertRotation();
 		
 		return this;
+	}
+	
+	public void invertRotation() {
+		
+		rotYMatrix[0][0] *= -1;
+		rotYMatrix[0][1] *= -1;
+		rotYMatrix[1][0] *= -1;
+		rotYMatrix[1][1] *= -1;
 	}
 	
 	@Override

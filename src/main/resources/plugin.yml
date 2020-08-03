@@ -15,7 +15,9 @@ permissions:
     default: true
   netherview.linkportals:
     default: true
-  netherview.reload:
+  netherview.config:
     default: op
   netherview.info:
+    default: op
+  netherview.flipportal:
     default: op
