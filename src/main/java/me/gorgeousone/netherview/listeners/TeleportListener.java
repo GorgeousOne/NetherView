@@ -84,14 +84,14 @@ public class TeleportListener implements Listener {
 		
 		//might happen if the player mysteriously moved more than a block away from the portal in split seconds
 		if (portalBlock == null) {
-			MessageUtils.printDebug("No portal found at starting block " + new BlockVec(from).toString());
+			MessageUtils.printDebug("No portal found to teleport from at location [" + from.getWorld().getName() + "," + new BlockVec(from).toString() + "]");
 			return false;
 		}
 		
 		Block counterPortalBlock = PortalLocator.getNearbyPortalBlock(to);
 		
 		if (counterPortalBlock == null) {
-			MessageUtils.printDebug("No portal found at destination block " + new BlockVec(to).toString());
+			MessageUtils.printDebug("No portal found to teleport to at location [" + to.getWorld().getName() + "," + new BlockVec(to).toString() + "]");
 			return false;
 		}
 		
@@ -100,7 +100,6 @@ public class TeleportListener implements Listener {
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
 			if (portal.getCounterPortal() == counterPortal) {
-				event.setTo(createTpDestinationWithFixedYaw(from, to, portal.getTpTransform()));
 				return false;
 			}
 			
@@ -119,18 +118,5 @@ public class TeleportListener implements Listener {
 			MessageUtils.sendWarning(player, e.getMessage());
 			return false;
 		}
-	}
-	
-	/**
-	 * Makes sure that the yaw of a nether portal teleport changes according to transform that was calculated to
-	 * create the view animation of a portal. E.g. portals leaned against walls have the tendency to differ
-	 * from my basic rotation calculation. <p>
-	 * This only work for 1.15 and higher though (I didn't test 1.14 yet)
-	 */
-	private Location createTpDestinationWithFixedYaw(Location from, Location to, Transform portalTransform) {
-		
-		Location fixedDestination = to.clone();
-		fixedDestination.setYaw(portalTransform.rotateYaw(from.getYaw()));
-		return fixedDestination;
 	}
 }
