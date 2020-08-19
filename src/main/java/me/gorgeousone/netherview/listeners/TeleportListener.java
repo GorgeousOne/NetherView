@@ -60,7 +60,8 @@ public class TeleportListener implements Listener {
 		
 		boolean createdNewPortalView = createPortalView(event);
 		
-		if (createdNewPortalView && (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinkingPortalsEnabled())) {
+		if (createdNewPortalView && viewHandler.isViewingAPortal (player) &&
+		    (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinkingPortalsEnabled())) {
 			event.setCancelled(true);
 		}
 	}
@@ -109,7 +110,10 @@ public class TeleportListener implements Listener {
 			}
 			
 			portalHandler.linkPortalTo(portal, counterPortal);
-			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
+			
+			if (viewHandler.isViewingAPortal(player))
+				player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
+	
 			return true;
 			
 		} catch (IllegalArgumentException | IllegalStateException e) {

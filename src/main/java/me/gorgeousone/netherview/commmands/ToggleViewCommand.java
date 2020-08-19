@@ -25,6 +25,6 @@ public class ToggleViewCommand extends BasicCommand {
 		boolean wantsToSeePortalViews = !viewHandler.hasPortalViewEnabled(player);
 		viewHandler.setPortalViewEnabled(player, wantsToSeePortalViews);
 		
-		player.sendMessage(ChatColor.GRAY + (wantsToSeePortalViews ? " Enabled" : " Disabled") + " portal viewing for you.");
+		player.sendMessage(ChatColor.GRAY + (wantsToSeePortalViews ? "Enabled" : "Disabled") + " portal viewing for you.");
 	}
 }
