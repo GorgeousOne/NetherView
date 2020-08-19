@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -36,14 +36,12 @@ import java.util.UUID;
  */
 public class PortalHandler {
 	
-	private NetherView main;
-	
-	private Map<UUID, Set<Portal>> worldsWithPortals;
-	private Map<Portal, Long> recentlyViewedPortals;
-	
+	private final NetherViewPlugin main;
+	private final Map<UUID, Set<Portal>> worldsWithPortals;
+	private final Map<Portal, Long> recentlyViewedPortals;
 	private BukkitRunnable expirationTimer;
 	
-	public PortalHandler(NetherView main) {
+	public PortalHandler(NetherViewPlugin main) {
 		
 		this.main = main;
 		

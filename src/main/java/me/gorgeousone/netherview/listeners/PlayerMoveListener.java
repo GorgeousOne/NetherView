@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.utils.InvulnerabilityUtils;
 import org.bukkit.GameMode;
@@ -22,11 +22,11 @@ import org.bukkit.util.Vector;
  */
 public class PlayerMoveListener implements Listener {
 	
-	private NetherView main;
-	private ViewHandler viewHandler;
-	private Material portalMaterial;
+	private final NetherViewPlugin main;
+	private final ViewHandler viewHandler;
+	private final Material portalMaterial;
 	
-	public PlayerMoveListener(NetherView main, ViewHandler viewHandler, Material portalMaterial) {
+	public PlayerMoveListener(NetherViewPlugin main, ViewHandler viewHandler, Material portalMaterial) {
 		
 		this.main = main;
 		this.viewHandler = viewHandler;
@@ -45,7 +45,9 @@ public class PlayerMoveListener implements Listener {
 			InvulnerabilityUtils.setTemporarilyInvulnerable(player, main, 2);
 		}
 		
-		if (player.getGameMode() == GameMode.SPECTATOR || !player.hasPermission(NetherView.VIEW_PERM)) {
+		if (player.getGameMode() == GameMode.SPECTATOR ||
+		    !viewHandler.hasPortalViewEnabled(player) ||
+		    !player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
 			return;
 		}
 		
@@ -103,8 +105,8 @@ public class PlayerMoveListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
-		if (event.getPlayer().hasPermission(NetherView.VIEW_PERM) && event.getNewGameMode() == GameMode.SPECTATOR) {
-			viewHandler.hideViewSession(event.getPlayer());
+		if (event.getPlayer().hasPermission(NetherViewPlugin.VIEW_PERM) && event.getNewGameMode() == GameMode.SPECTATOR) {
+			viewHandler.hidePortalProjection(event.getPlayer());
 		}
 	}
 }

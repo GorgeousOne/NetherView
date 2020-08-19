@@ -9,6 +9,7 @@ import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
+import me.gorgeousone.netherview.commmands.ToggleViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -41,7 +42,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public final class NetherView extends JavaPlugin {
+public final class NetherViewPlugin extends JavaPlugin {
 	
 	private static final int resourceId = 78885;
 	
@@ -128,6 +129,14 @@ public final class NetherView extends JavaPlugin {
 		portalHandler.reset();
 	}
 	
+	public PortalHandler getPortalHandler() {
+		return portalHandler;
+	}
+	
+	public ViewHandler getViewHandler() {
+		return viewHandler;
+	}
+	
 	public int getPortalProjectionDist() {
 		return portalProjectionDist;
 	}
@@ -209,6 +218,7 @@ public final class NetherView extends JavaPlugin {
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
+		cmdHandler.registerCommand(new ToggleViewCommand(viewHandler));
 	}
 	
 	private void registerListeners() {

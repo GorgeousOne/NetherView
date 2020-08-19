@@ -23,8 +23,8 @@ import java.util.Set;
  */
 public class PacketHandler {
 	
-	private ProtocolManager protocolManager;
-	private Set<Integer> customPacketIDs;
+	private final ProtocolManager protocolManager;
+	private final Set<Integer> customPacketIDs;
 	
 	public PacketHandler() {
 		

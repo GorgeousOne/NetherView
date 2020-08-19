@@ -8,11 +8,12 @@ import org.bukkit.util.Vector;
  */
 public class AxisAlignedRect {
 	
-	private Axis axis;
-	private Vector pos;
+	private final Axis axis;
+	private final Vector pos;
+	private final Plane plane;
+	
 	private double width;
 	private double height;
-	private Plane plane;
 	
 	public AxisAlignedRect(Axis axis, Vector pos, double width, double height) {
 		

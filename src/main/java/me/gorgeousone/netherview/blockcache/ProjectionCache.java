@@ -11,8 +11,8 @@ import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
  */
 public class ProjectionCache extends BlockCache {
 	
-	private Transform linkTransform;
-	private int cacheLength;
+	private final Transform linkTransform;
+	private final int cacheLength;
 	
 	public ProjectionCache(Portal portal,
 	                       BlockVec offset,

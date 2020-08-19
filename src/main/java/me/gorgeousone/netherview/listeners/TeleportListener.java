@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.NetherView;
-import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
@@ -23,11 +22,11 @@ import org.bukkit.event.player.PlayerTeleportEvent;
  */
 public class TeleportListener implements Listener {
 	
-	private NetherView main;
-	private PortalHandler portalHandler;
-	private ViewHandler viewHandler;
+	private final NetherViewPlugin main;
+	private final PortalHandler portalHandler;
+	private final ViewHandler viewHandler;
 	
-	public TeleportListener(NetherView main,
+	public TeleportListener(NetherViewPlugin main,
 	                        PortalHandler portalHandler,
 	                        ViewHandler viewHandler) {
 		
@@ -49,13 +48,13 @@ public class TeleportListener implements Listener {
 		}
 		
 		//updates portal animation for the player if they teleport with e.g. an ender pearl
-		if (from.getWorld() == to.getWorld() && player.hasPermission(NetherView.VIEW_PERM)) {
+		if (from.getWorld() == to.getWorld() && player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
 			viewHandler.displayClosestPortalTo(player, to.clone().add(0, player.getEyeHeight(), 0));
 			return;
 		}
 		
 		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL ||
-		    !player.hasPermission(NetherView.LINK_PERM)) {
+		    !player.hasPermission(NetherViewPlugin.LINK_PERM)) {
 			return;
 		}
 		

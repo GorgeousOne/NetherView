@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.commmands;
 
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.command.BasicCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -13,13 +13,13 @@ import org.bukkit.entity.Player;
 
 public class FlipPortalCommand extends BasicCommand {
 	
-	private NetherView main;
-	private PortalHandler portalHandler;
-	private ViewHandler viewHandler;
+	private final NetherViewPlugin main;
+	private final PortalHandler portalHandler;
+	private final ViewHandler viewHandler;
 	
-	public FlipPortalCommand(ParentCommand parent, NetherView main, PortalHandler portalHandler, ViewHandler viewHandler) {
+	public FlipPortalCommand(ParentCommand parent, NetherViewPlugin main, PortalHandler portalHandler, ViewHandler viewHandler) {
 	
-		super("flipportal", NetherView.PORTAL_FLIP_PERM, true, parent);
+		super("flipportal", NetherViewPlugin.PORTAL_FLIP_PERM, true, parent);
 	
 		this.main = main;
 		this.portalHandler = portalHandler;
@@ -42,14 +42,14 @@ public class FlipPortalCommand extends BasicCommand {
 		Portal viewedPortal = viewHandler.getViewedPortal(player);
 		
 		if (viewedPortal == null) {
-			player.sendMessage(ChatColor.GRAY + "Please stand closer to a nether portal that uses NetherView.");
+			player.sendMessage(ChatColor.GRAY + "You need to look at a nether portal with NetherView enabled for this command to work.");
 			return;
 		}
 		
 		viewedPortal.flipView();
 		portalHandler.loadProjectionCachesOf(viewedPortal);
 		
-		viewHandler.hideViewSession(player);
+		viewHandler.hidePortalProjection(player);
 		viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
 		sender.sendMessage(ChatColor.GRAY + "Flipped view of portal " + viewedPortal.toWhiteString());
 	}

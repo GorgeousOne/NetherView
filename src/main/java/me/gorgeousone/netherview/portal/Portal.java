@@ -21,15 +21,15 @@ import java.util.Set;
  */
 public class Portal {
 	
-	private World world;
-	private AxisAlignedRect portalRect;
+	private final World world;
+	private final AxisAlignedRect portalRect;
 	
-	private Set<Block> portalBlocks;
-	private Set<Block> frameBlocks;
+	private final Set<Block> portalBlocks;
+	private final Set<Block> frameBlocks;
 	
 	//bounds containing the whole portal structure
-	private BlockVec min;
-	private BlockVec max;
+	private final BlockVec min;
+	private final BlockVec max;
 	
 	private Portal counterPortal;
 	private Transform tpTransform;

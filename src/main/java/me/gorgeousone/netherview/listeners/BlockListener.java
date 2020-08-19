@@ -10,7 +10,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -51,14 +51,13 @@ import java.util.Map;
  */
 public class BlockListener implements Listener {
 	
-	private NetherView main;
-	private PortalHandler portalHandler;
-	private ViewHandler viewHandler;
-	private PacketHandler packetHandler;
+	private final NetherViewPlugin main;
+	private final PortalHandler portalHandler;
+	private final ViewHandler viewHandler;
+	private final PacketHandler packetHandler;
+	private final Material portalMaterial;
 	
-	private Material portalMaterial;
-	
-	public BlockListener(NetherView main,
+	public BlockListener(NetherViewPlugin main,
 	                     PortalHandler portalHandler,
 	                     ViewHandler viewHandler, PacketHandler packetHandler, Material portalMaterial) {
 		
@@ -97,8 +96,8 @@ public class BlockListener implements Listener {
 						BlockType viewedBlockType = getViewedBlockType(
 								new BlockVec(blockPos),
 								viewHandler.getViewedPortal(player),
-								viewHandler.getViewedProjection(player),
-								viewHandler.getViewSession(player));
+								viewHandler.getViewedPortalSide(player),
+								viewHandler.getPortalProjectionBlocks(player));
 						
 						if (viewedBlockType != null) {
 							packet.getBlockData().write(0, viewedBlockType.getWrapped());
@@ -135,8 +134,8 @@ public class BlockListener implements Listener {
 						MultiBlockChangeInfo[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().getValues().get(0);
 						
 						Portal viewedPortal = viewHandler.getViewedPortal(player);
-						ProjectionCache viewedProjection = viewHandler.getViewedProjection(player);
-						Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+						ProjectionCache viewedProjection = viewHandler.getViewedPortalSide(player);
+						Map<BlockVec, BlockType> viewSession = viewHandler.getPortalProjectionBlocks(player);
 						
 						ChunkCoordIntPair chunkCoords = packet.getChunkCoordIntPairs().getValues().get(0);
 						int worldX = chunkCoords.getChunkX() << 4;
@@ -231,7 +230,7 @@ public class BlockListener implements Listener {
 			return;
 		}
 		
-		Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+		Map<BlockVec, BlockType> viewSession = viewHandler.getPortalProjectionBlocks(player);
 		BlockVec blockPos = new BlockVec(event.getClickedBlock());
 		
 		if (viewSession.containsKey(blockPos)) {
@@ -264,7 +263,7 @@ public class BlockListener implements Listener {
 			return;
 		}
 		
-		Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player);
+		Map<BlockVec, BlockType> viewSession = viewHandler.getPortalProjectionBlocks(player);
 		BlockVec blockPos = new BlockVec(block);
 		
 		if (viewSession.containsKey(blockPos)) {

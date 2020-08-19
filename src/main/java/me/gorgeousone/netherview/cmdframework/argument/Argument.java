@@ -6,10 +6,10 @@ import java.util.List;
 
 public class Argument {
 	
-	private String name;
+	private final String name;
 	
-	private ArgType type;
-	private List<String> tabList;
+	private final ArgType type;
+	private final List<String> tabList;
 	private ArgValue defValue;
 	
 	public Argument(String name, ArgType type) {

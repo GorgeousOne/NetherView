@@ -11,9 +11,9 @@ import java.util.Set;
 
 public class CommandHandler implements CommandExecutor {
 	
-	private JavaPlugin plugin;
-	private Set<BasicCommand> commands;
-	private CommandCompleter cmdCompleter;
+	private final JavaPlugin plugin;
+	private final Set<BasicCommand> commands;
+	private final CommandCompleter cmdCompleter;
 	
 	public CommandHandler(JavaPlugin plugin) {
 		this.plugin = plugin;

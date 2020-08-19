@@ -13,13 +13,13 @@ import org.bukkit.block.Block;
  */
 public class BlockCache {
 	
-	private Portal portal;
-	private BlockType[][][] blockCopies;
-	private BlockVec min;
-	private BlockVec max;
+	private final Portal portal;
+	private final BlockType[][][] blockCopies;
+	private final BlockVec min;
+	private final BlockVec max;
 	
-	private BlockVec facing;
-	private BlockType borderType;
+	private final BlockVec facing;
+	private final BlockType borderType;
 	
 	public BlockCache(Portal portal,
 	                  BlockVec offset,

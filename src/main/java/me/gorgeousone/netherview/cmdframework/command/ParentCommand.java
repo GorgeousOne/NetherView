@@ -9,8 +9,8 @@ import java.util.List;
 
 public class ParentCommand extends BasicCommand {
 	
-	private List<BasicCommand> children;
-	private String childrenType;
+	private final List<BasicCommand> children;
+	private final String childrenType;
 	
 	public ParentCommand(String name, String permission, boolean isPlayerRequired, String childrenType) {
 		this(name, permission, isPlayerRequired, childrenType, null);

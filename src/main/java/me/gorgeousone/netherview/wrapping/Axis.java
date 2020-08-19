@@ -11,8 +11,8 @@ public enum Axis {
 	X(new Vector(0, 0, 1), new Vector(1, 0, 0)),
 	Z(new Vector(1, 0, 0), new Vector(0, 0, 1));
 	
-	private Vector normal;
-	private Vector crossNormal;
+	private final Vector normal;
+	private final Vector crossNormal;
 	
 	Axis(Vector normal, Vector crossNormal) {
 		this.normal = normal;

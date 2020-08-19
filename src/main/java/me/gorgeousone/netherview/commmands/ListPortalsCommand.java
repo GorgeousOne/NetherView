@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.commmands;
 
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;
 import me.gorgeousone.netherview.cmdframework.argument.ArgValue;
 import me.gorgeousone.netherview.cmdframework.argument.Argument;
@@ -19,12 +19,12 @@ import java.util.Set;
 
 public class ListPortalsCommand extends ArgCommand {
 	
-	private NetherView main;
-	private PortalHandler portalHandler;
+	private final NetherViewPlugin main;
+	private final PortalHandler portalHandler;
 	
-	public ListPortalsCommand(ParentCommand parent, NetherView main, PortalHandler portalHandler) {
+	public ListPortalsCommand(ParentCommand parent, NetherViewPlugin main, PortalHandler portalHandler) {
 		
-		super("listportals", NetherView.INFO_PERM, false, parent);
+		super("listportals", NetherViewPlugin.INFO_PERM, false, parent);
 		addArg(new Argument("world", ArgType.STRING));
 		
 		this.main = main;

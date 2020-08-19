@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.commmands;
 
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.command.BasicCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -14,12 +14,12 @@ import java.util.Set;
 
 public class PortalInfoCommand extends BasicCommand {
 	
-	private NetherView main;
-	private PortalHandler portalHandler;
+	private final NetherViewPlugin main;
+	private final PortalHandler portalHandler;
 	
-	public PortalInfoCommand(ParentCommand parent, NetherView main, PortalHandler portalHandler) {
+	public PortalInfoCommand(ParentCommand parent, NetherViewPlugin main, PortalHandler portalHandler) {
 		
-		super("portalinfo", NetherView.INFO_PERM, true, parent);
+		super("portalinfo", NetherViewPlugin.INFO_PERM, true, parent);
 	
 		this.main = main;
 		this.portalHandler = portalHandler;

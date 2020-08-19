@@ -2,13 +2,15 @@ name: NetherView
 version: ${project.version}
 api-version: 1.13
 
-main: me.gorgeousone.netherview.NetherView
+main: me.gorgeousone.netherview.NetherViewPlugin
 
 softdepend: [ProtocolLib]
 
 commands:
   netherview:
     aliases: [nv]
+  togglenetherview:
+    description: Toggles whether you can see potal projections or not for yourself.
 
 permissions:
   netherview.viewportals:

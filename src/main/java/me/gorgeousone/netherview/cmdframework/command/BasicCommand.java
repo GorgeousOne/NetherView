@@ -17,12 +17,12 @@ import java.util.Set;
  */
 public abstract class BasicCommand {
 	
-	private String name;
-	private String permission;
-	private boolean isPlayerRequired;
+	private final String name;
+	private final String permission;
+	private final boolean isPlayerRequired;
 	
-	private Set<String> aliases;
-	private ParentCommand parent;
+	private final Set<String> aliases;
+	private final ParentCommand parent;
 	
 	protected BasicCommand(String name, String permission, boolean isPlayerRequired) {
 		this(name, permission, isPlayerRequired, null);

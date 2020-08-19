@@ -7,8 +7,7 @@ import org.bukkit.block.BlockFace;
 
 public final class FacingUtils {
 	
-	private FacingUtils() {
-	}
+	private FacingUtils() {}
 	
 	public static BlockFace[] getAxesFaces() {
 		return new BlockFace[]{

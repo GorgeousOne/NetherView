@@ -4,8 +4,8 @@ import org.bukkit.util.Vector;
 
 public class Plane {
 	
-	private Vector origin;
-	private Vector normal;
+	private final Vector origin;
+	private final Vector normal;
 	
 	public Plane(Vector origin, Vector normal) {
 		
