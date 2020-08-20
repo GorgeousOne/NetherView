@@ -1,12 +1,15 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.api.PortalUnlinkEvent;
+import me.gorgeousone.netherview.api.UnlinkReason;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.utils.MessageUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -104,12 +107,15 @@ public class TeleportListener implements Listener {
 			}
 			
 			if (portal.isLinked()) {
+				
+				Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(), UnlinkReason.SWITCHED_TARGET_PORTAL));
 				portal.removeLink();
-				portalHandler.linkPortalTo(portal, counterPortal);
+				
+				portalHandler.linkPortalTo(portal, counterPortal, player);
 				return false;
 			}
 			
-			portalHandler.linkPortalTo(portal, counterPortal);
+			portalHandler.linkPortalTo(portal, counterPortal, player);
 			
 			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
 			

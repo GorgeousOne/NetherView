@@ -137,14 +137,24 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return viewHandler;
 	}
 	
+	/**
+	 * Returns the approximate "radius" for the projections of the portals. The final side size of a projection will change
+	 * depending to the size of the portal.
+	 */
 	public int getPortalProjectionDist() {
 		return portalProjectionDist;
 	}
 	
+	/**
+	 * Returns the squared radius in which the view of a portal will be displayed to players.
+	 */
 	public int getPortalDisplayRangeSquared() {
 		return portalDisplayRangeSquared;
 	}
 	
+	/**
+	 * Returns true if hiding the purple portal blocks when seeing a portal view is enabled in the config.
+	 */
 	public boolean hidePortalBlocksEnabled() {
 		return hidePortalBlocks;
 	}

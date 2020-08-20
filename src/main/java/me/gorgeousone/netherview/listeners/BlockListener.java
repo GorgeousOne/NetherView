@@ -187,6 +187,7 @@ public class BlockListener implements Listener {
 		for (Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
 			
 			if (portal.contains(blockLoc)) {
+				
 				viewHandler.removePortal(portal);
 				portalHandler.removePortal(portal);
 			}

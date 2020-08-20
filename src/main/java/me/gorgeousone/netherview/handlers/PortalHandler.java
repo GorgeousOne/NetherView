@@ -1,6 +1,9 @@
 package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.api.PortalLinkEvent;
+import me.gorgeousone.netherview.api.PortalUnlinkEvent;
+import me.gorgeousone.netherview.api.UnlinkReason;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -17,6 +20,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
@@ -250,7 +254,7 @@ public class PortalHandler {
 		
 		Portal counterPortal = portal.getCounterPortal();
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal, portal.isViewFlipped());
-
+		
 		portal.setTpTransform(linkTransform.clone().invert());
 		
 		if (!counterPortal.blockCachesAreLoaded()) {
@@ -287,19 +291,26 @@ public class PortalHandler {
 		MessageUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections.");
 		
 		for (Portal linkedPortal : linkedToPortals) {
+			
+			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(linkedPortal, portal, UnlinkReason.LINKED_PORTAL_DESTROYED));
 			linkedPortal.removeLink();
 		}
 		
 		recentlyViewedPortals.remove(portal);
-		getPortals(portal.getWorld()).remove(portal);
 		
-		portal.removeLink();
+		if (portal.isLinked()) {
+			
+			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(), UnlinkReason.PORTAL_DESTROYED));
+			portal.removeLink();
+		}
+		
+		getPortals(portal.getWorld()).remove(portal);
 	}
 	
 	/**
 	 * Links a portal to it's counter portal it teleports to.
 	 */
-	public void linkPortalTo(Portal portal, Portal counterPortal) {
+	public void linkPortalTo(Portal portal, Portal counterPortal, Player player) {
 		
 		if (!counterPortal.equalsInSize(portal)) {
 			
@@ -308,6 +319,16 @@ public class PortalHandler {
 			                        + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
 			
 			throw new IllegalStateException(ChatColor.GRAY + "These portals are not the same size.");
+		}
+		
+		if (player != null) {
+			
+			PortalLinkEvent linkEvent = new PortalLinkEvent(portal, counterPortal, player);
+			Bukkit.getPluginManager().callEvent(linkEvent);
+			
+			if (linkEvent.isCancelled()) {
+				return;
+			}
 		}
 		
 		portal.setLinkedTo(counterPortal);
@@ -439,7 +460,7 @@ public class PortalHandler {
 					continue;
 				}
 				
-				linkPortalTo(portal, counterPortal);
+				linkPortalTo(portal, counterPortal, null);
 			}
 		}
 	}
@@ -458,7 +479,7 @@ public class PortalHandler {
 			Portal counterPortal = getPortalByHashCode(portalLinks.getInt(portalHashString));
 			
 			if (portal != null && counterPortal != null) {
-				linkPortalTo(portal, counterPortal);
+				linkPortalTo(portal, counterPortal, null);
 			}
 		}
 	}
@@ -479,7 +500,7 @@ public class PortalHandler {
 			
 			if (isViewFlipped) {
 				portalLoc2 = counterPortal.getMinBlock();
-			
+				
 			} else {
 				portalLoc2 = counterPortal.getMaxBlockAtFloor();
 				linkTransform.setRotY180Deg();

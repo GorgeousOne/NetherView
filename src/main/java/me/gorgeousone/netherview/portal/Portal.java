@@ -127,6 +127,7 @@ public class Portal {
 	}
 	
 	public void removeLink() {
+		
 		this.counterPortal = null;
 		this.tpTransform = null;
 		removeProjectionCaches();
