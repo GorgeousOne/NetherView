@@ -9,7 +9,7 @@ import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
-import me.gorgeousone.netherview.commmands.ToggleViewCommand;
+import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -218,7 +218,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
-		cmdHandler.registerCommand(new ToggleViewCommand(viewHandler));
+		cmdHandler.registerCommand(new TogglePortalViewCommand(viewHandler));
 	}
 	
 	private void registerListeners() {

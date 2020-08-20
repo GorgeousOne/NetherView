@@ -17,10 +17,13 @@ public class FlipPortalCommand extends BasicCommand {
 	private final PortalHandler portalHandler;
 	private final ViewHandler viewHandler;
 	
-	public FlipPortalCommand(ParentCommand parent, NetherViewPlugin main, PortalHandler portalHandler, ViewHandler viewHandler) {
-	
+	public FlipPortalCommand(ParentCommand parent,
+	                         NetherViewPlugin main,
+	                         PortalHandler portalHandler,
+	                         ViewHandler viewHandler) {
+		
 		super("flipportal", NetherViewPlugin.PORTAL_FLIP_PERM, true, parent);
-	
+		
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;

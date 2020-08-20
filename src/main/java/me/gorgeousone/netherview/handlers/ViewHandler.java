@@ -283,7 +283,7 @@ public class ViewHandler {
 	private Map<BlockVec, BlockType> updateProjection(ProjectionCache projection,
 	                                                  Map<BlockVec, BlockType> updatedBlocks) {
 		
-		Map<BlockVec, BlockType> projectionUpdates = new HashMap();
+		Map<BlockVec, BlockType> projectionUpdates = new HashMap<>();
 		
 		for (Map.Entry<BlockVec, BlockType> entry : updatedBlocks.entrySet()) {
 			
@@ -297,7 +297,6 @@ public class ViewHandler {
 			}
 			
 			BlockType projectionBlockType = sourceBlockType.rotate(blockTransform.getQuarterTurns());
-			
 			projection.setBlockTypeAt(projectionBlockPos, projectionBlockType);
 			projectionUpdates.put(projectionBlockPos, projectionBlockType);
 		}

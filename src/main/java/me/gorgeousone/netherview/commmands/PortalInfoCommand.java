@@ -20,7 +20,7 @@ public class PortalInfoCommand extends BasicCommand {
 	public PortalInfoCommand(ParentCommand parent, NetherViewPlugin main, PortalHandler portalHandler) {
 		
 		super("portalinfo", NetherViewPlugin.INFO_PERM, true, parent);
-	
+		
 		this.main = main;
 		this.portalHandler = portalHandler;
 	}

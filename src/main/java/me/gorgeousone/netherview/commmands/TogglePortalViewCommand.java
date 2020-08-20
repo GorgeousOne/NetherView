@@ -7,13 +7,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class ToggleViewCommand extends BasicCommand {
+public class TogglePortalViewCommand extends BasicCommand {
 	
 	private final ViewHandler viewHandler;
 	
-	public ToggleViewCommand(ViewHandler viewHandler) {
+	public TogglePortalViewCommand(ViewHandler viewHandler) {
 		
-		super("togglenetherview", NetherViewPlugin.VIEW_PERM, true);
+		super("toggleportalview", NetherViewPlugin.VIEW_PERM, true);
 		this.viewHandler = viewHandler;
 	}
 	

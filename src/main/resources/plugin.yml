@@ -9,7 +9,7 @@ softdepend: [ProtocolLib]
 commands:
   netherview:
     aliases: [nv]
-  togglenetherview:
+  toggleportalview:
     description: Toggles whether you can see potal projections or not for yourself.
 
 permissions:
