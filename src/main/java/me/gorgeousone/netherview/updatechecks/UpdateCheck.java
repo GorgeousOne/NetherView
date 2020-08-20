@@ -14,8 +14,8 @@ public class UpdateCheck {
 	
 	private final JavaPlugin javaPlugin;
 	
-	private String currentVersion;
-	private int resourceId;
+	private final String currentVersion;
+	private final int resourceId;
 	private BiConsumer<VersionResponse, String> versionResponse;
 	
 	public UpdateCheck(JavaPlugin javaPlugin, int resourceId) {

@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public class AquaticBlockType extends BlockType {
 	
-	private BlockData blockData;
+	private final BlockData blockData;
 	
 	public AquaticBlockType(Material material) {
 		blockData = material.createBlockData();

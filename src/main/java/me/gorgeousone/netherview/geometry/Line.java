@@ -4,8 +4,8 @@ import org.bukkit.util.Vector;
 
 public class Line {
 	
-	private Vector origin;
-	private Vector direction;
+	private final Vector origin;
+	private final Vector direction;
 	
 	public Line(Vector point1, Vector point2) {
 		

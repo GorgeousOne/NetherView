@@ -7,7 +7,7 @@ public enum ArgType {
 	STRING("string"),
 	BOOLEAN("boolean");
 	
-	private String simpleName;
+	private final String simpleName;
 	
 	ArgType(String simpleName) {
 		this.simpleName = simpleName;

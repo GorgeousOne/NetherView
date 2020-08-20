@@ -9,7 +9,7 @@ public class Transform {
 	
 	private BlockVec translation;
 	private BlockVec rotCenter;
-	private int[][] rotYMatrix;
+	private final int[][] rotYMatrix;
 	
 	public Transform() {
 		translation = new BlockVec();

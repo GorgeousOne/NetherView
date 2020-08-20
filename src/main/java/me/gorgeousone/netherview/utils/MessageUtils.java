@@ -17,10 +17,10 @@ public class MessageUtils {
 		MessageUtils.debugMessagesEnabled = debugMessagesEnabled;
 	}
 	
-	public static void sendWarning(Player player, String mesasge) {
+	public static void sendWarning(Player player, String message) {
 		
 		if (warningMessagesEnabled) {
-			player.sendMessage(mesasge);
+			player.sendMessage(message);
 		}
 	}
 	

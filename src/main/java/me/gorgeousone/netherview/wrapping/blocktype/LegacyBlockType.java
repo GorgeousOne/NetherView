@@ -23,7 +23,7 @@ import java.util.Set;
 @SuppressWarnings("deprecation")
 public class LegacyBlockType extends BlockType {
 	
-	private MaterialData materialData;
+	private final MaterialData materialData;
 	
 	public LegacyBlockType(Material material) {
 		materialData = new MaterialData(material);

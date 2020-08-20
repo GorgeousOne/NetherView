@@ -1,6 +1,9 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.api.PortalLinkEvent;
+import me.gorgeousone.netherview.api.PortalUnlinkEvent;
+import me.gorgeousone.netherview.api.UnlinkReason;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -17,6 +20,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
@@ -36,14 +40,12 @@ import java.util.UUID;
  */
 public class PortalHandler {
 	
-	private NetherView main;
-	
-	private Map<UUID, Set<Portal>> worldsWithPortals;
-	private Map<Portal, Long> recentlyViewedPortals;
-	
+	private final NetherViewPlugin main;
+	private final Map<UUID, Set<Portal>> worldsWithPortals;
+	private final Map<Portal, Long> recentlyViewedPortals;
 	private BukkitRunnable expirationTimer;
 	
-	public PortalHandler(NetherView main) {
+	public PortalHandler(NetherViewPlugin main) {
 		
 		this.main = main;
 		
@@ -199,12 +201,14 @@ public class PortalHandler {
 		Set<ProjectionCache> linkedToProjections = new HashSet<>();
 		Portal portal = cache.getPortal();
 		
-		boolean isFrontCache = portal.getFrontCache() == cache;
+		boolean isPortalCacheFront = portal.getFrontCache() == cache;
 		
 		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
 			
+			boolean isLinkedProjectionBack = isPortalCacheFront ^ linkedPortal.isViewFlipped();
+			
 			if (linkedPortal.projectionsAreLoaded()) {
-				linkedToProjections.add(isFrontCache ? linkedPortal.getBackProjection() : linkedPortal.getFrontProjection());
+				linkedToProjections.add(isLinkedProjectionBack ? linkedPortal.getBackProjection() : linkedPortal.getFrontProjection());
 			}
 		}
 		
@@ -251,10 +255,6 @@ public class PortalHandler {
 		Portal counterPortal = portal.getCounterPortal();
 		Transform linkTransform = calculateLinkTransform(portal, counterPortal, portal.isViewFlipped());
 		
-//		if (portal.isViewFlipped()) {
-//			linkTransform.invertRotation();
-//		}
-		
 		portal.setTpTransform(linkTransform.clone().invert());
 		
 		if (!counterPortal.blockCachesAreLoaded()) {
@@ -266,7 +266,7 @@ public class PortalHandler {
 		
 		if (portal.isViewFlipped()) {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(backCache, frontCache, linkTransform));
-		}else {
+		} else {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
 		}
 		addPortalToExpirationTimer(portal);
@@ -291,19 +291,26 @@ public class PortalHandler {
 		MessageUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections.");
 		
 		for (Portal linkedPortal : linkedToPortals) {
+			
+			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(linkedPortal, portal, UnlinkReason.LINKED_PORTAL_DESTROYED));
 			linkedPortal.removeLink();
 		}
 		
 		recentlyViewedPortals.remove(portal);
-		getPortals(portal.getWorld()).remove(portal);
 		
-		portal.removeLink();
+		if (portal.isLinked()) {
+			
+			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(), UnlinkReason.PORTAL_DESTROYED));
+			portal.removeLink();
+		}
+		
+		getPortals(portal.getWorld()).remove(portal);
 	}
 	
 	/**
 	 * Links a portal to it's counter portal it teleports to.
 	 */
-	public void linkPortalTo(Portal portal, Portal counterPortal) {
+	public void linkPortalTo(Portal portal, Portal counterPortal, Player player) {
 		
 		if (!counterPortal.equalsInSize(portal)) {
 			
@@ -312,6 +319,16 @@ public class PortalHandler {
 			                        + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
 			
 			throw new IllegalStateException(ChatColor.GRAY + "These portals are not the same size.");
+		}
+		
+		if (player != null) {
+			
+			PortalLinkEvent linkEvent = new PortalLinkEvent(portal, counterPortal, player);
+			Bukkit.getPluginManager().callEvent(linkEvent);
+			
+			if (linkEvent.isCancelled()) {
+				return;
+			}
 		}
 		
 		portal.setLinkedTo(counterPortal);
@@ -337,7 +354,7 @@ public class PortalHandler {
 			for (Portal portal : worldsWithPortals.get(worldID)) {
 				
 				int portalHash = portal.hashCode();
-
+				
 				portalsInWorld.add(new BlockVec(portal.getLocation()).toString());
 				portalData.set(portalHash + ".is-flipped", portal.isViewFlipped());
 				
@@ -360,7 +377,7 @@ public class PortalHandler {
 		
 		if (!portalConfig.contains("plugin-version")) {
 			loadDeprecatedPortalLinks(portalConfig);
-		}else {
+		} else {
 			loadPortalData(portalConfig);
 		}
 	}
@@ -443,7 +460,7 @@ public class PortalHandler {
 					continue;
 				}
 				
-				linkPortalTo(portal, counterPortal);
+				linkPortalTo(portal, counterPortal, null);
 			}
 		}
 	}
@@ -462,29 +479,29 @@ public class PortalHandler {
 			Portal counterPortal = getPortalByHashCode(portalLinks.getInt(portalHashString));
 			
 			if (portal != null && counterPortal != null) {
-				linkPortalTo(portal, counterPortal);
+				linkPortalTo(portal, counterPortal, null);
 			}
 		}
 	}
 	
 	/**
-	 * Calculates a Transform that is needed to translate and rotate block types at the positions of the block cache
-	 * of the counter portal to the related position in the projection cache of the portal.
+	 * Calculates a Transform that is needed to translate and rotate the blocks from the block cache
+	 * of the counter portal to the related positions in the projection cache of the viewed portal.
 	 */
 	private Transform calculateLinkTransform(Portal portal, Portal counterPortal, boolean isViewFlipped) {
 		
 		Transform linkTransform = new Transform();
 		Axis counterPortalAxis = counterPortal.getAxis();
-
+		
 		BlockVec portalLoc1 = portal.getMinBlock();
 		BlockVec portalLoc2;
 		
 		if (portal.getAxis() == counterPortalAxis) {
-
+			
 			if (isViewFlipped) {
 				portalLoc2 = counterPortal.getMinBlock();
 				
-			}else {
+			} else {
 				portalLoc2 = counterPortal.getMaxBlockAtFloor();
 				linkTransform.setRotY180Deg();
 			}

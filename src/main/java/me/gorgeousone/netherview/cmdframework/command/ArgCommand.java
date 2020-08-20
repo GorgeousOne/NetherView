@@ -12,7 +12,7 @@ import java.util.List;
 
 public abstract class ArgCommand extends BasicCommand {
 	
-	private List<Argument> arguments;
+	private final List<Argument> arguments;
 	
 	protected ArgCommand(String name, String permission, boolean isPlayerRequired) {
 		this(name, permission, isPlayerRequired, null);

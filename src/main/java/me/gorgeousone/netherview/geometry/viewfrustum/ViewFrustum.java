@@ -18,11 +18,11 @@ import java.util.Map;
  */
 public class ViewFrustum {
 	
-	private Vector viewPoint;
-	private AxisAlignedRect nearPlaneRect;
+	private final Vector viewPoint;
+	private final AxisAlignedRect nearPlaneRect;
 	private AxisAlignedRect farPlaneRect;
 	
-	private int frustumLength;
+	private final int frustumLength;
 	private Vector frustumFacing;
 	
 	public ViewFrustum(Vector viewPoint, AxisAlignedRect nearPlane, int frustumLength) {

@@ -1,13 +1,15 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.NetherView;
-import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.api.PortalUnlinkEvent;
+import me.gorgeousone.netherview.api.UnlinkReason;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.utils.MessageUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -23,11 +25,11 @@ import org.bukkit.event.player.PlayerTeleportEvent;
  */
 public class TeleportListener implements Listener {
 	
-	private NetherView main;
-	private PortalHandler portalHandler;
-	private ViewHandler viewHandler;
+	private final NetherViewPlugin main;
+	private final PortalHandler portalHandler;
+	private final ViewHandler viewHandler;
 	
-	public TeleportListener(NetherView main,
+	public TeleportListener(NetherViewPlugin main,
 	                        PortalHandler portalHandler,
 	                        ViewHandler viewHandler) {
 		
@@ -49,19 +51,20 @@ public class TeleportListener implements Listener {
 		}
 		
 		//updates portal animation for the player if they teleport with e.g. an ender pearl
-		if (from.getWorld() == to.getWorld() && player.hasPermission(NetherView.VIEW_PERM)) {
+		if (from.getWorld() == to.getWorld() && player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
 			viewHandler.displayClosestPortalTo(player, to.clone().add(0, player.getEyeHeight(), 0));
 			return;
 		}
 		
 		if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL ||
-		    !player.hasPermission(NetherView.LINK_PERM)) {
+		    !player.hasPermission(NetherViewPlugin.LINK_PERM)) {
 			return;
 		}
 		
 		boolean createdNewPortalView = createPortalView(event);
 		
-		if (createdNewPortalView && (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinkingPortalsEnabled())) {
+		if (createdNewPortalView && viewHandler.hasPortalViewEnabled(player) &&
+		    (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinkingPortalsEnabled())) {
 			event.setCancelled(true);
 		}
 	}
@@ -104,13 +107,18 @@ public class TeleportListener implements Listener {
 			}
 			
 			if (portal.isLinked()) {
+				
+				Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(), UnlinkReason.SWITCHED_TARGET_PORTAL));
 				portal.removeLink();
-				portalHandler.linkPortalTo(portal, counterPortal);
+				
+				portalHandler.linkPortalTo(portal, counterPortal, player);
 				return false;
 			}
 			
-			portalHandler.linkPortalTo(portal, counterPortal);
+			portalHandler.linkPortalTo(portal, counterPortal, player);
+			
 			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
+			
 			return true;
 			
 		} catch (IllegalArgumentException | IllegalStateException e) {

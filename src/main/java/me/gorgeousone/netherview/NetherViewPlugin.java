@@ -9,6 +9,7 @@ import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
+import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -41,7 +42,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public final class NetherView extends JavaPlugin {
+public final class NetherViewPlugin extends JavaPlugin {
 	
 	private static final int resourceId = 78885;
 	
@@ -128,14 +129,32 @@ public final class NetherView extends JavaPlugin {
 		portalHandler.reset();
 	}
 	
+	public PortalHandler getPortalHandler() {
+		return portalHandler;
+	}
+	
+	public ViewHandler getViewHandler() {
+		return viewHandler;
+	}
+	
+	/**
+	 * Returns the approximate "radius" for the projections of the portals. The final side size of a projection will change
+	 * depending to the size of the portal.
+	 */
 	public int getPortalProjectionDist() {
 		return portalProjectionDist;
 	}
 	
+	/**
+	 * Returns the squared radius in which the view of a portal will be displayed to players.
+	 */
 	public int getPortalDisplayRangeSquared() {
 		return portalDisplayRangeSquared;
 	}
 	
+	/**
+	 * Returns true if hiding the purple portal blocks when seeing a portal view is enabled in the config.
+	 */
 	public boolean hidePortalBlocksEnabled() {
 		return hidePortalBlocks;
 	}
@@ -209,6 +228,7 @@ public final class NetherView extends JavaPlugin {
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
+		cmdHandler.registerCommand(new TogglePortalViewCommand(viewHandler));
 	}
 	
 	private void registerListeners() {

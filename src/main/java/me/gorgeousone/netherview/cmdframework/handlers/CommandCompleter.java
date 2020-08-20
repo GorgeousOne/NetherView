@@ -11,7 +11,7 @@ import java.util.List;
 
 public class CommandCompleter implements TabCompleter {
 	
-	private CommandHandler cmdHandler;
+	private final CommandHandler cmdHandler;
 	
 	public CommandCompleter(CommandHandler cmdHandler) {
 		this.cmdHandler = cmdHandler;

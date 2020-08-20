@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.commmands;
 
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;
 import me.gorgeousone.netherview.cmdframework.argument.ArgValue;
 import me.gorgeousone.netherview.cmdframework.argument.Argument;
@@ -11,11 +11,11 @@ import org.bukkit.command.CommandSender;
 
 public class ToggleDebugCommand extends ArgCommand {
 	
-	private NetherView main;
+	private final NetherViewPlugin main;
 	
-	public ToggleDebugCommand(ParentCommand parent, NetherView main) {
+	public ToggleDebugCommand(ParentCommand parent, NetherViewPlugin main) {
 		
-		super("debugmessages", NetherView.CONFIG_PERM, false, parent);
+		super("debugmessages", NetherViewPlugin.CONFIG_PERM, false, parent);
 		addArg(new Argument("true/false", ArgType.BOOLEAN));
 		
 		this.main = main;

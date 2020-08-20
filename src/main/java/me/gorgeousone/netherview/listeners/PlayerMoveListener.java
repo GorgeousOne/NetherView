@@ -1,12 +1,11 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.NetherView;
+import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.utils.InvulnerabilityUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,11 +21,11 @@ import org.bukkit.util.Vector;
  */
 public class PlayerMoveListener implements Listener {
 	
-	private NetherView main;
-	private ViewHandler viewHandler;
-	private Material portalMaterial;
+	private final NetherViewPlugin main;
+	private final ViewHandler viewHandler;
+	private final Material portalMaterial;
 	
-	public PlayerMoveListener(NetherView main, ViewHandler viewHandler, Material portalMaterial) {
+	public PlayerMoveListener(NetherViewPlugin main, ViewHandler viewHandler, Material portalMaterial) {
 		
 		this.main = main;
 		this.viewHandler = viewHandler;
@@ -45,20 +44,14 @@ public class PlayerMoveListener implements Listener {
 			InvulnerabilityUtils.setTemporarilyInvulnerable(player, main, 2);
 		}
 		
-		if (player.getGameMode() == GameMode.SPECTATOR || !player.hasPermission(NetherView.VIEW_PERM)) {
-			return;
-		}
-		
-		World playerWorld = player.getWorld();
-		
-		if (playerWorld.getEnvironment() == World.Environment.THE_END || !main.canCreatePortalViews(playerWorld)) {
-			return;
-		}
-		
 		Vector fromVec = from.toVector();
 		Vector toVec = to.toVector();
 		
-		if (!fromVec.equals(toVec)) {
+		if (!fromVec.equals(toVec) &&
+		    main.canCreatePortalViews(player.getWorld()) &&
+		    player.getGameMode() != GameMode.SPECTATOR &&
+		    viewHandler.hasPortalViewEnabled(player) &&
+		    player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
 			
 			Vector playerMovement = toVec.subtract(fromVec);
 			viewHandler.displayClosestPortalTo(player, player.getEyeLocation().add(playerMovement));
@@ -71,18 +64,18 @@ public class PlayerMoveListener implements Listener {
 	private boolean mortalEnteredPortal(Player player, Location from, Location to) {
 		
 		GameMode gameMode = player.getGameMode();
-		return
-				(gameMode == GameMode.SURVIVAL || gameMode == GameMode.ADVENTURE) &&
-				playerMovedIntoNewBlock(from, to) &&
-				to.getBlock().getType() == portalMaterial &&
-				from.getBlock().getType() != portalMaterial;
+		
+		return (gameMode == GameMode.SURVIVAL || gameMode == GameMode.ADVENTURE) &&
+		       playerMovedIntoNewBlock(from, to) &&
+		       to.getBlock().getType() == portalMaterial &&
+		       from.getBlock().getType() != portalMaterial;
 	}
 	
 	private boolean playerMovedIntoNewBlock(Location from, Location to) {
 		return
-				from.getBlockX() != to.getBlockX() ||
-				from.getBlockY() != to.getBlockY() ||
-				from.getBlockZ() != to.getBlockZ();
+				(int) from.getX() != (int) to.getX() ||
+				(int) from.getY() != (int) to.getY() ||
+				(int) from.getZ() != (int) to.getZ();
 	}
 	
 	@EventHandler
@@ -91,6 +84,7 @@ public class PlayerMoveListener implements Listener {
 		Player player = event.getPlayer();
 		
 		if (viewHandler.isViewingAPortal(player)) {
+			
 			new BukkitRunnable() {
 				@Override
 				public void run() {
@@ -103,8 +97,10 @@ public class PlayerMoveListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
-		if (event.getPlayer().hasPermission(NetherView.VIEW_PERM) && event.getNewGameMode() == GameMode.SPECTATOR) {
-			viewHandler.hideViewSession(event.getPlayer());
+		Player player = event.getPlayer();
+		
+		if (viewHandler.isViewingAPortal(player) && event.getNewGameMode() == GameMode.SPECTATOR) {
+			viewHandler.hidePortalProjection(event.getPlayer());
 		}
 	}
 }

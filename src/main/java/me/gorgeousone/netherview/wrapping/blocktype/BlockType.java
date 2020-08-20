@@ -6,7 +6,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 
 /**
- * A wrapper for block materials and their (block-) data to support copying blocks across all versions.
+ * A wrapper for block materials and their (block-) data to support copying blocks across all Minecraft versions.
  */
 public abstract class BlockType {
 	
