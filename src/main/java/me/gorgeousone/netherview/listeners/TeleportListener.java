@@ -60,7 +60,7 @@ public class TeleportListener implements Listener {
 		
 		boolean createdNewPortalView = createPortalView(event);
 		
-		if (createdNewPortalView && viewHandler.isViewingAPortal(player) &&
+		if (createdNewPortalView && viewHandler.hasPortalViewEnabled(player) &&
 		    (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinkingPortalsEnabled())) {
 			event.setCancelled(true);
 		}
