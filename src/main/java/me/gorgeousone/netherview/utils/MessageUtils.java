@@ -4,7 +4,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class MessageUtils {
+public final class MessageUtils {
+	
+	private MessageUtils() {}
 	
 	public static boolean debugMessagesEnabled;
 	public static boolean warningMessagesEnabled;

@@ -116,6 +116,10 @@ public class BlockVec {
 		return world.getBlockAt(x, y, z);
 	}
 	
+	public BlockPosition toBlockPos() {
+		return new BlockPosition(x, y, z);
+	}
+	
 	@Override
 	public BlockVec clone() {
 		return new BlockVec(x, y, z);
@@ -143,6 +147,17 @@ public class BlockVec {
 	@Override
 	public String toString() {
 		return "x=" + x + ",y=" + y + ",z=" + z;
+	}
+	
+	/**
+	 * Converts the vector into a short that represents it's position relative to the chunk it's in.
+	 * Used by the MultiBlockChangePacket introduced in 1.16.2
+	 */
+	public short toChunkShort() {
+		
+		return (short) ((x & 0xF) << 8 |
+		                (z & 0xF) << 4 |
+		                (y & 0xF));
 	}
 	
 	public static BlockVec fromString(String serialized) {

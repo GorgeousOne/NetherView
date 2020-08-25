@@ -68,8 +68,8 @@ public class BlockListener implements Listener {
 		this.portalMaterial = portalMaterial;
 		
 		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-		addBlockUpdateInterception(protocolManager);
-		addMultiBlockUpdateInterception(protocolManager);
+//		addBlockUpdateInterception(protocolManager);
+//		addMultiBlockUpdateInterception(protocolManager);
 	}
 	
 	/**
@@ -122,6 +122,7 @@ public class BlockListener implements Listener {
 						
 						//call the custom packet check first so the packet handler will definitely flush the packet from the list
 						if (packetHandler.isCustomViewPacket(packet) || event.isCancelled()) {
+							System.out.println("k");
 							return;
 						}
 						
