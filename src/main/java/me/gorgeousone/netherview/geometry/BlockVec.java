@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview.geometry;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -17,8 +18,7 @@ public class BlockVec {
 	private int y;
 	private int z;
 	
-	public BlockVec() {
-	}
+	public BlockVec() {}
 	
 	public BlockVec(Block block) {
 		this(block.getX(), block.getY(), block.getZ());
@@ -34,6 +34,16 @@ public class BlockVec {
 	
 	public BlockVec(BlockPosition blockPosition) {
 		this(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
+	}
+	
+	public BlockVec(ChunkCoordIntPair chunkLocation) {
+		this(chunkLocation.getChunkX() << 4, 0, chunkLocation.getChunkZ() << 4);
+	}
+	
+	public BlockVec(short posInChunk) {
+		x = posInChunk >>> 8 & 0xF;
+		y = posInChunk & 0xF;
+		z = posInChunk >>> 4 & 0xF;
 	}
 	
 	public BlockVec(int x, int y, int z) {
@@ -84,10 +94,11 @@ public class BlockVec {
 		return this;
 	}
 	
-	public void multiply(int multiplier) {
+	public BlockVec multiply(int multiplier) {
 		x *= multiplier;
 		y *= multiplier;
 		z *= multiplier;
+		return this;
 	}
 	
 	public static BlockVec getMinimum(BlockVec v1, BlockVec v2) {

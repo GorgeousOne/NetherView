@@ -65,13 +65,13 @@ public class PacketHandler {
 	public void displayFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
 		if (VersionUtils.serverVersionIsGreaterEqualTo("1.16.2")) {
-			sendFakeBlocks1_16_2(player, blockCopies);
+			sendMultipleFakeBlocks1_16_2(player, blockCopies);
 		}else {
-			sendMultiFakeBlocks(player, blockCopies);
+			sendMultipleFakeBlocks(player, blockCopies);
 		}
 	}
 	
-	private void sendMultiFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
+	private void sendMultipleFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 
 		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockTypes = getSortedByChunks(blockCopies);
 
@@ -86,9 +86,9 @@ public class PacketHandler {
 		}
 	}
 
-	private void sendFakeBlocks1_16_2(Player player, Map<BlockVec, BlockType> blockCopies) {
+	private void sendMultipleFakeBlocks1_16_2(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
-		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockTypes = getSortedByChunks(blockCopies);
+		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockTypes = getSortedBy16x16x16(blockCopies);
 		
 		for (BlockVec chunkPos : sortedBlockTypes.keySet()) {
 			
@@ -116,6 +116,25 @@ public class PacketHandler {
 			
 			sortedBlockCopies.putIfAbsent(chunkPos, new HashMap<>());
 			sortedBlockCopies.get(chunkPos).put(blockPos, entry.getValue());
+		}
+		
+		return sortedBlockCopies;
+	}
+	
+	/**
+	 * Returns the passed block copies sorted by their chunks so multi block change packets can be created with them.
+	 */
+	private Map<BlockVec, Map<BlockVec, BlockType>> getSortedBy16x16x16(Map<BlockVec, BlockType> blockCopies) {
+		
+		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockCopies = new HashMap<>();
+		
+		for (Map.Entry<BlockVec, BlockType> entry : blockCopies.entrySet()) {
+			
+			BlockVec blockPos = entry.getKey();
+			BlockVec cubePos = new BlockVec(blockPos.getX() >> 4, blockPos.getY() >> 4, blockPos.getZ() >> 4);
+			
+			sortedBlockCopies.putIfAbsent(cubePos, new HashMap<>());
+			sortedBlockCopies.get(cubePos).put(blockPos, entry.getValue());
 		}
 		
 		return sortedBlockCopies;
@@ -181,7 +200,6 @@ public class PacketHandler {
 		try {
 			customPacketIDs.add(packetID);
 			protocolManager.sendServerPacket(player, packet);
-			System.out.println("send " + packetID);
 			
 		} catch (InvocationTargetException e) {
 			

@@ -10,6 +10,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
+import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
@@ -19,7 +20,9 @@ import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -43,6 +46,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -68,8 +72,8 @@ public class BlockListener implements Listener {
 		this.portalMaterial = portalMaterial;
 		
 		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-//		addBlockUpdateInterception(protocolManager);
-//		addMultiBlockUpdateInterception(protocolManager);
+		addBlockUpdateInterception(protocolManager);
+		addMultiBlockUpdateInterception(protocolManager);
 	}
 	
 	/**
@@ -90,10 +94,9 @@ public class BlockListener implements Listener {
 						}
 						
 						PacketContainer packet = event.getPacket();
-						BlockPosition blockPos = packet.getBlockPositionModifier().getValues().get(0);
+						BlockPosition blockPos = packet.getBlockPositionModifier().read(0);
 						
-						
-						BlockType viewedBlockType = getViewedBlockType(
+						BlockType viewedBlockType = getProjectedBlockType(
 								new BlockVec(blockPos),
 								viewHandler.getViewedPortal(player),
 								viewHandler.getViewedPortalSide(player),
@@ -119,58 +122,87 @@ public class BlockListener implements Listener {
 					public void onPacketSending(PacketEvent event) {
 						
 						PacketContainer packet = event.getPacket();
-						
-						//call the custom packet check first so the packet handler will definitely flush the packet from the list
-						if (packetHandler.isCustomViewPacket(packet) || event.isCancelled()) {
-							System.out.println("k");
-							return;
-						}
-						
 						Player player = event.getPlayer();
 						
-						if (!viewHandler.isViewingAPortal(player)) {
+						//call the custom packet check first so the packet handler will definitely flush the packet from the list
+						if (packetHandler.isCustomViewPacket(packet) || event.isCancelled() || !viewHandler.isViewingAPortal(player)) {
 							return;
 						}
 						
-						MultiBlockChangeInfo[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().getValues().get(0);
+						Bukkit.broadcastMessage("not this time");
 						
 						Portal viewedPortal = viewHandler.getViewedPortal(player);
-						ProjectionCache viewedProjection = viewHandler.getViewedPortalSide(player);
+						ProjectionCache viewedCache = viewHandler.getViewedPortalSide(player);
 						Map<BlockVec, BlockType> viewSession = viewHandler.getPortalProjectionBlocks(player);
 						
-						ChunkCoordIntPair chunkCoords = packet.getChunkCoordIntPairs().getValues().get(0);
-						int worldX = chunkCoords.getChunkX() << 4;
-						int worldZ = chunkCoords.getChunkZ() << 4;
-						
-						//filter all block changes that are happening inside the projection
-						for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
-							
-							BlockVec blockPos = new BlockVec(
-									blockInfo.getX() + worldX,
-									blockInfo.getY(),
-									blockInfo.getZ() + worldZ);
-							
-							BlockType viewedBlockType = getViewedBlockType(blockPos, viewedPortal, viewedProjection, viewSession);
-							
-							if (viewedBlockType != null) {
-								blockInfo.setData(viewSession.get(blockPos).getWrapped());
-							}
+						if (VersionUtils.serverVersionIsGreaterEqualTo("1.16.2")) {
+							rewriteProjectionBlockTypes1_16_2(packet, viewedPortal, viewedCache, viewSession);
+						}else {
+							rewriteProjectionBlockTypes(packet, viewedPortal, viewedCache, viewSession);
 						}
-						
-						packet.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
 					}
 				}
 		);
 	}
 	
+	private void rewriteProjectionBlockTypes(PacketContainer packet,
+	                                         Portal viewedPortal,
+	                                         ProjectionCache viewedCache,
+	                                         Map<BlockVec, BlockType> viewSession) {
+		
+		ChunkCoordIntPair chunkLoc = packet.getChunkCoordIntPairs().read(0);
+		int chunkWorldX = chunkLoc.getChunkX() << 4;
+		int chunkWorldZ = chunkLoc.getChunkZ() << 4;
+		
+		MultiBlockChangeInfo[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().read(0);
+		
+		for (MultiBlockChangeInfo blockInfo : blockInfoArray) {
+			
+			BlockVec blockPos = new BlockVec(
+					blockInfo.getX() + chunkWorldX,
+					blockInfo.getY(),
+					blockInfo.getZ() + chunkWorldZ);
+			
+			if (getProjectedBlockType(blockPos, viewedPortal, viewedCache, viewSession) != null) {
+				blockInfo.setData(viewSession.get(blockPos).getWrapped());
+			}
+		}
+		
+		packet.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
+	}
+	
+	private void rewriteProjectionBlockTypes1_16_2(PacketContainer packet,
+	                                               Portal viewedPortal,
+	                                               ProjectionCache viewedCache,
+	                                               Map<BlockVec, BlockType> viewSession) {
+		
+		short[] blockLocs = packet.getShortArrays().read(0);
+		
+		Object[] blockTypes = packet.getBlockDataArrays().readSafely(0);
+		BlockVec chunkLoc = new BlockVec(packet.getSectionPositions().read(0)).multiply(16);
+		int x = 0;
+		
+		for (int i = 0; i < blockLocs.length; i++) {
+			
+			BlockVec blockPos = new BlockVec(blockLocs[i]).add(chunkLoc);
+			
+			if (getProjectedBlockType(blockPos, viewedPortal, viewedCache, viewSession) != null) {
+				blockTypes[i] = viewSession.get(blockPos).getWrapped();
+				x++;
+			}
+		}
+		
+		packet.getBlockDataArrays().write(0, Arrays.copyOf(blockTypes, blockTypes.length, WrappedBlockData[].class));
+	}
+	
 	/**
-	 * Returns the BlockType that is displayed the player in the projection.
+	 * Returns the BlockType that is displayed the player in the projection at the block position.
 	 * Returns null if no block is being displayed at the position.
 	 */
-	private BlockType getViewedBlockType(BlockVec blockPos,
-	                                     Portal viewedPortal,
-	                                     ProjectionCache viewedCache,
-	                                     Map<BlockVec, BlockType> viewSession) {
+	private BlockType getProjectedBlockType(BlockVec blockPos,
+	                                        Portal viewedPortal,
+	                                        ProjectionCache viewedCache,
+	                                        Map<BlockVec, BlockType> viewSession) {
 		
 		return (viewedPortal.contains(blockPos) || viewedCache.contains(blockPos)) ? viewSession.get(blockPos) : null;
 	}
