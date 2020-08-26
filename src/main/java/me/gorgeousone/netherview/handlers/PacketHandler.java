@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
@@ -39,7 +40,7 @@ public class PacketHandler {
 	 * Returns true if the packets system ID matches any packet's ID sent by nether view for viewing a portal.
 	 * The method will delete matching packets from the custom packet list, so this method only works once!
 	 */
-	public boolean isCustomViewPacket(PacketContainer packet) {
+	public boolean isCustomPacket(PacketContainer packet) {
 		
 		int packetID = System.identityHashCode(packet.getHandle());
 		
@@ -49,6 +50,16 @@ public class PacketHandler {
 		}
 		
 		return false;
+	}
+	
+	public void refreshFakeBlock(Player player, BlockPosition blockPos, BlockType projectedBlockType) {
+		
+		PacketContainer fakeBlockPacket = protocolManager.createPacket(PacketType.Play.Server.BLOCK_CHANGE);
+		
+		fakeBlockPacket.getBlockPositionModifier().write(0, blockPos);
+		fakeBlockPacket.getBlockData().write(0, projectedBlockType.getWrapped());
+		
+		sendCustomPacket(fakeBlockPacket, player);
 	}
 	
 	public void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
@@ -82,10 +93,10 @@ public class PacketHandler {
 			
 			fakeBlocksPacket.getChunkCoordIntPairs().write(0, new ChunkCoordIntPair(chunkPos.getX(), chunkPos.getZ()));
 			fakeBlocksPacket.getMultiBlockChangeInfoArrays().write(0, createBlockInfoArray(chunkEntry.getValue(), player.getWorld()));
-			sendPacket(fakeBlocksPacket, player);
+			sendCustomPacket(fakeBlocksPacket, player);
 		}
 	}
-
+	
 	private void sendMultipleFakeBlocks1_16_2(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
 		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockTypes = getSortedBy16x16x16(blockCopies);
@@ -98,7 +109,7 @@ public class PacketHandler {
 			fakeBlocksPacket.getSectionPositions().write(0, chunkPos.toBlockPos());
 			fakeBlocksPacket.getShortArrays().write(0, createChunkLocsArray1_16_2(blockInChunk.keySet()));
 			fakeBlocksPacket.getBlockDataArrays().write(0, createBlockInfoArray1_16_2(blockInChunk.values()));
-			sendPacket(fakeBlocksPacket, player);
+			sendCustomPacket(fakeBlocksPacket, player);
 		}
 	}
 	
@@ -193,7 +204,7 @@ public class PacketHandler {
 		return chunkLocs;
 	}
 	
-	private void sendPacket(PacketContainer packet, Player player) {
+	private void sendCustomPacket(PacketContainer packet, Player player) {
 		
 		int packetID = System.identityHashCode(packet.getHandle());
 		

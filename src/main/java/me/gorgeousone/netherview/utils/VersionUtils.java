@@ -18,6 +18,21 @@ public final class VersionUtils {
 	
 	public static final boolean IS_LEGACY_SERVER = !serverVersionIsGreaterEqualTo("1.13.0");
 	
+	public static boolean versionIsLowerThan(String version1, String version2) {
+		
+		int[] versionInts1 = getVersionAsIntArray(version1, "\\.");
+		int[] versionInts2 = getVersionAsIntArray(version2, "\\.");
+		
+		for (int i = 0; i < versionInts1.length; i++) {
+			
+			if (versionInts1[i] < versionInts2[i]) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	public static boolean serverVersionIsGreaterEqualTo(String fullVersionString) {
 		
 		int[] readVersionInts = getVersionAsIntArray(fullVersionString, "\\.");
