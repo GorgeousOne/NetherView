@@ -22,6 +22,7 @@ import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -52,7 +53,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 	public final static String INFO_PERM = "netherview.info";
 	public final static String PORTAL_FLIP_PERM = "netherview.flipportal";
 	
-	private boolean isLegacyServer;
 	private Material portalMaterial;
 	
 	private PortalHandler portalHandler;
@@ -77,15 +77,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		
-		protocolLib = getServer().getPluginManager().getPlugin("ProtocolLib");
-		
-		if (protocolLib == null || !(protocolLib instanceof ProtocolLib)) {
-			getLogger().severe("====================================================");
-			getLogger().severe("Error: You must have ProtocolLib installed to use");
-			getLogger().severe("NetherView! Please download ProtocolLib and then");
-			getLogger().severe("restart your server:");
-			getLogger().severe("https://www.spigotmc.org/resources/protocollib.1997/");
-			getLogger().severe("====================================================");
+		if (!loadProtocolLib()) {
 			getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
@@ -94,8 +86,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		registerTotalPortalsChart(metrics);
 		registerPortalsOnline(metrics);
 		
-		loadServerVersion();
-		BlockType.configureVersion(isLegacyServer);
+		portalMaterial = VersionUtils.IS_LEGACY_SERVER ? Material.matchMaterial("PORTAL") : Material.NETHER_PORTAL;
+		BlockType.configureVersion(VersionUtils.IS_LEGACY_SERVER);
 		PortalLocator.configureVersion(portalMaterial);
 		
 		portalHandler = new PortalHandler(this);
@@ -108,6 +100,38 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		loadConfigData();
 		checkForUpdates();
+	}
+	
+	private boolean loadProtocolLib() {
+		
+		protocolLib = getServer().getPluginManager().getPlugin("ProtocolLib");
+		
+		if (protocolLib == null || !(protocolLib instanceof ProtocolLib)) {
+			
+			getLogger().severe("====================================================");
+			getLogger().severe("Error: You must have ProtocolLib installed to use");
+			getLogger().severe("NetherView! Please download ProtocolLib and then");
+			getLogger().severe("restart your server:");
+			getLogger().severe("https://www.spigotmc.org/resources/protocollib.1997/");
+			getLogger().severe("====================================================");
+			return false;
+		}
+		
+		String libVersion = protocolLib.getDescription().getVersion().split("-")[0];
+		
+		if (VersionUtils.serverVersionIsGreaterEqualTo("1.16.2") && VersionUtils.versionIsLowerThan(libVersion, "4.6.0")) {
+			
+			getLogger().severe("============================================================");
+			getLogger().severe("Error: For Minecraft 1.16.2 and up Nether View requires at");
+			getLogger().severe("least ProtocolLib 4.6.0. This version might be still be a");
+			getLogger().severe("development build which can be downloaded here:");
+			getLogger().severe("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/");
+			getLogger().severe("============================================================");
+			protocolLib = null;
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public void reload() {
@@ -203,19 +227,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return false;
 	}
 	
-	private void loadServerVersion() {
-		
-		String version = getServer().getBukkitVersion();
-		isLegacyServer =
-				version.contains("1.8") ||
-				version.contains("1.9") ||
-				version.contains("1.10") ||
-				version.contains("1.11") ||
-				version.contains("1.12");
-		
-		portalMaterial = isLegacyServer ? Material.matchMaterial("PORTAL") : Material.NETHER_PORTAL;
-	}
-	
 	private void registerCommands() {
 		
 		ParentCommand netherViewCommand = new ParentCommand("netherview", null, false, "just tab");
@@ -264,15 +275,17 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	private void addVersionSpecificDefaults() {
 		
-		if (isLegacyServer) {
-			getConfig().addDefault("overworld-border", "stained_clay");
-			getConfig().addDefault("nether-border", "stained_clay:14");
-			getConfig().addDefault("end-border", "wool:15");
+		if (VersionUtils.serverVersionIsGreaterEqualTo("1.13.0")) {
 			
-		} else {
 			getConfig().addDefault("overworld-border", "white_terracotta");
 			getConfig().addDefault("nether-border", "red_concrete");
 			getConfig().addDefault("end-border", "black_concrete");
+			
+		} else {
+			
+			getConfig().addDefault("overworld-border", "stained_clay");
+			getConfig().addDefault("nether-border", "stained_clay:14");
+			getConfig().addDefault("end-border", "wool:15");
 		}
 	}
 	

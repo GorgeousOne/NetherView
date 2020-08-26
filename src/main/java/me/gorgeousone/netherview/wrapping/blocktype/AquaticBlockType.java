@@ -147,4 +147,9 @@ public class AquaticBlockType extends BlockType {
 		AquaticBlockType blockType = (AquaticBlockType) o;
 		return blockData.equals(blockType.blockData);
 	}
+	
+	@Override
+	public String toString() {
+		return "AquaBlock{" + blockData.getAsString() + '}';
+	}
 }

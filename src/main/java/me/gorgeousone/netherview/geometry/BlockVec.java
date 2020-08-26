@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview.geometry;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -17,8 +18,7 @@ public class BlockVec {
 	private int y;
 	private int z;
 	
-	public BlockVec() {
-	}
+	public BlockVec() {}
 	
 	public BlockVec(Block block) {
 		this(block.getX(), block.getY(), block.getZ());
@@ -34,6 +34,16 @@ public class BlockVec {
 	
 	public BlockVec(BlockPosition blockPosition) {
 		this(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
+	}
+	
+	public BlockVec(ChunkCoordIntPair chunkLocation) {
+		this(chunkLocation.getChunkX() << 4, 0, chunkLocation.getChunkZ() << 4);
+	}
+	
+	public BlockVec(short posInChunk) {
+		x = posInChunk >>> 8 & 0xF;
+		y = posInChunk & 0xF;
+		z = posInChunk >>> 4 & 0xF;
 	}
 	
 	public BlockVec(int x, int y, int z) {
@@ -84,10 +94,11 @@ public class BlockVec {
 		return this;
 	}
 	
-	public void multiply(int multiplier) {
+	public BlockVec multiply(int multiplier) {
 		x *= multiplier;
 		y *= multiplier;
 		z *= multiplier;
+		return this;
 	}
 	
 	public static BlockVec getMinimum(BlockVec v1, BlockVec v2) {
@@ -114,6 +125,10 @@ public class BlockVec {
 	
 	public Block toBlock(World world) {
 		return world.getBlockAt(x, y, z);
+	}
+	
+	public BlockPosition toBlockPos() {
+		return new BlockPosition(x, y, z);
 	}
 	
 	@Override
@@ -143,6 +158,17 @@ public class BlockVec {
 	@Override
 	public String toString() {
 		return "x=" + x + ",y=" + y + ",z=" + z;
+	}
+	
+	/**
+	 * Converts the vector into a short that represents it's position relative to the chunk it's in.
+	 * Used by the MultiBlockChangePacket introduced in 1.16.2
+	 */
+	public short toChunkShort() {
+		
+		return (short) ((x & 0xF) << 8 |
+		                (z & 0xF) << 4 |
+		                (y & 0xF));
 	}
 	
 	public static BlockVec fromString(String serialized) {

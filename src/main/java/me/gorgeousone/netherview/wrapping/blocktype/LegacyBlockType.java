@@ -133,6 +133,11 @@ public class LegacyBlockType extends BlockType {
 		return Objects.hash(materialData);
 	}
 	
+	@Override
+	public String toString() {
+		return "LegacyBlock{" + materialData.toString()+ '}';
+	}
+	
 	private final static List<String> OCCLUDING_TYPES = Arrays.asList(
 			"STONE",
 			"GRASS",
