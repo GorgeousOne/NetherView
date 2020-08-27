@@ -90,7 +90,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		BlockType.configureVersion(VersionUtils.IS_LEGACY_SERVER);
 		PortalLocator.configureVersion(portalMaterial);
 		
-		portalHandler = new PortalHandler(this);
+		portalHandler = new PortalHandler(this, portalMaterial);
 		packetHandler = new PacketHandler();
 		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
 		

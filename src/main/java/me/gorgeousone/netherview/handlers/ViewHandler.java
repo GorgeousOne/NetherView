@@ -128,8 +128,12 @@ public class ViewHandler {
 	 * Removes the player's view session and removes all sent fake blocks.
 	 */
 	public void hidePortalProjection(Player player) {
-		packetHandler.removeFakeBlocks(player, getPortalProjectionBlocks(player));
-		unregisterPortalProjection(player);
+		
+		if (isViewingAPortal(player)) {
+		
+			packetHandler.removeFakeBlocks(player, getPortalProjectionBlocks(player));
+			unregisterPortalProjection(player);
+		}
 	}
 	
 	/**
@@ -160,37 +164,54 @@ public class ViewHandler {
 	 */
 	public void displayClosestPortalTo(Player player, Location playerEyeLoc) {
 		
-		Portal portal = portalHandler.getClosestPortal(playerEyeLoc, true);
+		Portal closestPortal = portalHandler.getClosestPortal(playerEyeLoc, true);
 		
-		if (portal == null) {
+		if (portalDoesNotExist(closestPortal)) {
 			hidePortalProjection(player);
-			unregisterPortalProjection(player);
 			return;
 		}
 		
-		Vector portalDistance = portal.getLocation().subtract(playerEyeLoc).toVector();
+		Vector portalDistance = closestPortal.getLocation().subtract(playerEyeLoc).toVector();
 		
 		if (portalDistance.lengthSquared() > main.getPortalDisplayRangeSquared()) {
 			hidePortalProjection(player);
-			unregisterPortalProjection(player);
 			return;
 		}
 		
-		AxisAlignedRect portalRect = portal.getPortalRect();
+		Portal lastViewedPortal = getViewedPortal(player);
+		
+		if (lastViewedPortal != null && !lastViewedPortal.equals(closestPortal)) {
+			hidePortalProjection(player);
+		}
+		
+		AxisAlignedRect portalRect = closestPortal.getPortalRect();
 		
 		//display the portal totally normal if the player is not standing next to or in the portal
 		if (getDistanceToPortal(playerEyeLoc, portalRect) > 0.5) {
-			displayPortalTo(player, playerEyeLoc, portal, true, main.hidePortalBlocksEnabled());
+			displayPortalTo(player, playerEyeLoc, closestPortal, true, main.hidePortalBlocksEnabled());
 			
-			//keep portal blocks hidden (if requested) if the player is standing next to the portal to avoid light flickering when moving around the portal
+			//keep portal blocks hidden (if ever hidden before) if the player is standing next to the portal to avoid light flickering when moving around the portal
 		} else if (!portalRect.contains(playerEyeLoc.toVector())) {
-			displayPortalTo(player, playerEyeLoc, portal, false, main.hidePortalBlocksEnabled());
+			displayPortalTo(player, playerEyeLoc, closestPortal, false, main.hidePortalBlocksEnabled());
 			
-			//if the player is standing inside the portal projection should be dropped
+			//if the player is standing inside the portal projecting should be dropped
 		} else {
 			hidePortalProjection(player);
-			unregisterPortalProjection(player);
 		}
+	}
+	
+	private boolean portalDoesNotExist(Portal portal) {
+		
+		if (portal == null) {
+			return true;
+		}
+		
+		if (!portalHandler.quickCheckExists(portal)) {
+			portalHandler.removePortal(portal);
+			return true;
+		}
+		
+		return false;
 	}
 	
 	private double getDistanceToPortal(Location playerEyeLoc, AxisAlignedRect portalRect) {

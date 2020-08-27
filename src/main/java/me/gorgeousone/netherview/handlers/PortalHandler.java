@@ -16,6 +16,7 @@ import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -41,13 +42,16 @@ import java.util.UUID;
 public class PortalHandler {
 	
 	private final NetherViewPlugin main;
+	private final Material portalMaterial;
+	
 	private final Map<UUID, Set<Portal>> worldsWithPortals;
 	private final Map<Portal, Long> recentlyViewedPortals;
 	private BukkitRunnable expirationTimer;
 	
-	public PortalHandler(NetherViewPlugin main) {
+	public PortalHandler(NetherViewPlugin main, Material portalMaterial) {
 		
 		this.main = main;
+		this.portalMaterial = portalMaterial;
 		
 		worldsWithPortals = new HashMap<>();
 		recentlyViewedPortals = new HashMap<>();
@@ -149,6 +153,14 @@ public class PortalHandler {
 		}
 		
 		return nearestPortal;
+	}
+	
+	/**
+	 * Returns true if a random portal block of the portal still exists. It's meant to be a small test for assuring
+	 * that a portal simply still exists for portal viewing.
+	 */
+	public boolean quickCheckExists(Portal portal) {
+		return portal.getPortalBlocks().iterator().next().getType() == portalMaterial;
 	}
 	
 	/**
