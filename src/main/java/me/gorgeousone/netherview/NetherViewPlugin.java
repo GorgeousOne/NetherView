@@ -11,10 +11,11 @@ import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
 import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
-import me.gorgeousone.netherview.handlers.PacketHandler;
+import me.gorgeousone.netherview.handlers.BlockPacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import me.gorgeousone.netherview.listeners.BlockListener;
+import me.gorgeousone.netherview.listeners.BlockChangeListener;
+import me.gorgeousone.netherview.listeners.EntityMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
@@ -56,7 +57,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private Material portalMaterial;
 	
 	private PortalHandler portalHandler;
-	private PacketHandler packetHandler;
+	private BlockPacketHandler blockPacketHandler;
 	private ViewHandler viewHandler;
 	
 	private Set<UUID> worldsWithPortalViewing;
@@ -91,8 +92,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		PortalLocator.configureVersion(portalMaterial);
 		
 		portalHandler = new PortalHandler(this, portalMaterial);
-		packetHandler = new PacketHandler();
-		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
+		blockPacketHandler = new BlockPacketHandler();
+		viewHandler = new ViewHandler(this, portalHandler, blockPacketHandler);
 		
 		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
@@ -247,8 +248,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler, viewHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
-		manager.registerEvents(new BlockListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
+		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, blockPacketHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
+		
+		new EntityMoveListener(this);
 	}
 	
 	private void loadConfigData() {

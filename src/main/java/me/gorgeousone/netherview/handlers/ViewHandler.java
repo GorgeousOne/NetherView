@@ -31,7 +31,7 @@ public class ViewHandler {
 	
 	private final NetherViewPlugin main;
 	private final PortalHandler portalHandler;
-	private final PacketHandler packetHandler;
+	private final BlockPacketHandler blockPacketHandler;
 	
 	private final Map<UUID, Boolean> portalViewEnabled;
 	private final Map<UUID, Portal> viewedPortals;
@@ -40,11 +40,11 @@ public class ViewHandler {
 	
 	public ViewHandler(NetherViewPlugin main,
 	                   PortalHandler portalHandler,
-	                   PacketHandler packetHandler) {
+	                   BlockPacketHandler blockPacketHandler) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
-		this.packetHandler = packetHandler;
+		this.blockPacketHandler = blockPacketHandler;
 		
 		portalViewEnabled = new HashMap<>();
 		viewedPortalSides = new HashMap<>();
@@ -131,7 +131,7 @@ public class ViewHandler {
 		
 		if (isViewingAPortal(player)) {
 		
-			packetHandler.removeFakeBlocks(player, getPortalProjectionBlocks(player));
+			blockPacketHandler.removeFakeBlocks(player, getPortalProjectionBlocks(player));
 			unregisterPortalProjection(player);
 		}
 	}
@@ -296,7 +296,7 @@ public class ViewHandler {
 				
 				Map<BlockVec, BlockType> newBlocksInFrustum = getBlocksInFrustum(playerFrustum, projectionUpdates);
 				getPortalProjectionBlocks(player).putAll(newBlocksInFrustum);
-				packetHandler.displayFakeBlocks(player, newBlocksInFrustum);
+				blockPacketHandler.displayFakeBlocks(player, newBlocksInFrustum);
 			}
 		}
 	}
@@ -367,8 +367,8 @@ public class ViewHandler {
 		newBlocksToDisplay.keySet().removeIf(viewSession::containsKey);
 		viewSession.putAll(newBlocksToDisplay);
 		
-		packetHandler.removeFakeBlocks(player, removedBlocks);
-		packetHandler.displayFakeBlocks(player, newBlocksToDisplay);
+		blockPacketHandler.removeFakeBlocks(player, removedBlocks);
+		blockPacketHandler.displayFakeBlocks(player, newBlocksToDisplay);
 	}
 	
 	/**
