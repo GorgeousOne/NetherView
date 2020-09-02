@@ -12,12 +12,11 @@ import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
 import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
-import me.gorgeousone.netherview.handlers.BlockPacketHandler;
-import me.gorgeousone.netherview.handlers.EntityPacketHandler;
+import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockChangeListener;
-import me.gorgeousone.netherview.listeners.EntityMoveListener;
+import me.gorgeousone.netherview.listeners.EntityVisibilityListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
@@ -58,8 +57,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	private Material portalMaterial;
 	
-	private BlockPacketHandler blockPacketHandler;
-	private EntityPacketHandler entityPacketHandler;
+	private PacketHandler packetHandler;
 	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
 	
@@ -94,10 +92,9 @@ public final class NetherViewPlugin extends JavaPlugin {
 		BlockType.configureVersion(VersionUtils.IS_LEGACY_SERVER);
 		PortalLocator.configureVersion(portalMaterial);
 		
-		blockPacketHandler = new BlockPacketHandler();
-		entityPacketHandler = new EntityPacketHandler();
+		packetHandler = new PacketHandler();
 		portalHandler = new PortalHandler(this, portalMaterial);
-		viewHandler = new ViewHandler(this, portalHandler, blockPacketHandler, entityPacketHandler);
+		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
 		
 		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
@@ -254,10 +251,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler, viewHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
-		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, blockPacketHandler, portalMaterial), this);
+		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 		
-		new EntityMoveListener(this, entityPacketHandler);
+		new EntityVisibilityListener(this, viewHandler, packetHandler);
 	}
 	
 	private void loadConfigData() {

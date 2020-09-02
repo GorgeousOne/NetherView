@@ -11,11 +11,18 @@ import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ExperienceOrb;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,15 +32,30 @@ import java.util.Set;
 /**
  * Handler class for creating and managing multi block change packets via ProtocolLib
  */
-public class BlockPacketHandler {
-	
+public class PacketHandler {
 	private final ProtocolManager protocolManager;
+	
 	private final Set<Integer> customPacketIds;
 	
-	public BlockPacketHandler() {
+	public PacketHandler() {
 		
 		protocolManager = ProtocolLibrary.getProtocolManager();
 		customPacketIds = new HashSet<>();
+	}
+	
+	private void sendCustomPacket(Player player, PacketContainer packet) {
+		
+		int packetId = System.identityHashCode(packet.getHandle());
+		
+		try {
+			customPacketIds.add(packetId);
+			protocolManager.sendServerPacket(player, packet);
+			
+		} catch (InvocationTargetException e) {
+			
+			customPacketIds.remove(packetId);
+			throw new RuntimeException("Failed to send packet " + packet, e);
+		}
 	}
 	
 	/**
@@ -43,13 +65,7 @@ public class BlockPacketHandler {
 	public boolean isCustomPacket(PacketContainer packet) {
 		
 		int packetId = System.identityHashCode(packet.getHandle());
-		
-		if (customPacketIds.contains(packetId)) {
-			customPacketIds.remove(packetId);
-			return true;
-		}
-		
-		return false;
+		return customPacketIds.contains(packetId);
 	}
 	
 	public void refreshFakeBlock(Player player, BlockPosition blockPos, BlockType projectedBlockType) {
@@ -59,7 +75,7 @@ public class BlockPacketHandler {
 		fakeBlockPacket.getBlockPositionModifier().write(0, blockPos);
 		fakeBlockPacket.getBlockData().write(0, projectedBlockType.getWrapped());
 		
-		sendCustomPacket(fakeBlockPacket, player);
+		sendCustomPacket(player, fakeBlockPacket);
 	}
 	
 	public void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
@@ -93,7 +109,7 @@ public class BlockPacketHandler {
 			
 			fakeBlocksPacket.getChunkCoordIntPairs().write(0, new ChunkCoordIntPair(chunkPos.getX(), chunkPos.getZ()));
 			fakeBlocksPacket.getMultiBlockChangeInfoArrays().write(0, createBlockInfoArray(chunkEntry.getValue(), player.getWorld()));
-			sendCustomPacket(fakeBlocksPacket, player);
+			sendCustomPacket(player, fakeBlocksPacket);
 		}
 	}
 	
@@ -109,7 +125,7 @@ public class BlockPacketHandler {
 			fakeBlocksPacket.getSectionPositions().write(0, chunkPos.toBlockPos());
 			fakeBlocksPacket.getShortArrays().write(0, createChunkLocsArray1_16_2(blockInChunk.keySet()));
 			fakeBlocksPacket.getBlockDataArrays().write(0, createBlockInfoArray1_16_2(blockInChunk.values()));
-			sendCustomPacket(fakeBlocksPacket, player);
+			sendCustomPacket(player, fakeBlocksPacket);
 		}
 	}
 	
@@ -204,18 +220,30 @@ public class BlockPacketHandler {
 		return chunkLocs;
 	}
 	
-	private void sendCustomPacket(PacketContainer packet, Player player) {
+	public void hideEntities(Player player, Set<Entity> entities) {
 		
-		int packetId = System.identityHashCode(packet.getHandle());
+		if (entities.isEmpty()) {
+			return;
+		}
 		
-		try {
-			customPacketIds.add(packetId);
-			protocolManager.sendServerPacket(player, packet);
-			
-		} catch (InvocationTargetException e) {
-			
-			customPacketIds.remove(packetId);
-			throw new RuntimeException("Failed to send packet " + packet, e);
+		int[] entityIds = new int[entities.size()];
+		int i = 0;
+		
+		for (Entity entity : entities) {
+			entityIds[i] = entity.getEntityId();
+			++i;
+		}
+		
+		PacketContainer destroyPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+		destroyPacket.getIntegerArrays().write(0, entityIds);
+		
+		sendCustomPacket(player, destroyPacket);
+	}
+	
+	public void showEntities(Player player, Set<Entity> visibleEntities) {
+		
+		for (Entity entity : visibleEntities) {
+			protocolManager.updateEntity(entity, new ArrayList<>(Arrays.asList(player)));
 		}
 	}
 }

@@ -17,7 +17,7 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.geometry.BlockVec;
-import me.gorgeousone.netherview.handlers.BlockPacketHandler;
+import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
@@ -58,17 +58,17 @@ public class BlockChangeListener implements Listener {
 	private final NetherViewPlugin main;
 	private final PortalHandler portalHandler;
 	private final ViewHandler viewHandler;
-	private final BlockPacketHandler blockPacketHandler;
+	private final PacketHandler packetHandler;
 	private final Material portalMaterial;
 	
 	public BlockChangeListener(NetherViewPlugin main,
 	                           PortalHandler portalHandler,
-	                           ViewHandler viewHandler, BlockPacketHandler blockPacketHandler, Material portalMaterial) {
+	                           ViewHandler viewHandler, PacketHandler packetHandler, Material portalMaterial) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;
-		this.blockPacketHandler = blockPacketHandler;
+		this.packetHandler = packetHandler;
 		this.portalMaterial = portalMaterial;
 		
 		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
@@ -90,7 +90,7 @@ public class BlockChangeListener implements Listener {
 				PacketContainer packet = event.getPacket();
 				Player player = event.getPlayer();
 				
-				if (blockPacketHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+				if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
 					return;
 				}
 				
@@ -111,7 +111,7 @@ public class BlockChangeListener implements Listener {
 				event.setCancelled(true);
 				
 				if (digType == EnumWrappers.PlayerDigType.STOP_DESTROY_BLOCK) {
-					blockPacketHandler.refreshFakeBlock(player, blockPos, projectedBlockType);
+					packetHandler.refreshFakeBlock(player, blockPos, projectedBlockType);
 				}
 			}
 		});
@@ -128,7 +128,7 @@ public class BlockChangeListener implements Listener {
 						PacketContainer packet = event.getPacket();
 						Player player = event.getPlayer();
 						
-						if (blockPacketHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+						if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
 							return;
 						}
 						
@@ -158,13 +158,13 @@ public class BlockChangeListener implements Listener {
 						Player player = event.getPlayer();
 						
 						//call the custom packet check first so the packet handler will definitely flush the packet from the list
-						if (blockPacketHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+						if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
 							return;
 						}
 						
 						Portal viewedPortal = viewHandler.getViewedPortal(player);
 						ProjectionCache viewedCache = viewHandler.getViewedPortalSide(player);
-						Map<BlockVec, BlockType> viewSession = viewHandler.getPortalProjectionBlocks(player);
+						Map<BlockVec, BlockType> viewSession = viewHandler.getProjectedBlocks(player);
 						
 						if (VersionUtils.serverVersionIsGreaterEqualTo("1.16.2")) {
 							rewriteProjectionBlockTypes1_16_2(packet, viewedPortal, viewedCache, viewSession);
@@ -246,7 +246,7 @@ public class BlockChangeListener implements Listener {
 		if (viewHandler.getViewedPortal(player).contains(blockPos) ||
 		    viewHandler.getViewedPortalSide(player).contains(blockPos)) {
 			
-			return viewHandler.getPortalProjectionBlocks(player).get(blockPos);
+			return viewHandler.getProjectedBlocks(player).get(blockPos);
 		}
 		
 		return null;
@@ -309,7 +309,7 @@ public class BlockChangeListener implements Listener {
 			return;
 		}
 		
-		Map<BlockVec, BlockType> viewSession = viewHandler.getPortalProjectionBlocks(player);
+		Map<BlockVec, BlockType> viewSession = viewHandler.getProjectedBlocks(player);
 		BlockVec blockPos = new BlockVec(event.getClickedBlock());
 		
 		if (viewSession.containsKey(blockPos)) {
@@ -342,7 +342,7 @@ public class BlockChangeListener implements Listener {
 			return;
 		}
 		
-		Map<BlockVec, BlockType> viewSession = viewHandler.getPortalProjectionBlocks(player);
+		Map<BlockVec, BlockType> viewSession = viewHandler.getProjectedBlocks(player);
 		BlockVec blockPos = new BlockVec(block);
 		
 		if (viewSession.containsKey(blockPos)) {

@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.wrapping.boundingbox;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.utils.NmsUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
@@ -23,17 +22,20 @@ public class BoundingBoxUtils {
 	
 	static {
 		
-		try {
-			ENTITY_GET_AABB = NmsUtils.getNMSClass("Entity").getDeclaredMethod("getBoundingBox");
+		if (VersionUtils.IS_LEGACY_SERVER) {
 			
-			Class<?> aabbClass = NmsUtils.getNMSClass("AxisAlignedBB");
-			AABB_MIN_X = aabbClass.getDeclaredField("a");
-			AABB_MIN_Y = aabbClass.getDeclaredField("b");
-			AABB_MAX_X = aabbClass.getDeclaredField("d");
-			AABB_MAX_Y = aabbClass.getDeclaredField("e");
-			
-		} catch (NoSuchMethodException | ClassNotFoundException | NoSuchFieldException e) {
-			e.printStackTrace();
+			try {
+				ENTITY_GET_AABB = NmsUtils.getNMSClass("Entity").getDeclaredMethod("getBoundingBox");
+				Class<?> aabbClass = NmsUtils.getNMSClass("AxisAlignedBB");
+				
+				AABB_MIN_X = aabbClass.getDeclaredField("a");
+				AABB_MIN_Y = aabbClass.getDeclaredField("b");
+				AABB_MAX_X = aabbClass.getDeclaredField("d");
+				AABB_MAX_Y = aabbClass.getDeclaredField("e");
+				
+			} catch (NoSuchMethodException | ClassNotFoundException | NoSuchFieldException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
