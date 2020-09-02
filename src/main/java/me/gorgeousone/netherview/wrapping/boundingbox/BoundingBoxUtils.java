@@ -1,8 +1,13 @@
-package me.gorgeousone.netherview.utils;
+package me.gorgeousone.netherview.wrapping.boundingbox;
 
-import me.gorgeousone.netherview.wrapping.EntityBoundingBox;
+import me.gorgeousone.netherview.blockcache.BlockCache;
+import me.gorgeousone.netherview.blockcache.ProjectionCache;
+import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
+import me.gorgeousone.netherview.utils.NmsUtils;
+import me.gorgeousone.netherview.utils.VersionUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -13,23 +18,19 @@ public class BoundingBoxUtils {
 	private static Method ENTITY_GET_AABB;
 	private static Field AABB_MIN_X;
 	private static Field AABB_MIN_Y;
-	private static Field AABB_MIN_Z;
 	private static Field AABB_MAX_X;
 	private static Field AABB_MAX_Y;
-	private static Field AABB_MAX_Z;
-
+	
 	static {
-
+		
 		try {
-			ENTITY_GET_AABB	= NmsUtils.getNMSClass("Entity").getDeclaredMethod("getBoundingBox");
+			ENTITY_GET_AABB = NmsUtils.getNMSClass("Entity").getDeclaredMethod("getBoundingBox");
 			
 			Class<?> aabbClass = NmsUtils.getNMSClass("AxisAlignedBB");
 			AABB_MIN_X = aabbClass.getDeclaredField("a");
 			AABB_MIN_Y = aabbClass.getDeclaredField("b");
-			AABB_MIN_Z = aabbClass.getDeclaredField("c");
 			AABB_MAX_X = aabbClass.getDeclaredField("d");
 			AABB_MAX_Y = aabbClass.getDeclaredField("e");
-			AABB_MAX_Z = aabbClass.getDeclaredField("g");
 			
 		} catch (NoSuchMethodException | ClassNotFoundException | NoSuchFieldException e) {
 			e.printStackTrace();
@@ -37,7 +38,7 @@ public class BoundingBoxUtils {
 	}
 	
 	public static EntityBoundingBox getWrappedBoxOf(Entity entity) {
-	
+		
 		if (VersionUtils.IS_LEGACY_SERVER) {
 			
 			try {
@@ -45,29 +46,27 @@ public class BoundingBoxUtils {
 				
 				return new EntityBoundingBox(
 						entity,
-						getBoxWidthX(entityAabb),
-						getBoxHeight(entityAabb),
-						getBoxWidthZ(entityAabb));
+						getBoxWidth(entityAabb),
+						getBoxHeight(entityAabb));
 				
 			} catch (IllegalAccessException | InvocationTargetException e) {
 				
 				e.printStackTrace();
 				return null;
 			}
-		
-		}else {
+			
+		} else {
 			
 			BoundingBox box = entity.getBoundingBox();
 			
 			return new EntityBoundingBox(
 					entity,
 					box.getWidthX(),
-					box.getHeight(),
-					box.getWidthZ());
+					box.getHeight());
 		}
 	}
 	
-	private static double getBoxWidthX(Object aabb) throws IllegalAccessException {
+	private static double getBoxWidth(Object aabb) throws IllegalAccessException {
 		return AABB_MAX_X.getDouble(aabb) - AABB_MIN_X.getDouble(aabb);
 	}
 	
@@ -75,7 +74,25 @@ public class BoundingBoxUtils {
 		return AABB_MAX_Y.getDouble(aabb) - AABB_MIN_Y.getDouble(aabb);
 	}
 	
-	private static double getBoxWidthZ(Object aabb) throws IllegalAccessException {
-		return AABB_MAX_Z.getDouble(aabb) - AABB_MIN_Z.getDouble(aabb);
+	public static boolean boxIntersectsBlockCache(EntityBoundingBox box, BlockCache cache) {
+		
+		for (Vector vertex : box.getVertices()) {
+			
+			if (cache.contains(vertex)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean boxIntersectsFrustum(EntityBoundingBox box, ViewFrustum viewFrustum) {
+		
+		for (Vector vertex : box.getVertices()) {
+			
+			if (viewFrustum.contains(vertex)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
+import me.gorgeousone.netherview.commmands.Destroy;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
@@ -12,6 +13,7 @@ import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
 import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
 import me.gorgeousone.netherview.handlers.BlockPacketHandler;
+import me.gorgeousone.netherview.handlers.EntityPacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockChangeListener;
@@ -56,8 +58,9 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	private Material portalMaterial;
 	
-	private PortalHandler portalHandler;
 	private BlockPacketHandler blockPacketHandler;
+	private EntityPacketHandler entityPacketHandler;
+	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
 	
 	private Set<UUID> worldsWithPortalViewing;
@@ -91,9 +94,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		BlockType.configureVersion(VersionUtils.IS_LEGACY_SERVER);
 		PortalLocator.configureVersion(portalMaterial);
 		
-		portalHandler = new PortalHandler(this, portalMaterial);
 		blockPacketHandler = new BlockPacketHandler();
-		viewHandler = new ViewHandler(this, portalHandler, blockPacketHandler);
+		entityPacketHandler = new EntityPacketHandler();
+		portalHandler = new PortalHandler(this, portalMaterial);
+		viewHandler = new ViewHandler(this, portalHandler, blockPacketHandler, entityPacketHandler);
 		
 		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
@@ -238,6 +242,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
 		
+		netherViewCommand.addChild(new Destroy(netherViewCommand));
+		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
 		cmdHandler.registerCommand(new TogglePortalViewCommand(viewHandler));
@@ -251,7 +257,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, blockPacketHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 		
-		new EntityMoveListener(this);
+		new EntityMoveListener(this, entityPacketHandler);
 	}
 	
 	private void loadConfigData() {

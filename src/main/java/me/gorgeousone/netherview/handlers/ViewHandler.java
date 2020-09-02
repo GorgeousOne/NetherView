@@ -9,16 +9,21 @@ import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.wrapping.boundingbox.BoundingBoxUtils;
 import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapping.boundingbox.EntityBoundingBox;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -31,25 +36,37 @@ public class ViewHandler {
 	
 	private final NetherViewPlugin main;
 	private final PortalHandler portalHandler;
+	
 	private final BlockPacketHandler blockPacketHandler;
+	private final EntityPacketHandler entityPacketHandler;
 	
 	private final Map<UUID, Boolean> portalViewEnabled;
 	private final Map<UUID, Portal> viewedPortals;
 	private final Map<UUID, ProjectionCache> viewedPortalSides;
 	private final Map<UUID, Map<BlockVec, BlockType>> playerPortalProjections;
 	
+	private final HashMap<UUID, Set<Entity>> nearbyEntities;
+	private final HashMap<UUID, Set<Entity>> hiddenEntities;
+	private final HashMap<Entity, EntityBoundingBox> entityBoundingBoxes;
+	
 	public ViewHandler(NetherViewPlugin main,
 	                   PortalHandler portalHandler,
-	                   BlockPacketHandler blockPacketHandler) {
+	                   BlockPacketHandler blockPacketHandler,
+	                   EntityPacketHandler entityPacketHandler) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;
 		this.blockPacketHandler = blockPacketHandler;
+		this.entityPacketHandler = entityPacketHandler;
 		
 		portalViewEnabled = new HashMap<>();
 		viewedPortalSides = new HashMap<>();
 		playerPortalProjections = new HashMap<>();
 		viewedPortals = new HashMap<>();
+		
+		nearbyEntities = new HashMap<>();
+		hiddenEntities = new HashMap<>();
+		entityBoundingBoxes = new HashMap<>();
 	}
 	
 	public void reset() {
@@ -134,6 +151,42 @@ public class ViewHandler {
 			blockPacketHandler.removeFakeBlocks(player, getPortalProjectionBlocks(player));
 			unregisterPortalProjection(player);
 		}
+	}
+	
+	public Set<Entity> getNearbyEntities(Player player) {
+		
+		UUID uuid = player.getUniqueId();
+		hiddenEntities.putIfAbsent(uuid, new HashSet<>());
+		return hiddenEntities.get(uuid);
+	}
+	
+	public void addNearbyEntity(Player player, Entity entity) {
+		
+		UUID uuid = player.getUniqueId();
+		nearbyEntities.putIfAbsent(uuid, new HashSet<>());
+		nearbyEntities.get(uuid).add(entity);
+	}
+	
+	public void removeNearbyEntity(Player player, Entity entity) {
+		
+		getNearbyEntities(player).remove(entity);
+		entityBoundingBoxes.remove(entity);
+	}
+	
+	public EntityBoundingBox getBoundingBox(Entity entity) {
+		
+		if (!entityBoundingBoxes.containsKey(entity)) {
+			entityBoundingBoxes.put(entity, BoundingBoxUtils.getWrappedBoxOf(entity));
+		}
+		
+		return entityBoundingBoxes.get(entity);
+	}
+	
+	public Set<Entity> getHiddenEntities(Player player) {
+		
+		UUID uuid = player.getUniqueId();
+		hiddenEntities.putIfAbsent(uuid, new HashSet<>());
+		return hiddenEntities.get(uuid);
 	}
 	
 	/**
@@ -245,10 +298,20 @@ public class ViewHandler {
 		portalHandler.updateExpirationTime(portal.getCounterPortal());
 		
 		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
-		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
 		
 		viewedPortals.put(player.getUniqueId(), portal);
 		viewedPortalSides.put(player.getUniqueId(), projection);
+		
+		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
+		
+		displayProjectionBlocks(player, portal, projection, playerFrustum, displayFrustum, hidePortalBlocks);
+		toggleEntityVisibilities(player, projection, playerFrustum, displayFrustum);
+	}
+	
+	/**
+	 * Puts all blocks to display to the player in one map
+	 */
+	private void displayProjectionBlocks(Player player, Portal portal, ProjectionCache projection, ViewFrustum playerFrustum, boolean displayFrustum, boolean hidePortalBlocks) {
 		
 		Map<BlockVec, BlockType> visibleBlocks = new HashMap<>();
 		
@@ -266,11 +329,34 @@ public class ViewHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
+	private void toggleEntityVisibilities(Player player, ProjectionCache projection, ViewFrustum playerFrustum, boolean displayFrustum) {
+		
+		Set<Entity> hiddenEntities = new HashSet<>();
+		
+		if (playerFrustum != null && displayFrustum) {
+			hideEntities(player, hiddenEntities);
+			return;
+		}
+		
+		for (Entity entity : getNearbyEntities(player)) {
+			
+			EntityBoundingBox box = getBoundingBox(entity);
+
+			if (BoundingBoxUtils.boxIntersectsBlockCache(box, projection) &&
+			    BoundingBoxUtils.boxIntersectsFrustum(box, playerFrustum)) {
+				hiddenEntities.add(entity);
+			}
+		}
+		
+		hideEntities(player, hiddenEntities);
+	}
+	
 	/**
 	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what the players see.
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
 		
+		Bukkit.broadcastMessage(ChatColor.GRAY + "Updating " +  portalHandler.getProjectionsLinkedTo(cache).size() + " projections");
 		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(cache)) {
 			
 			Map<BlockVec, BlockType> projectionUpdates = updateProjection(projection, updatedBlocks);
@@ -369,6 +455,30 @@ public class ViewHandler {
 		
 		blockPacketHandler.removeFakeBlocks(player, removedBlocks);
 		blockPacketHandler.displayFakeBlocks(player, newBlocksToDisplay);
+	}
+	
+	private void hideEntities(Player player, Set<Entity> newHiddenEntities) {
+	
+		Set<Entity> hiddenEntities = getHiddenEntities(player);
+		Set<Entity> visibleEntities = new HashSet<>();
+		
+		Iterator<Entity> entityIter = hiddenEntities.iterator();
+		
+		while (entityIter.hasNext()) {
+			
+			Entity entity = entityIter.next();
+			
+			if (!newHiddenEntities.contains(entity)) {
+				visibleEntities.add(entity);
+				entityIter.remove();
+			}
+		}
+		
+		newHiddenEntities.removeIf(hiddenEntities::contains);
+		hiddenEntities.addAll(newHiddenEntities);
+		
+		entityPacketHandler.showEntities(player, visibleEntities);
+		entityPacketHandler.hideEntities(player, hiddenEntities);
 	}
 	
 	/**

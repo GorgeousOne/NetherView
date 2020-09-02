@@ -8,22 +8,26 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import me.gorgeousone.netherview.NetherViewPlugin;
-import org.bukkit.Bukkit;
+import me.gorgeousone.netherview.handlers.EntityPacketHandler;
 import org.bukkit.ChatColor;
 
 public class EntityMoveListener {
 	
 	private final NetherViewPlugin main;
+	private final EntityPacketHandler entityPacketHandler;
 	
-	public EntityMoveListener(NetherViewPlugin main) {
+	public EntityMoveListener(NetherViewPlugin main, EntityPacketHandler packetHandler) {
 		
 		this.main = main;
+		this.entityPacketHandler = packetHandler;
 		
 		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
 		addEntityMoveInterception(protocolManager);
+		addEntityInterception(protocolManager);
+//		addEntitySpawnInterception(protocolManager);
+		addPaintingInterception(protocolManager);
+		addPaintingDeathInterception(protocolManager);
 	}
-	
-	long stamp = -1;
 	
 	private void addEntityMoveInterception(ProtocolManager protocolManager) {
 		
@@ -32,20 +36,71 @@ public class EntityMoveListener {
 			public void onPacketSending(PacketEvent event) {
 				
 				PacketContainer packet = event.getPacket();
+			}
+		});
+	}
+	
+	private void addEntitySpawnInterception(ProtocolManager protocolManager) {
+		
+		protocolManager.addPacketListener(new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
+			@Override
+			public void onPacketSending(PacketEvent event) {
 				
-				double dx = packet.getShorts().read(0) / 4096d;
-				double dy = packet.getShorts().read(1) / 4096d;
-				double dz = packet.getShorts().read(2) / 4096d;
+				PacketContainer packet = event.getPacket();
 				
-				double dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-				event.getPlayer().sendMessage("" + (int) (100 * dist) / 100d);
+				if (entityPacketHandler.isCustomPacket(packet)) {
+					return;
+				}
+				event.getPlayer().sendMessage("IT'S ALIVE!!! " + packet.getIntegers().read(0));
+			}
+		});
+	}
+	
+	private void addEntityInterception(ProtocolManager protocolManager) {
+		
+		protocolManager.addPacketListener(new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.SPAWN_ENTITY) {
+			@Override
+			public void onPacketSending(PacketEvent event) {
 				
-				if (stamp != -1) {
-					event.getPlayer().sendMessage(" dt " + (System.currentTimeMillis() - stamp));
-					event.getPlayer().sendMessage(ChatColor.GRAY + "-----------");
+				PacketContainer packet = event.getPacket();
+				
+				if (entityPacketHandler.isCustomPacket(packet)) {
+					return;
+				}
+				event.getPlayer().sendMessage("spawn dead " + packet.getIntegers().read(0));
+			}
+		});
+	}
+	
+	private void addPaintingInterception(ProtocolManager protocolManager) {
+		
+		protocolManager.addPacketListener(new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.SPAWN_ENTITY_PAINTING) {
+			@Override
+			public void onPacketSending(PacketEvent event) {
+				
+				PacketContainer packet = event.getPacket();
+				
+				if (entityPacketHandler.isCustomPacket(packet)) {
+					return;
 				}
 				
-				stamp = System.currentTimeMillis();
+				event.getPlayer().sendMessage("spawned french girl " + packet.getIntegers().read(0));
+			}
+		});
+	}
+	private void addPaintingDeathInterception(ProtocolManager protocolManager) {
+		
+		protocolManager.addPacketListener(new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.ENTITY_DESTROY) {
+			@Override
+			public void onPacketSending(PacketEvent event) {
+				
+				PacketContainer packet = event.getPacket();
+				
+				if (entityPacketHandler.isCustomPacket(packet)) {
+					return;
+				}
+				
+				event.getPlayer().sendMessage(ChatColor.GRAY + "removed whomever " + packet.getIntegerArrays().read(0)[0]);
 			}
 		});
 	}

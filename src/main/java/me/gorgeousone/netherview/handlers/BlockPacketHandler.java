@@ -28,12 +28,12 @@ import java.util.Set;
 public class BlockPacketHandler {
 	
 	private final ProtocolManager protocolManager;
-	private final Set<Integer> customPacketIDs;
+	private final Set<Integer> customPacketIds;
 	
 	public BlockPacketHandler() {
 		
 		protocolManager = ProtocolLibrary.getProtocolManager();
-		customPacketIDs = new HashSet<>();
+		customPacketIds = new HashSet<>();
 	}
 	
 	/**
@@ -42,10 +42,10 @@ public class BlockPacketHandler {
 	 */
 	public boolean isCustomPacket(PacketContainer packet) {
 		
-		int packetID = System.identityHashCode(packet.getHandle());
+		int packetId = System.identityHashCode(packet.getHandle());
 		
-		if (customPacketIDs.contains(packetID)) {
-			customPacketIDs.remove(packetID);
+		if (customPacketIds.contains(packetId)) {
+			customPacketIds.remove(packetId);
 			return true;
 		}
 		
@@ -164,7 +164,7 @@ public class BlockPacketHandler {
 			
 			Location blockLoc = entry.getKey().toLocation(world);
 			blockInfoArray[i] = new MultiBlockChangeInfo(blockLoc, entry.getValue().getWrapped());
-			i++;
+			++i;
 		}
 		
 		return blockInfoArray;
@@ -181,7 +181,7 @@ public class BlockPacketHandler {
 		
 		for (BlockType blockType: blocksTypesInChunk) {
 			blockInfoArray[i] = blockType.getWrapped();
-			i++;
+			++i;
 		}
 		
 		return blockInfoArray;
@@ -198,7 +198,7 @@ public class BlockPacketHandler {
 		
 		for (BlockVec loc : blockLocsInChunk) {
 			chunkLocs[i] = loc.toChunkShort();
-			i++;
+			++i;
 		}
 		
 		return chunkLocs;
@@ -206,15 +206,15 @@ public class BlockPacketHandler {
 	
 	private void sendCustomPacket(PacketContainer packet, Player player) {
 		
-		int packetID = System.identityHashCode(packet.getHandle());
+		int packetId = System.identityHashCode(packet.getHandle());
 		
 		try {
-			customPacketIDs.add(packetID);
+			customPacketIds.add(packetId);
 			protocolManager.sendServerPacket(player, packet);
 			
 		} catch (InvocationTargetException e) {
 			
-			customPacketIDs.remove(packetID);
+			customPacketIds.remove(packetId);
 			throw new RuntimeException("Failed to send packet " + packet, e);
 		}
 	}

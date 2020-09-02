@@ -104,10 +104,14 @@ public class BlockChangeListener implements Listener {
 				BlockPosition blockPos = packet.getBlockPositionModifier().read(0);
 				BlockType projectedBlockType = getProjectedBlockType(player, new BlockVec(blockPos));
 				
-				if (projectedBlockType != null) {
-					event.getPlayer().sendMessage("YO YO test!");
-					event.setCancelled(true);
-//					blockPacketHandler.refreshFakeBlock(player, blockPos, projectedBlockType);
+				if (projectedBlockType == null) {
+					return;
+				}
+				
+				event.setCancelled(true);
+				
+				if (digType == EnumWrappers.PlayerDigType.STOP_DESTROY_BLOCK) {
+					blockPacketHandler.refreshFakeBlock(player, blockPos, projectedBlockType);
 				}
 			}
 		});
