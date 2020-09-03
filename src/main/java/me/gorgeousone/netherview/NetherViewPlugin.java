@@ -121,7 +121,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		String libVersion = protocolLib.getDescription().getVersion().split("-")[0];
 		
-		if (VersionUtils.serverVersionIsGreaterEqualTo("1.16.2") && VersionUtils.versionIsLowerThan(libVersion, "4.6.0")) {
+		if (VersionUtils.serverIsAtOrAbove("1.16.2") && VersionUtils.versionIsLowerThan(libVersion, "4.6.0")) {
 			
 			getLogger().severe("============================================================");
 			getLogger().severe("Error: For Minecraft 1.16.2 and up Nether View requires at");
@@ -254,7 +254,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 		
-		new EntityVisibilityListener(this, viewHandler, packetHandler);
+		new EntityVisibilityListener(this, viewHandler);
 	}
 	
 	private void loadConfigData() {
@@ -281,7 +281,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	private void addVersionSpecificDefaults() {
 		
-		if (VersionUtils.serverVersionIsGreaterEqualTo("1.13.0")) {
+		if (VersionUtils.serverIsAtOrAbove("1.13.0")) {
 			
 			getConfig().addDefault("overworld-border", "white_terracotta");
 			getConfig().addDefault("nether-border", "red_concrete");

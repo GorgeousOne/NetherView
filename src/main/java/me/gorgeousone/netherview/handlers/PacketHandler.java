@@ -6,26 +6,34 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
+import com.comphenix.protocol.wrappers.Pair;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.utils.ReflectionUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.ExperienceOrb;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,27 +41,74 @@ import java.util.Set;
  * Handler class for creating and managing multi block change packets via ProtocolLib
  */
 public class PacketHandler {
-	private final ProtocolManager protocolManager;
 	
-	private final Set<Integer> customPacketIds;
+	private static Field FIELD_PLAYER_CONNECTION;
+	private static Method PLAYER_CONNECTION_SEND_PACKET;
+	
+	private static Constructor<?> PACKET_SPAWN_EX_ORB;
+	private static Constructor<?> PACKET_SPAWN_PAINTING;
+	private static Constructor<?> PACKET_SPAWN_ENTITY_LIVING;
+	private static Constructor<?> PACKET_SPAWN_ENTITY;
+	
+	static {
+		
+		try {
+			Class<?> PACKET_CLASS = ReflectionUtils.getNmsClass("Packet");
+			FIELD_PLAYER_CONNECTION = ReflectionUtils.getNmsClass("EntityPlayer").getField("playerConnection");
+			PLAYER_CONNECTION_SEND_PACKET = ReflectionUtils.getNmsClass("PlayerConnection").getMethod("sendPacket", PACKET_CLASS);
+			
+			PACKET_SPAWN_EX_ORB = ReflectionUtils.getNmsClass("PacketPlayOutSpawnEntityExperienceOrb").getConstructor(ReflectionUtils.getNmsClass("EntityExperienceOrb"));
+			PACKET_SPAWN_PAINTING = ReflectionUtils.getNmsClass("PacketPlayOutSpawnEntityPainting").getConstructor(ReflectionUtils.getNmsClass("EntityPainting"));
+			PACKET_SPAWN_ENTITY_LIVING = ReflectionUtils.getNmsClass("PacketPlayOutSpawnEntityLiving").getConstructor(ReflectionUtils.getNmsClass("EntityLiving"));
+			PACKET_SPAWN_ENTITY = ReflectionUtils.getNmsClass("PacketPlayOutSpawnEntity").getConstructor(ReflectionUtils.getNmsClass("Entity"), int.class);
+			
+		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private final ProtocolManager protocolManager;
+	private final Set<Integer> markedPacketIds;
 	
 	public PacketHandler() {
 		
 		protocolManager = ProtocolLibrary.getProtocolManager();
-		customPacketIds = new HashSet<>();
+		markedPacketIds = new HashSet<>();
 	}
 	
-	private void sendCustomPacket(Player player, PacketContainer packet) {
+	public static void sendPacket(Player player, Object packet) {
+		
+		try {
+			Object nmsPlayer = ReflectionUtils.getHandle(player);
+			Object connection = FIELD_PLAYER_CONNECTION.get(nmsPlayer);
+			PLAYER_CONNECTION_SEND_PACKET.invoke(connection, packet);
+			
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendPacket(Player player, PacketContainer packet) {
+		
+		try {
+			protocolManager.sendServerPacket(player, packet);
+		} catch (InvocationTargetException e) {
+			throw new RuntimeException("Failed to send packet " + packet, e);
+		}
+		
+	}
+	
+	private void sendMarkedPacket(Player player, PacketContainer packet) {
 		
 		int packetId = System.identityHashCode(packet.getHandle());
 		
 		try {
-			customPacketIds.add(packetId);
+			markedPacketIds.add(packetId);
 			protocolManager.sendServerPacket(player, packet);
 			
 		} catch (InvocationTargetException e) {
 			
-			customPacketIds.remove(packetId);
+			markedPacketIds.remove(packetId);
 			throw new RuntimeException("Failed to send packet " + packet, e);
 		}
 	}
@@ -65,7 +120,7 @@ public class PacketHandler {
 	public boolean isCustomPacket(PacketContainer packet) {
 		
 		int packetId = System.identityHashCode(packet.getHandle());
-		return customPacketIds.contains(packetId);
+		return markedPacketIds.contains(packetId);
 	}
 	
 	public void refreshFakeBlock(Player player, BlockPosition blockPos, BlockType projectedBlockType) {
@@ -75,7 +130,7 @@ public class PacketHandler {
 		fakeBlockPacket.getBlockPositionModifier().write(0, blockPos);
 		fakeBlockPacket.getBlockData().write(0, projectedBlockType.getWrapped());
 		
-		sendCustomPacket(player, fakeBlockPacket);
+		sendMarkedPacket(player, fakeBlockPacket);
 	}
 	
 	public void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
@@ -91,25 +146,25 @@ public class PacketHandler {
 	
 	public void displayFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
 		
-		if (VersionUtils.serverVersionIsGreaterEqualTo("1.16.2")) {
+		if (VersionUtils.serverIsAtOrAbove("1.16.2")) {
 			sendMultipleFakeBlocks1_16_2(player, blockCopies);
-		}else {
+		} else {
 			sendMultipleFakeBlocks(player, blockCopies);
 		}
 	}
 	
 	private void sendMultipleFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
-
+		
 		Map<BlockVec, Map<BlockVec, BlockType>> sortedBlockTypes = getSortedByChunks(blockCopies);
-
+		
 		for (Map.Entry<BlockVec, Map<BlockVec, BlockType>> chunkEntry : sortedBlockTypes.entrySet()) {
-
+			
 			BlockVec chunkPos = chunkEntry.getKey();
 			PacketContainer fakeBlocksPacket = protocolManager.createPacket(PacketType.Play.Server.MULTI_BLOCK_CHANGE);
 			
 			fakeBlocksPacket.getChunkCoordIntPairs().write(0, new ChunkCoordIntPair(chunkPos.getX(), chunkPos.getZ()));
 			fakeBlocksPacket.getMultiBlockChangeInfoArrays().write(0, createBlockInfoArray(chunkEntry.getValue(), player.getWorld()));
-			sendCustomPacket(player, fakeBlocksPacket);
+			sendMarkedPacket(player, fakeBlocksPacket);
 		}
 	}
 	
@@ -125,7 +180,7 @@ public class PacketHandler {
 			fakeBlocksPacket.getSectionPositions().write(0, chunkPos.toBlockPos());
 			fakeBlocksPacket.getShortArrays().write(0, createChunkLocsArray1_16_2(blockInChunk.keySet()));
 			fakeBlocksPacket.getBlockDataArrays().write(0, createBlockInfoArray1_16_2(blockInChunk.values()));
-			sendCustomPacket(player, fakeBlocksPacket);
+			sendMarkedPacket(player, fakeBlocksPacket);
 		}
 	}
 	
@@ -195,7 +250,7 @@ public class PacketHandler {
 		WrappedBlockData[] blockInfoArray = new WrappedBlockData[blocksTypesInChunk.size()];
 		int i = 0;
 		
-		for (BlockType blockType: blocksTypesInChunk) {
+		for (BlockType blockType : blocksTypesInChunk) {
 			blockInfoArray[i] = blockType.getWrapped();
 			++i;
 		}
@@ -237,13 +292,154 @@ public class PacketHandler {
 		PacketContainer destroyPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
 		destroyPacket.getIntegerArrays().write(0, entityIds);
 		
-		sendCustomPacket(player, destroyPacket);
+		try {
+			protocolManager.sendServerPacket(player, destroyPacket);
+		} catch (InvocationTargetException e) {
+			throw new RuntimeException("Failed to send packet " + destroyPacket, e);
+		}
 	}
 	
 	public void showEntities(Player player, Set<Entity> visibleEntities) {
 		
-		for (Entity entity : visibleEntities) {
-			protocolManager.updateEntity(entity, new ArrayList<>(Arrays.asList(player)));
+		try {
+			
+			for (Entity entity : visibleEntities) {
+				
+				if (entity == null || !entity.isValid()) {
+					continue;
+				}
+				
+				Object spawnPacket;
+				boolean entityHasEquipment = false;
+				
+				if (entity.getType() == EntityType.PAINTING) {
+					spawnPacket = PACKET_SPAWN_PAINTING.newInstance(ReflectionUtils.getHandle(entity));
+					
+				} else if (entity.getType() == EntityType.EXPERIENCE_ORB) {
+					spawnPacket = PACKET_SPAWN_EX_ORB.newInstance(ReflectionUtils.getHandle(entity));
+					
+				} else if (entity instanceof LivingEntity) {
+					spawnPacket = PACKET_SPAWN_ENTITY_LIVING.newInstance(ReflectionUtils.getHandle(entity));
+					entityHasEquipment = true;
+					
+				} else {
+					spawnPacket = PACKET_SPAWN_ENTITY.newInstance(ReflectionUtils.getHandle(entity), entity.getEntityId());
+				}
+				
+				sendPacket(player, spawnPacket);
+				
+				if (entityHasEquipment) {
+					showEquipment(player, (LivingEntity) entity);
+				}
+			}
+		} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+			e.printStackTrace();
 		}
+	}
+	
+	private void showEquipment(Player player, LivingEntity entity) {
+		
+		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = getEquipmentList(entity);
+		
+		if (VersionUtils.serverIsAtOrAbove("1.16.0")) {
+			sendEquipment_1_16(player, entity, equipmentMap);
+			
+		} else if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
+			sendEquipment(player, entity, equipmentMap);
+			
+		} else {
+			sendEquipment_1_8(player, entity, equipmentMap);
+		}
+	}
+	
+	private void sendEquipment_1_8(Player player,
+	                               Entity entity,
+	                               Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+		
+		List<EnumWrappers.ItemSlot> itemSlots = new ArrayList<>(Arrays.asList(EnumWrappers.ItemSlot.values()));
+		
+		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
+			
+			ItemStack item = equipmentMap.get(slot);
+			
+			if (item.getType() == Material.AIR) {
+				continue;
+			}
+			
+			PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
+			equipmentPacket.getIntegers()
+					.write(0, entity.getEntityId())
+					.write(1, itemSlots.indexOf(slot) - 1);
+			
+			equipmentPacket.getItemModifier().write(0, item);
+			sendPacket(player, equipmentPacket);
+		}
+	}
+	
+	private void sendEquipment(Player player,
+	                           Entity entity,
+	                           Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+		
+		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
+			
+			ItemStack item = equipmentMap.get(slot);
+			
+			if (item.getType() == Material.AIR) {
+				continue;
+			}
+			
+			PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
+			equipmentPacket.getIntegers().write(0, entity.getEntityId());
+			equipmentPacket.getItemSlots().write(0, slot);
+			equipmentPacket.getItemModifier().write(0, item);
+			sendPacket(player, equipmentPacket);
+		}
+	}
+	
+	private void sendEquipment_1_16(Player player,
+	                                Entity entity,
+	                                Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+		
+		List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipmentList = new ArrayList<>();
+		
+		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
+			
+			ItemStack item = equipmentMap.get(slot);
+			
+			if (item.getType() == Material.AIR) {
+				continue;
+			}
+			
+			equipmentList.add(new Pair<>(slot, item));
+		}
+		
+		if (equipmentList.isEmpty()) {
+			return;
+		}
+		
+		PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
+		equipmentPacket.getIntegers().write(0, entity.getEntityId());
+		equipmentPacket.getSlotStackPairLists().write(0, equipmentList);
+		sendPacket(player, equipmentPacket);
+	}
+	
+	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity) {
+		
+		EntityEquipment equipment = entity.getEquipment();
+		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = new HashMap<>();
+		
+		if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
+			equipmentMap.put(EnumWrappers.ItemSlot.MAINHAND, equipment.getItemInMainHand());
+			equipmentMap.put(EnumWrappers.ItemSlot.OFFHAND, equipment.getItemInOffHand());
+			
+		} else {
+			equipmentMap.put(EnumWrappers.ItemSlot.OFFHAND, equipment.getItemInHand());
+		}
+		
+		equipmentMap.put(EnumWrappers.ItemSlot.FEET, equipment.getBoots());
+		equipmentMap.put(EnumWrappers.ItemSlot.LEGS, equipment.getLeggings());
+		equipmentMap.put(EnumWrappers.ItemSlot.CHEST, equipment.getChestplate());
+		equipmentMap.put(EnumWrappers.ItemSlot.HEAD, equipment.getHelmet());
+		return equipmentMap;
 	}
 }

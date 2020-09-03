@@ -1,18 +1,14 @@
 package me.gorgeousone.netherview.commmands;
 
-import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
 import me.gorgeousone.netherview.cmdframework.command.BasicCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 
 public class Destroy extends BasicCommand {
@@ -20,7 +16,7 @@ public class Destroy extends BasicCommand {
 	private final ProtocolManager protocolManager;
 	
 	public Destroy(ParentCommand parent) {
-	
+		
 		super("destroy", null, true, parent);
 		protocolManager = ProtocolLibrary.getProtocolManager();
 	}
@@ -37,7 +33,7 @@ public class Destroy extends BasicCommand {
 				continue;
 			}
 		}
-		
+
 //			PacketContainer destroy = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
 //
 //			System.out.println("uid " + entity.getUniqueId());

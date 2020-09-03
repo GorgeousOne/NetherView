@@ -166,7 +166,7 @@ public class BlockChangeListener implements Listener {
 						ProjectionCache viewedCache = viewHandler.getViewedPortalSide(player);
 						Map<BlockVec, BlockType> viewSession = viewHandler.getProjectedBlocks(player);
 						
-						if (VersionUtils.serverVersionIsGreaterEqualTo("1.16.2")) {
+						if (VersionUtils.serverIsAtOrAbove("1.16.2")) {
 							rewriteProjectionBlockTypes1_16_2(packet, viewedPortal, viewedCache, viewSession);
 						} else {
 							rewriteProjectionBlockTypes(packet, viewedPortal, viewedCache, viewSession);
