@@ -28,7 +28,7 @@ public class EntityVisibilityListener {
 		this.main = main;
 		this.viewHandler = viewHandler;
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
-
+		
 		addEntityMoveInterception();
 	}
 	
@@ -69,8 +69,8 @@ public class EntityVisibilityListener {
 						viewHandler.showEntity(player, entity);
 					}
 					
-				}else {
-				
+				} else {
+					
 					if (BoundingBoxUtils.boxIntersectsBlockCache(box, cache) &&
 					    BoundingBoxUtils.boxIntersectsFrustum(box, viewFrustum)) {
 						viewHandler.hideEntity(player, entity);

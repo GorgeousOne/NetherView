@@ -281,7 +281,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
 		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
 		entityHidingEnabled = getConfig().getBoolean("hide-entities.enabled");
-		playerHidingEnabled =  getConfig().getBoolean("hide-entities.hide-players");
+		playerHidingEnabled = getConfig().getBoolean("hide-entities.hide-players");
 		
 		setWarningMessagesEnabled(getConfig().getBoolean("warning-messages"));
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));

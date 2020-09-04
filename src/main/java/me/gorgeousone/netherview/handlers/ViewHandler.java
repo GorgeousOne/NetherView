@@ -357,7 +357,7 @@ public class ViewHandler {
 		
 		for (Entity entity : portal.getWorld().getNearbyEntities(portal.getLocation(), entityDist, entityDist, entityDist)) {
 			
-			if (entity.equals(player)  || (!hidePlayers && entity.getType() == EntityType.PLAYER)) {
+			if (entity.equals(player) || (!hidePlayers && entity.getType() == EntityType.PLAYER)) {
 				continue;
 			}
 			
@@ -478,9 +478,7 @@ public class ViewHandler {
 	/**
 	 * Hides any entity isn't already hidden for the player. Any previously hidden entity that is not contained by
 	 * passed set anymore will be shown again.
-	 * @param player
-	 * @param newHiddenEntities
-	 */
+	 *  /
 	private void hideEntities(Player player, Set<Entity> newHiddenEntities) {
 		
 		Set<Entity> lastHiddenEntities = getHiddenEntities(player);
