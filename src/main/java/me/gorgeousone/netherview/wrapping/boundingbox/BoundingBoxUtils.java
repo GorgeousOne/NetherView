@@ -2,7 +2,7 @@ package me.gorgeousone.netherview.wrapping.boundingbox;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
-import me.gorgeousone.netherview.utils.ReflectionUtils;
+import me.gorgeousone.netherview.utils.NmsUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
@@ -25,8 +25,8 @@ public class BoundingBoxUtils {
 		if (VersionUtils.IS_LEGACY_SERVER) {
 			
 			try {
-				ENTITY_GET_AABB = ReflectionUtils.getNmsClass("Entity").getDeclaredMethod("getBoundingBox");
-				Class<?> aabbClass = ReflectionUtils.getNmsClass("AxisAlignedBB");
+				ENTITY_GET_AABB = NmsUtils.getNmsClass("Entity").getDeclaredMethod("getBoundingBox");
+				Class<?> aabbClass = NmsUtils.getNmsClass("AxisAlignedBB");
 				
 				AABB_MIN_X = aabbClass.getDeclaredField("a");
 				AABB_MIN_Y = aabbClass.getDeclaredField("b");
@@ -44,7 +44,7 @@ public class BoundingBoxUtils {
 		if (VersionUtils.IS_LEGACY_SERVER) {
 			
 			try {
-				Object entityAabb = ENTITY_GET_AABB.invoke(ReflectionUtils.getHandle(entity));
+				Object entityAabb = ENTITY_GET_AABB.invoke(NmsUtils.getHandle(entity));
 				
 				return new EntityBoundingBox(
 						entity,

@@ -1,9 +1,20 @@
 package me.gorgeousone.netherview.listeners;
 
+import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
 import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.blockcache.BlockCache;
+import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.handlers.ViewHandler;
+import me.gorgeousone.netherview.wrapping.boundingbox.BoundingBoxUtils;
+import me.gorgeousone.netherview.wrapping.boundingbox.EntityBoundingBox;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 
 public class EntityVisibilityListener {
 	
@@ -17,26 +28,46 @@ public class EntityVisibilityListener {
 		this.viewHandler = viewHandler;
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
 
+		addEntityMoveInterception();
 	}
-
-//	private void addEntityMoveInterception() {
-//
-//		protocolManager.addPacketListener(new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.ENTITY_EQUIPMENT) {
-//			@Override
-//			public void onPacketSending(PacketEvent event) {
-//
-//				PacketContainer packet = event.getPacket();
-//
-//				if (VersionUtils.serverIsAtOrAbove("1.16.0")) {
-//					packet.getSlotStackPairLists().read(0).forEach(pair -> event.getPlayer().sendMessage(pair.getFirst() + " with " + pair.getSecond()));
-//
-//				} else if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
-//
-//				}else {
-//					event.getPlayer().sendMessage("slot " + packet.getIntegers().read(1) + " - " + packet.getItemModifier().read(0));
-//				}
-//			}
-//		});
-//	}
-//
+	
+	private void addEntityMoveInterception() {
+		
+		protocolManager.addPacketListener(new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.REL_ENTITY_MOVE) {
+			@Override
+			public void onPacketSending(PacketEvent event) {
+				
+				PacketContainer packet = event.getPacket();
+				Player player = event.getPlayer();
+				
+				if (!viewHandler.isViewingAPortal(player)) {
+					return;
+				}
+				
+				ViewFrustum viewFrustum = viewHandler.getLastViewFrustum(player);
+				
+				if (viewFrustum == null) {
+					return;
+				}
+				
+				BlockCache cache = viewHandler.getViewedPortalSide(player);
+				Entity entity = protocolManager.getEntityFromID(player.getWorld(), packet.getIntegers().read(0));
+				EntityBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
+				
+				if (viewHandler.getHiddenEntities(player).contains(entity)) {
+					
+					if (!BoundingBoxUtils.boxIntersectsFrustum(box, viewFrustum)) {
+						viewHandler.showEntity(player, entity);
+					}
+					
+				}else {
+				
+					if (BoundingBoxUtils.boxIntersectsBlockCache(box, cache) &&
+					    BoundingBoxUtils.boxIntersectsFrustum(box, viewFrustum)) {
+						viewHandler.hideEntity(player, entity);
+					}
+				}
+			}
+		});
+	}
 }

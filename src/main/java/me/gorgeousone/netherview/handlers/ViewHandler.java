@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
+import com.comphenix.protocol.PacketType;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -21,6 +22,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,6 +45,7 @@ public class ViewHandler {
 	private final Map<UUID, Portal> viewedPortals;
 	private final Map<UUID, ProjectionCache> viewedPortalSides;
 	private final Map<UUID, Map<BlockVec, BlockType>> projectedBlocks;
+	private final Map<UUID, ViewFrustum> lastViewFrustums;
 	
 	private final HashMap<UUID, Set<Entity>> hiddenEntities;
 	
@@ -57,7 +61,7 @@ public class ViewHandler {
 		viewedPortalSides = new HashMap<>();
 		projectedBlocks = new HashMap<>();
 		viewedPortals = new HashMap<>();
-		
+		lastViewFrustums = new HashMap<>();
 		hiddenEntities = new HashMap<>();
 	}
 	
@@ -144,12 +148,36 @@ public class ViewHandler {
 		unregisterPortalProjection(player);
 	}
 	
+	/**
+	 * Returns the latest view frustum that was used to calculate the projection blocks for the player's projection.
+	 * Returns null if player is not nearby any portal or no blocks were displayed (due to steep view angles)
+	 */
+	public ViewFrustum getLastViewFrustum(Player player) {
+		return lastViewFrustums.get(player.getUniqueId());
+	}
+	
+	/**
+	 * Returns a set of entities that intersect with the player's portal projection and have been hidden from the them with packets.
+	 */
 	public Set<Entity> getHiddenEntities(Player player) {
 		
 		UUID playerId = player.getUniqueId();
 		hiddenEntities.putIfAbsent(playerId, new HashSet<>());
 		return hiddenEntities.get(playerId);
 	}
+	
+	public void showEntity(Player player, Entity entity) {
+		
+		getHiddenEntities(player).remove(entity);
+		packetHandler.showEntities(player, Collections.singleton(entity));
+	}
+	
+	public void hideEntity(Player player, Entity entity) {
+		
+		getHiddenEntities(player).add(entity);
+		packetHandler.hideEntities(player, Collections.singleton(entity));
+	}
+	
 	
 	/**
 	 * Removes any portal view related data of the player
@@ -174,6 +202,7 @@ public class ViewHandler {
 		hiddenEntities.remove(playerId);
 		viewedPortals.remove(playerId);
 		viewedPortalSides.remove(playerId);
+		lastViewFrustums.remove(playerId);
 	}
 	
 	/**
@@ -267,6 +296,7 @@ public class ViewHandler {
 		viewedPortalSides.put(player.getUniqueId(), projection);
 		
 		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
+		lastViewFrustums.put(player.getUniqueId(), playerFrustum);
 		
 		displayProjectionBlocks(player, portal, projection, playerFrustum, displayFrustum, hidePortalBlocks);
 		toggleEntityVisibilities(player, portal, projection, playerFrustum, displayFrustum);
@@ -345,18 +375,13 @@ public class ViewHandler {
 					continue;
 				}
 				
-				Player player = Bukkit.getPlayer(playerID);
-				Portal portal = viewedPortals.get(playerID);
-				
-				ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(
-						player.getEyeLocation().toVector(),
-						portal.getPortalRect(),
-						projection.getCacheLength());
+				ViewFrustum playerFrustum = lastViewFrustums.get(playerID);
 				
 				if (playerFrustum == null) {
 					continue;
 				}
 				
+				Player player = Bukkit.getPlayer(playerID);
 				Map<BlockVec, BlockType> newBlocksInFrustum = getBlocksInFrustum(playerFrustum, projectionUpdates);
 				getProjectedBlocks(player).putAll(newBlocksInFrustum);
 				packetHandler.displayFakeBlocks(player, newBlocksInFrustum);

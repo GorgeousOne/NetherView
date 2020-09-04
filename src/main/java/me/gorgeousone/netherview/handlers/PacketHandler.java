@@ -6,34 +6,23 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
-import com.comphenix.protocol.wrappers.Pair;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.geometry.BlockVec;
-import me.gorgeousone.netherview.utils.ReflectionUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,31 +30,33 @@ import java.util.Set;
  * Handler class for creating and managing multi block change packets via ProtocolLib
  */
 public class PacketHandler {
-	
-	private static Field FIELD_PLAYER_CONNECTION;
-	private static Method PLAYER_CONNECTION_SEND_PACKET;
-	
-	private static Constructor<?> PACKET_SPAWN_EX_ORB;
-	private static Constructor<?> PACKET_SPAWN_PAINTING;
-	private static Constructor<?> PACKET_SPAWN_ENTITY_LIVING;
-	private static Constructor<?> PACKET_SPAWN_ENTITY;
-	
-	static {
-		
-		try {
-			Class<?> PACKET_CLASS = ReflectionUtils.getNmsClass("Packet");
-			FIELD_PLAYER_CONNECTION = ReflectionUtils.getNmsClass("EntityPlayer").getField("playerConnection");
-			PLAYER_CONNECTION_SEND_PACKET = ReflectionUtils.getNmsClass("PlayerConnection").getMethod("sendPacket", PACKET_CLASS);
-			
-			PACKET_SPAWN_EX_ORB = ReflectionUtils.getNmsClass("PacketPlayOutSpawnEntityExperienceOrb").getConstructor(ReflectionUtils.getNmsClass("EntityExperienceOrb"));
-			PACKET_SPAWN_PAINTING = ReflectionUtils.getNmsClass("PacketPlayOutSpawnEntityPainting").getConstructor(ReflectionUtils.getNmsClass("EntityPainting"));
-			PACKET_SPAWN_ENTITY_LIVING = ReflectionUtils.getNmsClass("PacketPlayOutSpawnEntityLiving").getConstructor(ReflectionUtils.getNmsClass("EntityLiving"));
-			PACKET_SPAWN_ENTITY = ReflectionUtils.getNmsClass("PacketPlayOutSpawnEntity").getConstructor(ReflectionUtils.getNmsClass("Entity"), int.class);
-			
-		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException e) {
-			e.printStackTrace();
-		}
-	}
+
+//	private static Field FIELD_PLAYER_CONNECTION;
+//	private static Method PLAYER_CONNECTION_SEND_PACKET;
+
+//	private static Constructor<?> PACKET_SPAWN_EX_ORB;
+//	private static Constructor<?> PACKET_SPAWN_PAINTING;
+//	private static Constructor<?> PACKET_SPAWN_PLAYER;
+//	private static Constructor<?> PACKET_SPAWN_ENTITY_LIVING;
+//	private static Constructor<?> PACKET_SPAWN_ENTITY;
+
+//	static {
+//
+//		try {
+//			Class<?> PACKET_CLASS = NmsUtils.getNmsClass("Packet");
+//			FIELD_PLAYER_CONNECTION = NmsUtils.getNmsClass("EntityPlayer").getField("playerConnection");
+//			PLAYER_CONNECTION_SEND_PACKET = NmsUtils.getNmsClass("PlayerConnection").getMethod("sendPacket", PACKET_CLASS);
+//
+//			PACKET_SPAWN_EX_ORB = NmsUtils.getNmsClass("PacketPlayOutSpawnEntityExperienceOrb").getConstructor(NmsUtils.getNmsClass("EntityExperienceOrb"));
+//			PACKET_SPAWN_PAINTING = NmsUtils.getNmsClass("PacketPlayOutSpawnEntityPainting").getConstructor(NmsUtils.getNmsClass("EntityPainting"));
+//			PACKET_SPAWN_PLAYER = NmsUtils.getNmsClass("PacketPlayOutNamedEntitySpawn").getConstructor(NmsUtils.getNmsClass("EntityHuman"));
+//			PACKET_SPAWN_ENTITY_LIVING = NmsUtils.getNmsClass("PacketPlayOutSpawnEntityLiving").getConstructor(NmsUtils.getNmsClass("EntityLiving"));
+//			PACKET_SPAWN_ENTITY = NmsUtils.getNmsClass("PacketPlayOutSpawnEntity").getConstructor(NmsUtils.getNmsClass("Entity"), int.class);
+//
+//		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
 	private final ProtocolManager protocolManager;
 	private final Set<Integer> markedPacketIds;
@@ -75,28 +66,28 @@ public class PacketHandler {
 		protocolManager = ProtocolLibrary.getProtocolManager();
 		markedPacketIds = new HashSet<>();
 	}
-	
-	public static void sendPacket(Player player, Object packet) {
-		
-		try {
-			Object nmsPlayer = ReflectionUtils.getHandle(player);
-			Object connection = FIELD_PLAYER_CONNECTION.get(nmsPlayer);
-			PLAYER_CONNECTION_SEND_PACKET.invoke(connection, packet);
-			
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void sendPacket(Player player, PacketContainer packet) {
-		
-		try {
-			protocolManager.sendServerPacket(player, packet);
-		} catch (InvocationTargetException e) {
-			throw new RuntimeException("Failed to send packet " + packet, e);
-		}
-		
-	}
+
+//	public static void sendPacket(Player player, Object packet) {
+//
+//		try {
+//			Object nmsPlayer = NmsUtils.getHandle(player);
+//			Object connection = FIELD_PLAYER_CONNECTION.get(nmsPlayer);
+//			PLAYER_CONNECTION_SEND_PACKET.invoke(connection, packet);
+//
+//		} catch (IllegalAccessException | InvocationTargetException e) {
+//			e.printStackTrace();
+//		}
+//	}
+
+//	public void sendPacket(Player player, PacketContainer packet) {
+//
+//		try {
+//			protocolManager.sendServerPacket(player, packet);
+//		} catch (InvocationTargetException e) {
+//			throw new RuntimeException("Failed to send packet " + packet, e);
+//		}
+//
+//	}
 	
 	private void sendMarkedPacket(Player player, PacketContainer packet) {
 		
@@ -281,6 +272,8 @@ public class PacketHandler {
 			return;
 		}
 		
+		player.sendMessage(ChatColor.GRAY + "hide");
+		
 		int[] entityIds = new int[entities.size()];
 		int i = 0;
 		
@@ -299,147 +292,172 @@ public class PacketHandler {
 		}
 	}
 	
-	public void showEntities(Player player, Set<Entity> visibleEntities) {
+	public void showEntities(Player player, Set<Entity> entities) {
 		
-		try {
-			
-			for (Entity entity : visibleEntities) {
-				
-				if (entity == null || !entity.isValid()) {
-					continue;
-				}
-				
-				Object spawnPacket;
-				boolean entityHasEquipment = false;
-				
-				if (entity.getType() == EntityType.PAINTING) {
-					spawnPacket = PACKET_SPAWN_PAINTING.newInstance(ReflectionUtils.getHandle(entity));
-					
-				} else if (entity.getType() == EntityType.EXPERIENCE_ORB) {
-					spawnPacket = PACKET_SPAWN_EX_ORB.newInstance(ReflectionUtils.getHandle(entity));
-					
-				} else if (entity instanceof LivingEntity) {
-					spawnPacket = PACKET_SPAWN_ENTITY_LIVING.newInstance(ReflectionUtils.getHandle(entity));
-					entityHasEquipment = true;
-					
-				} else {
-					spawnPacket = PACKET_SPAWN_ENTITY.newInstance(ReflectionUtils.getHandle(entity), entity.getEntityId());
-				}
-				
-				sendPacket(player, spawnPacket);
-				
-				if (entityHasEquipment) {
-					showEquipment(player, (LivingEntity) entity);
-				}
-			}
-		} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void showEquipment(Player player, LivingEntity entity) {
-		
-		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = getEquipmentList(entity);
-		
-		if (VersionUtils.serverIsAtOrAbove("1.16.0")) {
-			sendEquipment_1_16(player, entity, equipmentMap);
-			
-		} else if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
-			sendEquipment(player, entity, equipmentMap);
-			
-		} else {
-			sendEquipment_1_8(player, entity, equipmentMap);
-		}
-	}
-	
-	private void sendEquipment_1_8(Player player,
-	                               Entity entity,
-	                               Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
-		
-		List<EnumWrappers.ItemSlot> itemSlots = new ArrayList<>(Arrays.asList(EnumWrappers.ItemSlot.values()));
-		
-		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
-			
-			ItemStack item = equipmentMap.get(slot);
-			
-			if (item.getType() == Material.AIR) {
-				continue;
-			}
-			
-			PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
-			equipmentPacket.getIntegers()
-					.write(0, entity.getEntityId())
-					.write(1, itemSlots.indexOf(slot) - 1);
-			
-			equipmentPacket.getItemModifier().write(0, item);
-			sendPacket(player, equipmentPacket);
-		}
-	}
-	
-	private void sendEquipment(Player player,
-	                           Entity entity,
-	                           Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
-		
-		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
-			
-			ItemStack item = equipmentMap.get(slot);
-			
-			if (item.getType() == Material.AIR) {
-				continue;
-			}
-			
-			PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
-			equipmentPacket.getIntegers().write(0, entity.getEntityId());
-			equipmentPacket.getItemSlots().write(0, slot);
-			equipmentPacket.getItemModifier().write(0, item);
-			sendPacket(player, equipmentPacket);
-		}
-	}
-	
-	private void sendEquipment_1_16(Player player,
-	                                Entity entity,
-	                                Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
-		
-		List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipmentList = new ArrayList<>();
-		
-		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
-			
-			ItemStack item = equipmentMap.get(slot);
-			
-			if (item.getType() == Material.AIR) {
-				continue;
-			}
-			
-			equipmentList.add(new Pair<>(slot, item));
-		}
-		
-		if (equipmentList.isEmpty()) {
+		if (entities.isEmpty()) {
 			return;
 		}
 		
-		PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
-		equipmentPacket.getIntegers().write(0, entity.getEntityId());
-		equipmentPacket.getSlotStackPairLists().write(0, equipmentList);
-		sendPacket(player, equipmentPacket);
-	}
-	
-	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity) {
+		player.sendMessage(ChatColor.GRAY + "show");
 		
-		EntityEquipment equipment = entity.getEquipment();
-		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = new HashMap<>();
-		
-		if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
-			equipmentMap.put(EnumWrappers.ItemSlot.MAINHAND, equipment.getItemInMainHand());
-			equipmentMap.put(EnumWrappers.ItemSlot.OFFHAND, equipment.getItemInOffHand());
-			
-		} else {
-			equipmentMap.put(EnumWrappers.ItemSlot.OFFHAND, equipment.getItemInHand());
+		for (Entity entity : entities) {
+			protocolManager.updateEntity(entity, Collections.singletonList(player));
 		}
-		
-		equipmentMap.put(EnumWrappers.ItemSlot.FEET, equipment.getBoots());
-		equipmentMap.put(EnumWrappers.ItemSlot.LEGS, equipment.getLeggings());
-		equipmentMap.put(EnumWrappers.ItemSlot.CHEST, equipment.getChestplate());
-		equipmentMap.put(EnumWrappers.ItemSlot.HEAD, equipment.getHelmet());
-		return equipmentMap;
 	}
+
+//	public void showEntities(Player player, Set<Entity> visibleEntities) {
+//
+//		if (visibleEntities.isEmpty()) {
+//			return;
+//		}
+//
+//		player.sendMessage(ChatColor.GRAY + "show");
+//
+//		try {
+//
+//			for (Entity entity : visibleEntities) {
+//
+//				if (entity == null || !entity.isValid()) {
+//					continue;
+//				}
+//
+//				Object spawnPacket;
+//				boolean entityHasEquipment = false;
+//
+//				if (entity.getType() == EntityType.PAINTING) {
+//					spawnPacket = PACKET_SPAWN_PAINTING.newInstance(NmsUtils.getHandle(entity));
+//
+//				} else if (entity.getType() == EntityType.EXPERIENCE_ORB) {
+//					spawnPacket = PACKET_SPAWN_EX_ORB.newInstance(NmsUtils.getHandle(entity));
+//
+//				} else if (entity instanceof LivingEntity) {
+//
+//					if (entity.getType() == EntityType.PLAYER) {
+//						spawnPacket = PACKET_SPAWN_PLAYER.newInstance(NmsUtils.getHandle(entity));
+//					}else {
+//						spawnPacket = PACKET_SPAWN_ENTITY_LIVING.newInstance(NmsUtils.getHandle(entity));
+//					}
+//
+//					entityHasEquipment = true;
+//
+//				} else {
+//					spawnPacket = PACKET_SPAWN_ENTITY.newInstance(NmsUtils.getHandle(entity), entity.getEntityId());
+//				}
+//
+//				sendPacket(player, spawnPacket);
+//
+//				if (entityHasEquipment) {
+//					showEquipment(player, (LivingEntity) entity);
+//				}
+//			}
+//		} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	private void showEquipment(Player player, LivingEntity entity) {
+//
+//		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = getEquipmentList(entity);
+//
+//		if (VersionUtils.serverIsAtOrAbove("1.16.0")) {
+//			sendEquipment_1_16(player, entity, equipmentMap);
+//
+//		} else if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
+//			sendEquipment(player, entity, equipmentMap);
+//
+//		} else {
+//			sendEquipment_1_8(player, entity, equipmentMap);
+//		}
+//	}
+//
+//	private void sendEquipment_1_8(Player player,
+//	                               Entity entity,
+//	                               Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+//
+//		List<EnumWrappers.ItemSlot> itemSlots = new ArrayList<>(Arrays.asList(EnumWrappers.ItemSlot.values()));
+//
+//		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
+//
+//			ItemStack item = equipmentMap.get(slot);
+//
+//			if (item.getType() == Material.AIR) {
+//				continue;
+//			}
+//
+//			PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
+//			equipmentPacket.getIntegers()
+//					.write(0, entity.getEntityId())
+//					.write(1, itemSlots.indexOf(slot) - 1);
+//
+//			equipmentPacket.getItemModifier().write(0, item);
+//			sendPacket(player, equipmentPacket);
+//		}
+//	}
+//
+//	private void sendEquipment(Player player,
+//	                           Entity entity,
+//	                           Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+//
+//		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
+//
+//			ItemStack item = equipmentMap.get(slot);
+//
+//			if (item.getType() == Material.AIR) {
+//				continue;
+//			}
+//
+//			PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
+//			equipmentPacket.getIntegers().write(0, entity.getEntityId());
+//			equipmentPacket.getItemSlots().write(0, slot);
+//			equipmentPacket.getItemModifier().write(0, item);
+//			sendPacket(player, equipmentPacket);
+//		}
+//	}
+//
+//	private void sendEquipment_1_16(Player player,
+//	                                Entity entity,
+//	                                Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+//
+//		List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipmentList = new ArrayList<>();
+//
+//		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
+//
+//			ItemStack item = equipmentMap.get(slot);
+//
+//			if (item.getType() == Material.AIR) {
+//				continue;
+//			}
+//
+//			equipmentList.add(new Pair<>(slot, item));
+//		}
+//
+//		if (equipmentList.isEmpty()) {
+//			return;
+//		}
+//
+//		PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
+//		equipmentPacket.getIntegers().write(0, entity.getEntityId());
+//		equipmentPacket.getSlotStackPairLists().write(0, equipmentList);
+//		sendPacket(player, equipmentPacket);
+//	}
+//
+//	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity) {
+//
+//		EntityEquipment equipment = entity.getEquipment();
+//		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = new HashMap<>();
+//
+//		if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
+//			equipmentMap.put(EnumWrappers.ItemSlot.MAINHAND, equipment.getItemInMainHand());
+//			equipmentMap.put(EnumWrappers.ItemSlot.OFFHAND, equipment.getItemInOffHand());
+//
+//		} else {
+//			equipmentMap.put(EnumWrappers.ItemSlot.OFFHAND, equipment.getItemInHand());
+//		}
+//
+//		equipmentMap.put(EnumWrappers.ItemSlot.FEET, equipment.getBoots());
+//		equipmentMap.put(EnumWrappers.ItemSlot.LEGS, equipment.getLeggings());
+//		equipmentMap.put(EnumWrappers.ItemSlot.CHEST, equipment.getChestplate());
+//		equipmentMap.put(EnumWrappers.ItemSlot.HEAD, equipment.getHelmet());
+//		return equipmentMap;
+//	}
 }
