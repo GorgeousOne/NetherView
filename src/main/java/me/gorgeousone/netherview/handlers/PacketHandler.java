@@ -77,7 +77,11 @@ public class PacketHandler {
 //		}
 //	}
 	
-	private void sendMarkedPacket(Player player, PacketContainer packet) {
+	/**
+	 * Sends the packet and adds it's system ID to a set of custom packets sent from this class.
+	 * Packet listener of this project can check (only once) if the packets they receive are custom packets which should not be altered.
+	 */
+	private void sendCustomPacket(Player player, PacketContainer packet) {
 		
 		int packetId = System.identityHashCode(packet.getHandle());
 		
@@ -93,8 +97,8 @@ public class PacketHandler {
 	}
 	
 	/**
-	 * Returns true if the packets system ID matches any packet's ID sent by nether view for viewing a portal.
-	 * The method will delete matching packets from the custom packet list, so this method only works once!
+	 * Returns true if the packets system ID matches any custom packet sent by this project for viewing a portal.
+	 * The method will delete matching packets from the custom packet set, so this method only works once!
 	 */
 	public boolean isCustomPacket(PacketContainer packet) {
 		
@@ -109,7 +113,7 @@ public class PacketHandler {
 		fakeBlockPacket.getBlockPositionModifier().write(0, blockPos);
 		fakeBlockPacket.getBlockData().write(0, projectedBlockType.getWrapped());
 		
-		sendMarkedPacket(player, fakeBlockPacket);
+		sendCustomPacket(player, fakeBlockPacket);
 	}
 	
 	public void removeFakeBlocks(Player player, Map<BlockVec, BlockType> blockCopies) {
@@ -143,7 +147,7 @@ public class PacketHandler {
 			
 			fakeBlocksPacket.getChunkCoordIntPairs().write(0, new ChunkCoordIntPair(chunkPos.getX(), chunkPos.getZ()));
 			fakeBlocksPacket.getMultiBlockChangeInfoArrays().write(0, createBlockInfoArray(chunkEntry.getValue(), player.getWorld()));
-			sendMarkedPacket(player, fakeBlocksPacket);
+			sendCustomPacket(player, fakeBlocksPacket);
 		}
 	}
 	
@@ -159,7 +163,7 @@ public class PacketHandler {
 			fakeBlocksPacket.getSectionPositions().write(0, chunkPos.toBlockPos());
 			fakeBlocksPacket.getShortArrays().write(0, createChunkLocsArray1_16_2(blockInChunk.keySet()));
 			fakeBlocksPacket.getBlockDataArrays().write(0, createBlockInfoArray1_16_2(blockInChunk.values()));
-			sendMarkedPacket(player, fakeBlocksPacket);
+			sendCustomPacket(player, fakeBlocksPacket);
 		}
 	}
 	

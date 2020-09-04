@@ -12,7 +12,7 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import me.gorgeousone.netherview.wrapping.boundingbox.BoundingBoxUtils;
-import me.gorgeousone.netherview.wrapping.boundingbox.EntityBoundingBox;
+import me.gorgeousone.netherview.wrapping.boundingbox.WrappedBoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Handler class for running and updating the portal animations for players.
+ * Handler class for running and updating the portal projections for players.
  */
 public class ViewHandler {
 	
@@ -211,7 +211,7 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Locates the nearest portal to a player and displays a portal animation to them (if in view range) with fake blocks .
+	 * Locates the nearest portal to a player and displays a portal projection to them (if in view range) with fake block packets.
 	 */
 	public void displayClosestPortalTo(Player player, Location playerEyeLoc) {
 		
@@ -336,6 +336,10 @@ public class ViewHandler {
 		displayBlocks(player, visibleBlocks);
 	}
 	
+	/**
+	 * Hides or re-shows any entity to the player from around the portal the player is looking at
+	 * depending on if they are inside or outside of the player's view frustum.
+	 */
 	private void toggleEntityVisibilities(Player player,
 	                                      Portal portal,
 	                                      ProjectionCache projection,
@@ -357,7 +361,7 @@ public class ViewHandler {
 				continue;
 			}
 			
-			EntityBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
+			WrappedBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
 			
 			if (BoundingBoxUtils.boxIntersectsBlockCache(box, projection) &&
 			    BoundingBoxUtils.boxIntersectsFrustum(box, playerFrustum)) {
@@ -369,7 +373,7 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what the players see.
+	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what players see.
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
 		
@@ -422,6 +426,9 @@ public class ViewHandler {
 		return projectionUpdates;
 	}
 	
+	/**
+	 * Returns a map of all the blocks in a block cache that are visible with the player's view frustum through the portal frame.
+	 */
 	private Map<BlockVec, BlockType> getBlocksInFrustum(ViewFrustum playerFrustum,
 	                                                    Map<BlockVec, BlockType> projectionUpdates) {
 		
@@ -468,6 +475,12 @@ public class ViewHandler {
 		packetHandler.displayFakeBlocks(player, newBlocksToDisplay);
 	}
 	
+	/**
+	 * Hides any entity isn't already hidden for the player. Any previously hidden entity that is not contained by
+	 * passed set anymore will be shown again.
+	 * @param player
+	 * @param newHiddenEntities
+	 */
 	private void hideEntities(Player player, Set<Entity> newHiddenEntities) {
 		
 		Set<Entity> lastHiddenEntities = getHiddenEntities(player);
@@ -499,7 +512,7 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Removes all to a portal related animations.
+	 * Stops all portal projections that are from this portal or from portals connected to it.
 	 */
 	public void removePortal(Portal portal) {
 		

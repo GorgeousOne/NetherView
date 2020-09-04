@@ -12,7 +12,7 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.wrapping.boundingbox.BoundingBoxUtils;
-import me.gorgeousone.netherview.wrapping.boundingbox.EntityBoundingBox;
+import me.gorgeousone.netherview.wrapping.boundingbox.WrappedBoundingBox;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -32,6 +32,10 @@ public class EntityVisibilityListener {
 		addEntityMoveInterception();
 	}
 	
+	/**
+	 * Toggles the visibility of entities if they are moving into or out of a player's viewing frustum
+	 * of the portal they are receiving a projection from.
+	 */
 	private void addEntityMoveInterception() {
 		
 		protocolManager.addPacketListener(new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.REL_ENTITY_MOVE) {
@@ -42,13 +46,11 @@ public class EntityVisibilityListener {
 				Player player = event.getPlayer();
 				Entity entity = protocolManager.getEntityFromID(player.getWorld(), packet.getIntegers().read(0));
 				
-				if (!main.isEntityHidingEnabled()) {
-					return;
-				}else if (!main.isPlayerHidingEnabled() && entity.getType() == EntityType.PLAYER) {
+				if (entity == null || !main.isEntityHidingEnabled() || !viewHandler.isViewingAPortal(player)) {
 					return;
 				}
 				
-				if (!viewHandler.isViewingAPortal(player)) {
+				if (!main.isPlayerHidingEnabled() && entity.getType() == EntityType.PLAYER) {
 					return;
 				}
 				
@@ -59,7 +61,7 @@ public class EntityVisibilityListener {
 				}
 				
 				BlockCache cache = viewHandler.getViewedPortalSide(player);
-				EntityBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
+				WrappedBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
 				
 				if (viewHandler.getHiddenEntities(player).contains(entity)) {
 					

@@ -12,6 +12,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+/**
+ * A utility class that provides methods for creating wrapped bounding boxes of entities and doing some intersection checks
+ * of bounding boxes with other geometrical shapes of this project.
+ */
 public class BoundingBoxUtils {
 	
 	private static Method ENTITY_GET_AABB;
@@ -39,14 +43,14 @@ public class BoundingBoxUtils {
 		}
 	}
 	
-	public static EntityBoundingBox getWrappedBoxOf(Entity entity) {
+	public static WrappedBoundingBox getWrappedBoxOf(Entity entity) {
 		
 		if (VersionUtils.IS_LEGACY_SERVER) {
 			
 			try {
 				Object entityAabb = ENTITY_GET_AABB.invoke(NmsUtils.getHandle(entity));
 				
-				return new EntityBoundingBox(
+				return new WrappedBoundingBox(
 						entity,
 						getBoxWidth(entityAabb),
 						getBoxHeight(entityAabb));
@@ -61,7 +65,7 @@ public class BoundingBoxUtils {
 			
 			BoundingBox box = entity.getBoundingBox();
 			
-			return new EntityBoundingBox(
+			return new WrappedBoundingBox(
 					entity,
 					box.getWidthX(),
 					box.getHeight());
@@ -76,7 +80,10 @@ public class BoundingBoxUtils {
 		return AABB_MAX_Y.getDouble(aabb) - AABB_MIN_Y.getDouble(aabb);
 	}
 	
-	public static boolean boxIntersectsBlockCache(EntityBoundingBox box, BlockCache cache) {
+	/**
+	 * Returns true if any of the 8 vertices of the bounding box are inside of the block cache.
+	 */
+	public static boolean boxIntersectsBlockCache(WrappedBoundingBox box, BlockCache cache) {
 		
 		for (Vector vertex : box.getVertices()) {
 			
@@ -87,7 +94,10 @@ public class BoundingBoxUtils {
 		return false;
 	}
 	
-	public static boolean boxIntersectsFrustum(EntityBoundingBox box, ViewFrustum viewFrustum) {
+	/**
+	 * Returns true if any of the 8 vertices of the bounding box are inside of the view frustum.
+	 */
+	public static boolean boxIntersectsFrustum(WrappedBoundingBox box, ViewFrustum viewFrustum) {
 		
 		for (Vector vertex : box.getVertices()) {
 			

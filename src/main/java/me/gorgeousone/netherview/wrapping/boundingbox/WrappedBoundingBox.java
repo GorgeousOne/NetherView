@@ -7,17 +7,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class EntityBoundingBox {
-	
-	//	private final Entity entity;
-	private final Vector lastLocation;
+/**
+ * A wrapper for the extent of a bounding boxes of an entity throughout different Minecraft versions.
+ */
+public class WrappedBoundingBox {
 	
 	private final List<Vector> vertices;
 	
-	public EntityBoundingBox(Entity entity, double width, double height) {
-
-//		this.entity = entity;
-		this.lastLocation = entity.getLocation().toVector();
+	public WrappedBoundingBox(Entity entity, double width, double height) {
 		
 		Vector min = entity.getLocation().subtract(
 				width / 2,
@@ -41,25 +38,10 @@ public class EntityBoundingBox {
 		));
 	}
 	
+	/**
+	 * Returns the 8 vertices of the entity's bounding box
+	 */
 	public List<Vector> getVertices() {
-
-//		Vector currentLocation = entity.getLocation().toVector();
-//
-//		if (!currentLocation.equals(lastLocation)) {
-//			updateVertices(currentLocation);
-//		}
-		
 		return vertices;
 	}
-
-//	private void updateVertices(Vector currentLocation) {
-//
-//		Vector dist = currentLocation.clone().subtract(lastLocation);
-//
-//		for (Vector vertex : vertices) {
-//			vertex.add(dist);
-//		}
-//
-//		lastLocation = currentLocation;
-//	}
 }
