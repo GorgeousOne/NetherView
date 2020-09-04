@@ -14,6 +14,7 @@ import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.wrapping.boundingbox.BoundingBoxUtils;
 import me.gorgeousone.netherview.wrapping.boundingbox.EntityBoundingBox;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 public class EntityVisibilityListener {
@@ -39,6 +40,13 @@ public class EntityVisibilityListener {
 				
 				PacketContainer packet = event.getPacket();
 				Player player = event.getPlayer();
+				Entity entity = protocolManager.getEntityFromID(player.getWorld(), packet.getIntegers().read(0));
+				
+				if (!main.isEntityHidingEnabled()) {
+					return;
+				}else if (!main.isPlayerHidingEnabled() && entity.getType() == EntityType.PLAYER) {
+					return;
+				}
 				
 				if (!viewHandler.isViewingAPortal(player)) {
 					return;
@@ -51,7 +59,6 @@ public class EntityVisibilityListener {
 				}
 				
 				BlockCache cache = viewHandler.getViewedPortalSide(player);
-				Entity entity = protocolManager.getEntityFromID(player.getWorld(), packet.getIntegers().read(0));
 				EntityBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
 				
 				if (viewHandler.getHiddenEntities(player).contains(entity)) {

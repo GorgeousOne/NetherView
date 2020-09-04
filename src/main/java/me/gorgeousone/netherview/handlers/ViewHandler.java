@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview.handlers;
 
-import com.comphenix.protocol.PacketType;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -19,10 +18,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,9 +70,15 @@ public class ViewHandler {
 			hidePortalProjection(player);
 		}
 		
+		for (UUID playerId : hiddenEntities.keySet()) {
+			packetHandler.showEntities(Bukkit.getPlayer(playerId), hiddenEntities.get(playerId));
+		}
+		
 		viewedPortals.clear();
 		viewedPortalSides.clear();
 		projectedBlocks.clear();
+		lastViewFrustums.clear();
+		hiddenEntities.clear();
 	}
 	
 	/**
@@ -299,7 +304,10 @@ public class ViewHandler {
 		lastViewFrustums.put(player.getUniqueId(), playerFrustum);
 		
 		displayProjectionBlocks(player, portal, projection, playerFrustum, displayFrustum, hidePortalBlocks);
-		toggleEntityVisibilities(player, portal, projection, playerFrustum, displayFrustum);
+		
+		if (main.isEntityHidingEnabled()) {
+			toggleEntityVisibilities(player, portal, projection, playerFrustum, displayFrustum, main.isPlayerHidingEnabled());
+		}
 	}
 	
 	/**
@@ -332,7 +340,8 @@ public class ViewHandler {
 	                                      Portal portal,
 	                                      ProjectionCache projection,
 	                                      ViewFrustum playerFrustum,
-	                                      boolean displayFrustum) {
+	                                      boolean displayFrustum,
+	                                      boolean hidePlayers) {
 		
 		if (playerFrustum == null || !displayFrustum) {
 			hideEntities(player, null);
@@ -344,7 +353,7 @@ public class ViewHandler {
 		
 		for (Entity entity : portal.getWorld().getNearbyEntities(portal.getLocation(), entityDist, entityDist, entityDist)) {
 			
-			if (entity.equals(player)) {
+			if (entity.equals(player)  || (!hidePlayers && entity.getType() == EntityType.PLAYER)) {
 				continue;
 			}
 			

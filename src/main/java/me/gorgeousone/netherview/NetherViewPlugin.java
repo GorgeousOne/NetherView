@@ -71,6 +71,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private boolean instantTeleportEnabled;
 	private boolean warningMessagesEnabled;
 	private boolean debugMessagesEnabled;
+	private boolean entityHidingEnabled;
+	private boolean playerHidingEnabled;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
 	
@@ -193,6 +195,14 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return instantTeleportEnabled;
 	}
 	
+	public boolean isEntityHidingEnabled() {
+		return entityHidingEnabled;
+	}
+	
+	public boolean isPlayerHidingEnabled() {
+		return playerHidingEnabled;
+	}
+	
 	public boolean canCreatePortalViews(World world) {
 		return worldsWithPortalViewing.contains(world.getUID());
 	}
@@ -270,6 +280,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
 		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
+		entityHidingEnabled = getConfig().getBoolean("hide-entities.enabled");
+		playerHidingEnabled =  getConfig().getBoolean("hide-entities.hide-players");
 		
 		setWarningMessagesEnabled(getConfig().getBoolean("warning-messages"));
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));

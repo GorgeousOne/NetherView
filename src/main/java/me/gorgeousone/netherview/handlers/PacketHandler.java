@@ -11,14 +11,12 @@ import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -77,16 +75,6 @@ public class PacketHandler {
 //		} catch (IllegalAccessException | InvocationTargetException e) {
 //			e.printStackTrace();
 //		}
-//	}
-
-//	public void sendPacket(Player player, PacketContainer packet) {
-//
-//		try {
-//			protocolManager.sendServerPacket(player, packet);
-//		} catch (InvocationTargetException e) {
-//			throw new RuntimeException("Failed to send packet " + packet, e);
-//		}
-//
 //	}
 	
 	private void sendMarkedPacket(Player player, PacketContainer packet) {
@@ -272,8 +260,6 @@ public class PacketHandler {
 			return;
 		}
 		
-		player.sendMessage(ChatColor.GRAY + "hide");
-		
 		int[] entityIds = new int[entities.size()];
 		int i = 0;
 		
@@ -293,12 +279,6 @@ public class PacketHandler {
 	}
 	
 	public void showEntities(Player player, Set<Entity> entities) {
-		
-		if (entities.isEmpty()) {
-			return;
-		}
-		
-		player.sendMessage(ChatColor.GRAY + "show");
 		
 		for (Entity entity : entities) {
 			protocolManager.updateEntity(entity, Collections.singletonList(player));
