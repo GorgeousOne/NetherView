@@ -97,9 +97,7 @@ public class PlayerMoveListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		
-		Player player = event.getPlayer();
-		
-		if (viewHandler.isViewingAPortal(player) && event.getNewGameMode() == GameMode.SPECTATOR) {
+		if (event.getNewGameMode() == GameMode.SPECTATOR) {
 			viewHandler.hidePortalProjection(event.getPlayer());
 		}
 	}

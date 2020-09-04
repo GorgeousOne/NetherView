@@ -135,7 +135,7 @@ public class LegacyBlockType extends BlockType {
 	
 	@Override
 	public String toString() {
-		return "LegacyBlock{" + materialData.toString()+ '}';
+		return "LegacyBlock{" + materialData.toString() + '}';
 	}
 	
 	private final static List<String> OCCLUDING_TYPES = Arrays.asList(

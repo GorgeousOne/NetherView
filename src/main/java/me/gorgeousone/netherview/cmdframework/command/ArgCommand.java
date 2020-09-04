@@ -57,7 +57,6 @@ public abstract class ArgCommand extends BasicCommand {
 		}
 		
 		onCommand(sender, values);
-		return;
 	}
 	
 	protected abstract void onCommand(CommandSender sender, ArgValue[] arguments);

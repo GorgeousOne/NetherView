@@ -3,7 +3,7 @@
 A plugin that makes it possible to see the nether through nether portals.  
 This was inspired by SethBling's [Magic Nether Portal](https://www.youtube.com/watch?v=xewQL6CkMWI).
 
-![yep, it's pretty cool](https://i.imgur.com/TmaIGqw.gif)
+![yep, it's pretty cool](art/nether-view-demo.gif)
 
 ### Installation
 The latest releases can be downloaded here: [spigotmc.org](https://www.spigotmc.org/resources/nether-view.78885/)

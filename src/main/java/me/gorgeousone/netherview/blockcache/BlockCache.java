@@ -6,6 +6,7 @@ import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.util.Vector;
 
 /**
  * One big array of BlockTypes used to store information about all blocks in a cuboid area around a portal.
@@ -64,7 +65,11 @@ public class BlockCache {
 		return contains(loc.getX(), loc.getY(), loc.getZ());
 	}
 	
-	public boolean contains(int x, int y, int z) {
+	public boolean contains(Vector loc) {
+		return contains(loc.getX(), loc.getY(), loc.getZ());
+	}
+	
+	public boolean contains(double x, double y, double z) {
 		return x >= min.getX() && x < max.getX() &&
 		       y >= min.getY() && y < max.getY() &&
 		       z >= min.getZ() && z < max.getZ();

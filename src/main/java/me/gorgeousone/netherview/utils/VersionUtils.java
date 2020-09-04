@@ -6,17 +6,17 @@ public final class VersionUtils {
 	
 	private VersionUtils() {}
 	
-	public  static final String VERSION_STRING = Bukkit.getServer().getClass().getName().split("\\.")[3];
+	public static final String VERSION_STRING = Bukkit.getServer().getClass().getName().split("\\.")[3];
 	
 	private static final int VERSION_INT_COUNT = 3;
 	private static final int[] CURRENT_VERSION_INTS = new int[VERSION_INT_COUNT];
 	
 	static {
-		String versionStringNumbersOnly = VERSION_STRING.replaceAll("[a-zA-Z]","");
+		String versionStringNumbersOnly = VERSION_STRING.replaceAll("[a-zA-Z]", "");
 		System.arraycopy(getVersionAsIntArray(versionStringNumbersOnly, "_"), 0, CURRENT_VERSION_INTS, 0, VERSION_INT_COUNT);
 	}
 	
-	public static final boolean IS_LEGACY_SERVER = !serverVersionIsGreaterEqualTo("1.13.0");
+	public static final boolean IS_LEGACY_SERVER = !serverIsAtOrAbove("1.13.0");
 	
 	public static boolean versionIsLowerThan(String version1, String version2) {
 		
@@ -33,7 +33,7 @@ public final class VersionUtils {
 		return false;
 	}
 	
-	public static boolean serverVersionIsGreaterEqualTo(String fullVersionString) {
+	public static boolean serverIsAtOrAbove(String fullVersionString) {
 		
 		int[] readVersionInts = getVersionAsIntArray(fullVersionString, "\\.");
 		

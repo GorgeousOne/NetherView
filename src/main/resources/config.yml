@@ -5,6 +5,9 @@ cancel-teleport-when-linking-portals: true
 instant-teleport: true
 warning-messages: true
 debug-messages: false
+hide-entities:
+  enabled: true
+  hide-players: true
 worlds-with-portal-viewing:
   - world
   - world_nether

@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
+import me.gorgeousone.netherview.commmands.Destroy;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
@@ -14,7 +15,8 @@ import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import me.gorgeousone.netherview.listeners.BlockListener;
+import me.gorgeousone.netherview.listeners.BlockChangeListener;
+import me.gorgeousone.netherview.listeners.EntityVisibilityListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
@@ -55,8 +57,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	private Material portalMaterial;
 	
-	private PortalHandler portalHandler;
 	private PacketHandler packetHandler;
+	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
 	
 	private Set<UUID> worldsWithPortalViewing;
@@ -69,6 +71,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private boolean instantTeleportEnabled;
 	private boolean warningMessagesEnabled;
 	private boolean debugMessagesEnabled;
+	private boolean entityHidingEnabled;
+	private boolean playerHidingEnabled;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
 	
@@ -90,8 +94,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		BlockType.configureVersion(VersionUtils.IS_LEGACY_SERVER);
 		PortalLocator.configureVersion(portalMaterial);
 		
-		portalHandler = new PortalHandler(this, portalMaterial);
 		packetHandler = new PacketHandler();
+		portalHandler = new PortalHandler(this, portalMaterial);
 		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
 		
 		//do not register listeners or commands before creating handlers because the handler references are passed there
@@ -119,7 +123,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		String libVersion = protocolLib.getDescription().getVersion().split("-")[0];
 		
-		if (VersionUtils.serverVersionIsGreaterEqualTo("1.16.2") && VersionUtils.versionIsLowerThan(libVersion, "4.6.0")) {
+		if (VersionUtils.serverIsAtOrAbove("1.16.2") && VersionUtils.versionIsLowerThan(libVersion, "4.6.0")) {
 			
 			getLogger().severe("============================================================");
 			getLogger().severe("Error: For Minecraft 1.16.2 and up Nether View requires at");
@@ -191,6 +195,14 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return instantTeleportEnabled;
 	}
 	
+	public boolean isEntityHidingEnabled() {
+		return entityHidingEnabled;
+	}
+	
+	public boolean isPlayerHidingEnabled() {
+		return playerHidingEnabled;
+	}
+	
 	public boolean canCreatePortalViews(World world) {
 		return worldsWithPortalViewing.contains(world.getUID());
 	}
@@ -237,6 +249,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
 		
+		netherViewCommand.addChild(new Destroy(netherViewCommand));
+		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
 		cmdHandler.registerCommand(new TogglePortalViewCommand(viewHandler));
@@ -247,8 +261,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		PluginManager manager = Bukkit.getPluginManager();
 		manager.registerEvents(new TeleportListener(this, portalHandler, viewHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
-		manager.registerEvents(new BlockListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
+		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
+		
+		new EntityVisibilityListener(this, viewHandler);
 	}
 	
 	private void loadConfigData() {
@@ -264,6 +280,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
 		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
+		entityHidingEnabled = getConfig().getBoolean("hide-entities.enabled");
+		playerHidingEnabled = getConfig().getBoolean("hide-entities.hide-players");
 		
 		setWarningMessagesEnabled(getConfig().getBoolean("warning-messages"));
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));
@@ -275,7 +293,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	private void addVersionSpecificDefaults() {
 		
-		if (VersionUtils.serverVersionIsGreaterEqualTo("1.13.0")) {
+		if (VersionUtils.serverIsAtOrAbove("1.13.0")) {
 			
 			getConfig().addDefault("overworld-border", "white_terracotta");
 			getConfig().addDefault("nether-border", "red_concrete");
