@@ -1,3 +1,4 @@
+flip-portals-by-default: false
 portal-projection-view-distance: 4
 portal-display-range: 32
 hide-portal-blocks: true
