@@ -478,7 +478,7 @@ public class ViewHandler {
 	/**
 	 * Hides any entity isn't already hidden for the player. Any previously hidden entity that is not contained by
 	 * passed set anymore will be shown again.
-	 *  /
+	 */
 	private void hideEntities(Player player, Set<Entity> newHiddenEntities) {
 		
 		Set<Entity> lastHiddenEntities = getHiddenEntities(player);

@@ -73,6 +73,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private boolean debugMessagesEnabled;
 	private boolean entityHidingEnabled;
 	private boolean playerHidingEnabled;
+	private boolean portalsAreFlippedByDefault;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
 	
@@ -203,6 +204,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return playerHidingEnabled;
 	}
 	
+	public boolean portalsAreFlippedByDefault() {
+		return portalsAreFlippedByDefault;
+	}
+	
 	public boolean canCreatePortalViews(World world) {
 		return worldsWithPortalViewing.contains(world.getUID());
 	}
@@ -282,6 +287,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
 		entityHidingEnabled = getConfig().getBoolean("hide-entities.enabled");
 		playerHidingEnabled = getConfig().getBoolean("hide-entities.hide-players");
+		portalsAreFlippedByDefault = getConfig().getBoolean("flip-portals-by-default");
 		
 		setWarningMessagesEnabled(getConfig().getBoolean("warning-messages"));
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));

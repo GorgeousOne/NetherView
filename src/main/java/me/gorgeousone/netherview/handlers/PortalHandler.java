@@ -8,11 +8,11 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.blockcache.TransformFactory;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.utils.MessageUtils;
-import me.gorgeousone.netherview.wrapping.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -213,11 +213,11 @@ public class PortalHandler {
 		Set<ProjectionCache> linkedToProjections = new HashSet<>();
 		Portal portal = cache.getPortal();
 		
-		boolean isPortalCacheFront = portal.getFrontCache() == cache;
+		boolean isBlockCacheFront = portal.getFrontCache() == cache;
 		
 		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
 			
-			boolean isLinkedProjectionBack = isPortalCacheFront ^ linkedPortal.isViewFlipped();
+			boolean isLinkedProjectionBack = isBlockCacheFront ^ linkedPortal.isViewFlipped() ^ main.portalsAreFlippedByDefault();
 			
 			if (linkedPortal.projectionsAreLoaded()) {
 				linkedToProjections.add(isLinkedProjectionBack ? linkedPortal.getBackProjection() : linkedPortal.getFrontProjection());
@@ -257,7 +257,6 @@ public class PortalHandler {
 		MessageUtils.printDebug("Loaded block data for portal " + portal.toString());
 	}
 	
-	
 	public void loadProjectionCachesOf(Portal portal) {
 		
 		if (!portal.isLinked()) {
@@ -265,7 +264,8 @@ public class PortalHandler {
 		}
 		
 		Portal counterPortal = portal.getCounterPortal();
-		Transform linkTransform = calculateLinkTransform(portal, counterPortal, portal.isViewFlipped());
+		boolean linkTransformIsFlipped = main.portalsAreFlippedByDefault() ^ portal.isViewFlipped();
+		Transform linkTransform = TransformFactory.calculateLinkTransform(portal, counterPortal, linkTransformIsFlipped);
 		
 		portal.setTpTransform(linkTransform.clone().invert());
 		
@@ -276,7 +276,7 @@ public class PortalHandler {
 		BlockCache frontCache = counterPortal.getFrontCache();
 		BlockCache backCache = counterPortal.getBackCache();
 		
-		if (portal.isViewFlipped()) {
+		if (linkTransformIsFlipped) {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(backCache, frontCache, linkTransform));
 		} else {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
@@ -500,39 +500,39 @@ public class PortalHandler {
 	 * Calculates a Transform that is needed to translate and rotate the blocks from the block cache
 	 * of the counter portal to the related positions in the projection cache of the viewed portal.
 	 */
-	private Transform calculateLinkTransform(Portal portal, Portal counterPortal, boolean isViewFlipped) {
-		
-		Transform linkTransform = new Transform();
-		Axis counterPortalAxis = counterPortal.getAxis();
-		
-		BlockVec portalLoc1 = portal.getMinBlock();
-		BlockVec portalLoc2;
-		
-		if (portal.getAxis() == counterPortalAxis) {
-			
-			if (isViewFlipped) {
-				portalLoc2 = counterPortal.getMinBlock();
-				
-			} else {
-				portalLoc2 = counterPortal.getMaxBlockAtFloor();
-				linkTransform.setRotY180Deg();
-			}
-			
-		} else {
-			
-			if (counterPortalAxis == Axis.X ^ isViewFlipped) {
-				linkTransform.setRotY90DegRight();
-			} else {
-				linkTransform.setRotY90DegLeft();
-			}
-			
-			portalLoc2 = isViewFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMinBlock();
-		}
-		
-		linkTransform.setRotCenter(portalLoc2);
-		linkTransform.setTranslation(portalLoc1.subtract(portalLoc2));
-		return linkTransform;
-	}
+//	private Transform calculateLinkTransform(Portal portal, Portal counterPortal, boolean isViewFlipped) {
+//
+//		Transform linkTransform = new Transform();
+//		Axis counterPortalAxis = counterPortal.getAxis();
+//
+//		BlockVec portalLoc1 = portal.getMinBlock();
+//		BlockVec portalLoc2;
+//
+//		if (portal.getAxis() == counterPortalAxis) {
+//
+//			if (isViewFlipped) {
+//				portalLoc2 = counterPortal.getMinBlock();
+//
+//			} else {
+//				portalLoc2 = counterPortal.getMaxBlockAtFloor();
+//				linkTransform.setRotY180Deg();
+//			}
+//
+//		} else {
+//
+//			if (counterPortalAxis == Axis.X ^ isViewFlipped) {
+//				linkTransform.setRotY90DegRight();
+//			} else {
+//				linkTransform.setRotY90DegLeft();
+//			}
+//
+//			portalLoc2 = isViewFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMinBlock();
+//		}
+//
+//		linkTransform.setRotCenter(portalLoc2);
+//		linkTransform.setTranslation(portalLoc1.subtract(portalLoc2));
+//		return linkTransform;
+//	}
 	
 	/**
 	 * Starts a scheduler that handles the removal of block caches (and projection caches) that weren't used for a certain expiration time.
