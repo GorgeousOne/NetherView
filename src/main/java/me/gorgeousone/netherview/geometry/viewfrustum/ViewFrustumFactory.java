@@ -81,16 +81,13 @@ public final class ViewFrustumFactory {
 			}
 		}
 		
-		Vector viewingRectSize = viewingRectMax.clone().subtract(viewingRectMin);
-		double rectWidth = portalAxis == Axis.X ? viewingRectSize.getX() : viewingRectSize.getZ();
-		double rectHeight = viewingRectSize.getY();
-		
-		if (rectWidth < 0 || rectHeight < 0) {
+		try {
+			AxisAlignedRect actualViewingRect = new AxisAlignedRect(totalViewingRect.getAxis(), viewingRectMin, viewingRectMax);
+			return new ViewFrustum(viewPoint, actualViewingRect, frustumLength);
+			
+		} catch (IllegalArgumentException e) {
 			return null;
 		}
-		
-		AxisAlignedRect actualViewingRect = new AxisAlignedRect(totalViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
-		return new ViewFrustum(viewPoint, actualViewingRect, frustumLength);
 	}
 	
 	public static boolean isPlayerBehindPortal(Player player, Portal portal) {

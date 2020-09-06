@@ -11,7 +11,6 @@ import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
-import me.gorgeousone.netherview.wrapping.boundingbox.BoundingBoxUtils;
 import me.gorgeousone.netherview.wrapping.boundingbox.WrappedBoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -47,7 +46,7 @@ public class ViewHandler {
 	private final Map<UUID, ViewFrustum> lastViewFrustums;
 	
 	private final HashMap<UUID, Set<Entity>> hiddenEntities;
-	
+
 	public ViewHandler(NetherViewPlugin main,
 	                   PortalHandler portalHandler,
 	                   PacketHandler packetHandler) {
@@ -64,7 +63,7 @@ public class ViewHandler {
 		hiddenEntities = new HashMap<>();
 	}
 	
-	public void reset() {
+	public void reload() {
 		
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			hidePortalProjection(player);
@@ -361,10 +360,10 @@ public class ViewHandler {
 				continue;
 			}
 			
-			WrappedBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
+			WrappedBoundingBox box = WrappedBoundingBox.of(entity);
 			
-			if (BoundingBoxUtils.boxIntersectsBlockCache(box, projection) &&
-			    BoundingBoxUtils.boxIntersectsFrustum(box, playerFrustum)) {
+			if (box.intersectsBlockCache(projection) &&
+			    box.intersectsFrustum(playerFrustum)) {
 				hiddenEntities.add(entity);
 			}
 		}

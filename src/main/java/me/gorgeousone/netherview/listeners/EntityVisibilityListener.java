@@ -11,7 +11,6 @@ import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import me.gorgeousone.netherview.wrapping.boundingbox.BoundingBoxUtils;
 import me.gorgeousone.netherview.wrapping.boundingbox.WrappedBoundingBox;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -61,18 +60,18 @@ public class EntityVisibilityListener {
 				}
 				
 				BlockCache cache = viewHandler.getViewedPortalSide(player);
-				WrappedBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
+				WrappedBoundingBox box = WrappedBoundingBox.of(entity);
 				
 				if (viewHandler.getHiddenEntities(player).contains(entity)) {
 					
-					if (!BoundingBoxUtils.boxIntersectsFrustum(box, viewFrustum)) {
+					if (!box.intersectsFrustum(viewFrustum)) {
 						viewHandler.showEntity(player, entity);
 					}
 					
 				} else {
 					
-					if (BoundingBoxUtils.boxIntersectsBlockCache(box, cache) &&
-					    BoundingBoxUtils.boxIntersectsFrustum(box, viewFrustum)) {
+					if (box.intersectsBlockCache(cache) &&
+					    box.intersectsFrustum(viewFrustum)) {
 						viewHandler.hideEntity(player, entity);
 					}
 				}

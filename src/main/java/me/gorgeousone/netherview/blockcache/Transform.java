@@ -1,6 +1,10 @@
 package me.gorgeousone.netherview.blockcache;
 
+import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
+import me.gorgeousone.netherview.wrapping.Axis;
+import org.bukkit.util.Vector;
 
 /**
  * A class holding the relative translation and rotation between two portals and applying it to BlockVecs.
@@ -48,6 +52,10 @@ public class Transform {
 		return rotYMatrix[0][0] == -1;
 	}
 	
+	public boolean isRotY0Deg() {
+		return rotYMatrix[0][0] == 1;
+	}
+	
 	public void setRotY90DegRight() {
 		
 		rotYMatrix[0][0] = 0;
@@ -76,8 +84,15 @@ public class Transform {
 		
 		vec.subtract(rotCenter);
 		rotateVec(vec);
-		
 		return vec.add(rotCenter).add(translation);
+	}
+	
+	public Vector transformVec(Vector vec) {
+		
+		Vector vecRotCenter = rotCenter.toVector();
+		vec.subtract(vecRotCenter);
+		rotateVec(vec);
+		return vec.add(vecRotCenter).add(translation.toVector());
 	}
 	
 	private void rotateVec(BlockVec relativeVec) {
@@ -87,6 +102,35 @@ public class Transform {
 		
 		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
 		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
+	}
+	
+	private void rotateVec(Vector relativeVec) {
+		
+		double transX = relativeVec.getX();
+		double transZ = relativeVec.getZ();
+		
+		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
+		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
+	}
+	
+	public ViewFrustum getTransformedFrustum(ViewFrustum frustum) {
+		
+		return new ViewFrustum(
+				transformVec(frustum.getViewPoint()),
+				getTransformedRect(frustum.getNearPlaneRect()),
+				frustum.getLength());
+	}
+	
+	public AxisAlignedRect getTransformedRect(AxisAlignedRect rect) {
+	
+		return new AxisAlignedRect(
+				getRotatedAxis(rect.getAxis()),
+				transformVec(rect.getMin()),
+				transformVec(rect.getMax()));
+	}
+	
+	public Axis getRotatedAxis(Axis axis) {
+		return axis == Axis.X ^ (isRotY0Deg() || isRotY180Deg()) ? Axis.Z : Axis.X;
 	}
 	
 	public int getQuarterTurns() {

@@ -141,7 +141,11 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	public void reload() {
 		
-		onDisable();
+		savePortalsToConfig();
+		
+		viewHandler.reload();
+		portalHandler.reload();
+		
 		loadConfigData();
 		checkForUpdates();
 	}
@@ -154,8 +158,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		}
 		
 		savePortalsToConfig();
-		viewHandler.reset();
-		portalHandler.reset();
+		viewHandler.reload();
+		portalHandler.disable();
 	}
 	
 	public PortalHandler getPortalHandler() {
@@ -393,7 +397,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	private void registerPortalsOnline(Metrics metrics) {
-		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> portalHandler.getRecentlyViewedPortalsCount()));
+		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> portalHandler.getLoadedPortalsCount()));
 	}
 	
 	private void checkForUpdates() {

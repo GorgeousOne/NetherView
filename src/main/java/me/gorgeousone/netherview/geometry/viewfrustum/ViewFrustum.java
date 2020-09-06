@@ -20,10 +20,10 @@ public class ViewFrustum {
 	
 	private final Vector viewPoint;
 	private final AxisAlignedRect nearPlaneRect;
-	private AxisAlignedRect farPlaneRect;
+	private final AxisAlignedRect farPlaneRect;
 	
 	private final int frustumLength;
-	private Vector frustumFacing;
+	private final Vector frustumFacing;
 	
 	public ViewFrustum(Vector viewPoint, AxisAlignedRect nearPlane, int frustumLength) {
 		
@@ -31,16 +31,20 @@ public class ViewFrustum {
 		this.nearPlaneRect = nearPlane;
 		this.frustumLength = frustumLength;
 		
-		createFrustumFacing();
-		createFarPlaneRect();
+		this.frustumFacing = createFrustumFacing();
+		this.farPlaneRect = createFarPlaneRect();
+	}
+	
+	public Vector getViewPoint() {
+		return viewPoint.clone();
 	}
 	
 	public AxisAlignedRect getNearPlaneRect() {
-		return nearPlaneRect;
+		return nearPlaneRect.clone();
 	}
 	
 	public AxisAlignedRect getFarPlaneRect() {
-		return farPlaneRect;
+		return farPlaneRect.clone();
 	}
 	
 	public boolean contains(Vector point) {
@@ -74,17 +78,19 @@ public class ViewFrustum {
 		return frustumLength;
 	}
 	
-	private void createFrustumFacing() {
+	private Vector createFrustumFacing() {
 		
 		//take the near plane's normal as the facing of the frustum
-		this.frustumFacing = nearPlaneRect.getNormal();
+		Vector frustumFacing = nearPlaneRect.getNormal();
 		
 		//but make it face in the opposite direction of where the view point
 		Vector relViewPoint = viewPoint.clone().subtract(nearPlaneRect.getMin());
 		frustumFacing.multiply(-Math.signum(frustumFacing.dot(relViewPoint)));
+		
+		return frustumFacing;
 	}
 	
-	private void createFarPlaneRect() {
+	private AxisAlignedRect createFarPlaneRect() {
 		
 		Vector nearPlaneOrigin = nearPlaneRect.getMin();
 		Vector nearPlaneNormal = nearPlaneRect.getNormal();
@@ -100,14 +106,10 @@ public class ViewFrustum {
 		Line farRectMinLine = new Line(viewPoint, nearPlaneOrigin);
 		Line farRectMaxLine = new Line(viewPoint, nearPlaneRect.getMax());
 		
-		Vector farRectMin = farPlane.getIntersection(farRectMinLine);
-		Vector farRectMax = farPlane.getIntersection(farRectMaxLine);
-		
-		Vector rectDiameter = farRectMax.clone().subtract(farRectMin);
-		double rectHeight = rectDiameter.getY();
-		double rectWidth = rectDiameter.setY(0).length();
-		
-		farPlaneRect = new AxisAlignedRect(nearPlaneRect.getAxis(), farRectMin, rectWidth, rectHeight);
+		return new AxisAlignedRect(
+				nearPlaneRect.getAxis(),
+				farPlane.getIntersection(farRectMinLine),
+				farPlane.getIntersection(farRectMaxLine));
 	}
 	
 	/**

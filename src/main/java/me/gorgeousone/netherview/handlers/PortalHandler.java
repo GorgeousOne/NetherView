@@ -45,7 +45,7 @@ public class PortalHandler {
 	private final Material portalMaterial;
 	
 	private final Map<UUID, Set<Portal>> worldsWithPortals;
-	private final Map<Portal, Long> recentlyViewedPortals;
+	private final Map<Portal, Long> loadedPortals;
 	private BukkitRunnable expirationTimer;
 	
 	public PortalHandler(NetherViewPlugin main, Material portalMaterial) {
@@ -54,20 +54,30 @@ public class PortalHandler {
 		this.portalMaterial = portalMaterial;
 		
 		worldsWithPortals = new HashMap<>();
-		recentlyViewedPortals = new HashMap<>();
+		loadedPortals = new HashMap<>();
 		
 		startCacheExpirationTimer();
 	}
 	
-	public void reset() {
+	public void reload() {
+		
+		disable();
+		startCacheExpirationTimer();
+	}
+	
+	public void disable() {
 		
 		worldsWithPortals.clear();
-		recentlyViewedPortals.clear();
+		loadedPortals.clear();
 		expirationTimer.cancel();
 	}
 	
 	public Set<Portal> getPortals(World world) {
 		return worldsWithPortals.getOrDefault(world.getUID(), new HashSet<>());
+	}
+	
+	public Set<Portal> getLoadedPortals() {
+		return loadedPortals.keySet();
 	}
 	
 	public boolean hasPortals(World world) {
@@ -91,13 +101,13 @@ public class PortalHandler {
 	/**
 	 * Returns the count of portals that have been viewed in the last 10 minutes.
 	 */
-	public Integer getRecentlyViewedPortalsCount() {
-		return recentlyViewedPortals.size();
+	public Integer getLoadedPortalsCount() {
+		return loadedPortals.size();
 	}
 	
 	/**
 	 * Returns the first portal that contains the passed block as part of the portal surface.
-	 * If none was found it will  be tried to add the portal related to this block.
+	 * If none was found it will be tried to add the portal related to this block.
 	 */
 	public Portal getPortalByBlock(Block portalBlock) {
 		
@@ -285,11 +295,11 @@ public class PortalHandler {
 	}
 	
 	private void addPortalToExpirationTimer(Portal portal) {
-		recentlyViewedPortals.put(portal, System.currentTimeMillis());
+		loadedPortals.put(portal, System.currentTimeMillis());
 	}
 	
 	public void updateExpirationTime(Portal portal) {
-		recentlyViewedPortals.put(portal, System.currentTimeMillis());
+		loadedPortals.put(portal, System.currentTimeMillis());
 	}
 	
 	/**
@@ -308,7 +318,7 @@ public class PortalHandler {
 			linkedPortal.removeLink();
 		}
 		
-		recentlyViewedPortals.remove(portal);
+		loadedPortals.remove(portal);
 		
 		if (portal.isLinked()) {
 			
@@ -497,44 +507,6 @@ public class PortalHandler {
 	}
 	
 	/**
-	 * Calculates a Transform that is needed to translate and rotate the blocks from the block cache
-	 * of the counter portal to the related positions in the projection cache of the viewed portal.
-	 */
-//	private Transform calculateLinkTransform(Portal portal, Portal counterPortal, boolean isViewFlipped) {
-//
-//		Transform linkTransform = new Transform();
-//		Axis counterPortalAxis = counterPortal.getAxis();
-//
-//		BlockVec portalLoc1 = portal.getMinBlock();
-//		BlockVec portalLoc2;
-//
-//		if (portal.getAxis() == counterPortalAxis) {
-//
-//			if (isViewFlipped) {
-//				portalLoc2 = counterPortal.getMinBlock();
-//
-//			} else {
-//				portalLoc2 = counterPortal.getMaxBlockAtFloor();
-//				linkTransform.setRotY180Deg();
-//			}
-//
-//		} else {
-//
-//			if (counterPortalAxis == Axis.X ^ isViewFlipped) {
-//				linkTransform.setRotY90DegRight();
-//			} else {
-//				linkTransform.setRotY90DegLeft();
-//			}
-//
-//			portalLoc2 = isViewFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMinBlock();
-//		}
-//
-//		linkTransform.setRotCenter(portalLoc2);
-//		linkTransform.setTranslation(portalLoc1.subtract(portalLoc2));
-//		return linkTransform;
-//	}
-	
-	/**
 	 * Starts a scheduler that handles the removal of block caches (and projection caches) that weren't used for a certain expiration time.
 	 */
 	private void startCacheExpirationTimer() {
@@ -548,7 +520,7 @@ public class PortalHandler {
 			@Override
 			public void run() {
 				
-				Iterator<Map.Entry<Portal, Long>> entries = recentlyViewedPortals.entrySet().iterator();
+				Iterator<Map.Entry<Portal, Long>> entries = loadedPortals.entrySet().iterator();
 				long now = System.currentTimeMillis();
 				
 				while (entries.hasNext()) {

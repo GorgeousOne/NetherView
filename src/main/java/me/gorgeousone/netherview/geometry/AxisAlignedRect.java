@@ -9,24 +9,30 @@ import org.bukkit.util.Vector;
 public class AxisAlignedRect {
 	
 	private final Axis axis;
-	private final Vector pos;
 	private final Plane plane;
 	
-	private double width;
-	private double height;
+	private final Vector min;
+	private final Vector max;
 	
-	public AxisAlignedRect(Axis axis, Vector pos, double width, double height) {
+	public AxisAlignedRect(Axis axis, Vector min, Vector max) {
 		
 		this.axis = axis;
-		this.pos = pos.clone();
+		this.min = min.clone();
+		this.max = max.clone();
 		
-		if (axis == Axis.X) {
-			plane = new Plane(pos, new Vector(0, 0, 1));
-		} else {
-			plane = new Plane(pos, new Vector(1, 0, 0));
+		if (height() < 0) {
+			throw new IllegalArgumentException("Rectangle maximum y must be greater than minimum y");
 		}
 		
-		setSize(width, height);
+		if (axis == Axis.X) {
+			plane = new Plane(min, new Vector(0, 0, 1));
+		} else {
+			plane = new Plane(min, new Vector(1, 0, 0));
+		}
+		
+		if (width() < 0) {
+			throw new IllegalArgumentException("Rectangle maximum must be greater than minimum");
+		}
 	}
 	
 	public Axis getAxis() {
@@ -34,31 +40,26 @@ public class AxisAlignedRect {
 	}
 	
 	public Vector getMin() {
-		return pos.clone();
+		return min.clone();
 	}
 	
 	public Vector getMax() {
-		return pos.clone().add(new Vector(
-				axis == Axis.X ? width : 0,
-				height,
-				axis == Axis.Z ? width : 0));
+		return max.clone();
 	}
 	
 	public double width() {
-		return width;
+		return axis == Axis.X ?
+				max.getX() - min.getX() :
+				max.getZ() - min.getZ();
 	}
 	
 	public double height() {
-		return height;
-	}
-	
-	public void setSize(double width, double height) {
-		this.width = width;
-		this.height = height;
+		return max.getY() - min.getY();
 	}
 	
 	public AxisAlignedRect translate(Vector delta) {
-		pos.add(delta);
+		min.add(delta);
+		max.add(delta);
 		plane.translate(delta);
 		return this;
 	}
@@ -68,9 +69,6 @@ public class AxisAlignedRect {
 	}
 	
 	public boolean contains(Vector pointInPlane) {
-		
-		Vector min = getMin();
-		Vector max = getMax();
 		
 		double pointY = pointInPlane.getY();
 		
@@ -104,6 +102,6 @@ public class AxisAlignedRect {
 	
 	@Override
 	public AxisAlignedRect clone() {
-		return new AxisAlignedRect(getAxis(), getMin(), width(), height());
+		return new AxisAlignedRect(getAxis(), getMin(), getMax());
 	}
 }
