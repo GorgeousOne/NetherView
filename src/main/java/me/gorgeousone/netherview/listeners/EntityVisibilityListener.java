@@ -11,7 +11,7 @@ import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import me.gorgeousone.netherview.wrapping.boundingbox.WrappedBoundingBox;
+import me.gorgeousone.netherview.wrapping.WrappedBoundingBox;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;

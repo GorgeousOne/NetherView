@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.wrapping.boundingbox;
+package me.gorgeousone.netherview.wrapping;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;

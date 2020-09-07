@@ -180,8 +180,8 @@ public class PortalHandler {
 		
 		Set<Portal> linkedToPortals = new HashSet<>();
 		
-		for (UUID worldID : worldsWithPortals.keySet()) {
-			for (Portal secondPortal : worldsWithPortals.get(worldID)) {
+		for (UUID worldId : worldsWithPortals.keySet()) {
+			for (Portal secondPortal : worldsWithPortals.get(worldId)) {
 				
 				if (secondPortal.equals(portal)) {
 					continue;
@@ -223,7 +223,7 @@ public class PortalHandler {
 		Set<ProjectionCache> linkedToProjections = new HashSet<>();
 		Portal portal = cache.getPortal();
 		
-		boolean isBlockCacheFront = portal.getFrontCache() == cache;
+		boolean isBlockCacheFront = portal.getFrontCache().equals(cache);
 		
 		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
 			
@@ -274,7 +274,7 @@ public class PortalHandler {
 		}
 		
 		Portal counterPortal = portal.getCounterPortal();
-		boolean linkTransformIsFlipped = main.portalsAreFlippedByDefault() ^ portal.isViewFlipped();
+		boolean linkTransformIsFlipped = portal.isViewFlipped() ^ main.portalsAreFlippedByDefault();
 		Transform linkTransform = TransformFactory.calculateLinkTransform(portal, counterPortal, linkTransformIsFlipped);
 		
 		portal.setTpTransform(linkTransform.clone().invert());

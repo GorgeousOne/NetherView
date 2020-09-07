@@ -144,6 +144,7 @@ public class BlockCacheFactory {
 				projectionSize,
 				linkTransform.transformVec(sourceCache.getFacing()),
 				sourceCache.getBorderBlockType(),
+				sourceCache,
 				linkTransform);
 		
 		for (int x = sourceMin.getX(); x < sourceMax.getX(); x++) {

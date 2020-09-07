@@ -11,6 +11,7 @@ import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
  */
 public class ProjectionCache extends BlockCache {
 	
+	private final BlockCache sourceCache;
 	private final Transform linkTransform;
 	private final int cacheLength;
 	
@@ -19,12 +20,18 @@ public class ProjectionCache extends BlockCache {
 	                       BlockVec size,
 	                       BlockVec facing,
 	                       BlockType borderType,
+	                       BlockCache sourceCache,
 	                       Transform linkTransform) {
 		
 		super(portal, offset, size, facing, borderType);
 		
+		this.sourceCache = sourceCache;
 		this.linkTransform = linkTransform;
 		this.cacheLength = portal.getAxis() == Axis.X ? size.getZ() : size.getX();
+	}
+	
+	public BlockCache getSourceCache() {
+		return sourceCache;
 	}
 	
 	public Transform getLinkTransform() {

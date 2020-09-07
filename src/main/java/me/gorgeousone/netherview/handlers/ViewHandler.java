@@ -11,7 +11,7 @@ import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.wrapping.Axis;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
-import me.gorgeousone.netherview.wrapping.boundingbox.WrappedBoundingBox;
+import me.gorgeousone.netherview.wrapping.WrappedBoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -135,7 +135,11 @@ public class ViewHandler {
 	 * Returns the one of the two projection caches of a portal that is being displayed to the player in the portal view.
 	 */
 	public ProjectionCache getViewedPortalSide(Player player) {
-		return viewedPortalSides.get(player.getUniqueId());
+		return getViewedPortalSide(player.getUniqueId());
+	}
+	
+	public ProjectionCache getViewedPortalSide(UUID playerId) {
+		return viewedPortalSides.get(playerId);
 	}
 	
 	/**
@@ -152,13 +156,23 @@ public class ViewHandler {
 		unregisterPortalProjection(player);
 	}
 	
+	
 	/**
 	 * Returns the latest view frustum that was used to calculate the projection blocks for the player's projection.
 	 * Returns null if player is not nearby any portal or no blocks were displayed (due to steep view angles)
 	 */
 	public ViewFrustum getLastViewFrustum(Player player) {
-		return lastViewFrustums.get(player.getUniqueId());
+		return getLastViewFrustum(player.getUniqueId());
 	}
+	
+	/**
+	 * Returns the latest view frustum that was used to calculate the projection blocks for the player's projection.
+	 * Returns null if player is not nearby any portal or no blocks were displayed (due to steep view angles)
+	 */
+	public ViewFrustum getLastViewFrustum(UUID playerId) {
+		return lastViewFrustums.get(playerId);
+	}
+	
 	
 	/**
 	 * Returns a set of entities that intersect with the player's portal projection and have been hidden from the them with packets.
@@ -524,5 +538,19 @@ public class ViewHandler {
 				hidePortalProjection(Bukkit.getPlayer(entry.getKey()));
 			}
 		}
+	}
+	
+	public Set<UUID> getViewers(Portal portal) {
+		
+		Set<UUID> viewers = new HashSet<>();
+		
+		for (UUID playerId : viewedPortals.keySet()) {
+			
+			if (viewedPortals.get(playerId).equals(portal)) {
+				viewers.add(playerId);
+			}
+		}
+		
+		return viewers;
 	}
 }
