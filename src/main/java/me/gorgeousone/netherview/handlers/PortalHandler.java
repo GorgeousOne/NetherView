@@ -99,13 +99,6 @@ public class PortalHandler {
 	}
 	
 	/**
-	 * Returns the count of portals that have been viewed in the last 10 minutes.
-	 */
-	public Integer getLoadedPortalsCount() {
-		return loadedPortals.size();
-	}
-	
-	/**
 	 * Returns the first portal that contains the passed block as part of the portal surface.
 	 * If none was found it will be tried to add the portal related to this block.
 	 */

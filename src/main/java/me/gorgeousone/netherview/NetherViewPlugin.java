@@ -397,7 +397,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	private void registerPortalsOnline(Metrics metrics) {
-		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> portalHandler.getLoadedPortalsCount()));
+		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> portalHandler.getLoadedPortals().size()));
 	}
 	
 	private void checkForUpdates() {

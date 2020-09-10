@@ -21,6 +21,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import javax.sound.sampled.Port;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -163,6 +164,10 @@ public class ViewHandler {
 	 */
 	public ViewFrustum getLastViewFrustum(Player player) {
 		return getLastViewFrustum(player.getUniqueId());
+	}
+	
+	public Map<UUID, ViewFrustum> getLastViewFrustums() {
+		return lastViewFrustums;
 	}
 	
 	/**
@@ -552,5 +557,20 @@ public class ViewHandler {
 		}
 		
 		return viewers;
+	}
+	
+	public Map<Portal, Set<Player>> getViewersSorted() {
+		
+		Map<Portal, Set<Player>> sortedViewers = new HashMap<>();
+		
+		for (Map.Entry<UUID, Portal> entry : viewedPortals.entrySet()) {
+			
+			Portal portal = entry.getValue();
+			
+			sortedViewers.putIfAbsent(portal, new HashSet<>());
+			sortedViewers.get(portal).add(Bukkit.getPlayer(entry.getKey()));
+		}
+		
+		return sortedViewers;
 	}
 }
