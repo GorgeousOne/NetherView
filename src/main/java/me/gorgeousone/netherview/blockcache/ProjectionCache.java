@@ -40,7 +40,7 @@ public class ProjectionCache extends BlockCache {
 	
 	/**
 	 * Returns the length of the projection cache measured from portal to back wall.
-	 * The value is important for the length of viewing frustums.
+	 * The value is important for the length of view frustums.
 	 */
 	public int getCacheLength() {
 		return cacheLength;

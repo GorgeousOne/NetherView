@@ -286,9 +286,9 @@ public class PortalHandler {
 		BlockCache backCache = counterPortal.getBackCache();
 		
 		if (linkTransformIsFlipped) {
-			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(backCache, frontCache, linkTransform));
+			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, backCache, frontCache, linkTransform));
 		} else {
-			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
+			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, frontCache, backCache, linkTransform));
 		}
 		addPortalToExpirationTimer(portal);
 	}

@@ -297,8 +297,6 @@ public class PacketHandler {
 			return;
 		}
 		
-		player.sendMessage(ChatColor.GRAY  + "hide " + entities.size());
-		
 		int[] entityIds = new int[entities.size()];
 		int i = 0;
 		
@@ -427,8 +425,8 @@ public class PacketHandler {
 		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
 
 			ItemStack item = equipmentMap.get(slot);
-
-			if (item.getType() == Material.AIR) {
+	
+			if (item == null || item.getType() == Material.AIR) {
 				continue;
 			}
 

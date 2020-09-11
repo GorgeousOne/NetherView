@@ -2,9 +2,12 @@ package me.gorgeousone.netherview.wrapping;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
+import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.NmsUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -23,8 +26,11 @@ public class WrappedBoundingBox {
 	private static Method ENTITY_GET_AABB;
 	private static Field AABB_MIN_X;
 	private static Field AABB_MIN_Y;
+	private static Field AABB_MIN_Z;
+	
 	private static Field AABB_MAX_X;
 	private static Field AABB_MAX_Y;
+	private static Field AABB_MAX_Z;
 	
 	static {
 		
@@ -36,8 +42,10 @@ public class WrappedBoundingBox {
 				
 				AABB_MIN_X = aabbClass.getDeclaredField("a");
 				AABB_MIN_Y = aabbClass.getDeclaredField("b");
+				AABB_MIN_Z = aabbClass.getDeclaredField("c");
 				AABB_MAX_X = aabbClass.getDeclaredField("d");
 				AABB_MAX_Y = aabbClass.getDeclaredField("e");
+				AABB_MAX_Z = aabbClass.getDeclaredField("f");
 				
 			} catch (NoSuchMethodException | ClassNotFoundException | NoSuchFieldException e) {
 				e.printStackTrace();
@@ -47,17 +55,24 @@ public class WrappedBoundingBox {
 	
 	private final List<Vector> vertices;
 	
-	public WrappedBoundingBox(Entity entity, double width, double height) {
+	public WrappedBoundingBox(Entity entity, double widthX, double height, double widthZ) {
 		
-		Vector min = entity.getLocation().subtract(
-				width / 2,
+		Location entityLoc = entity.getLocation();
+		
+		//dunno, paintings are a bit off
+		if (entity.getType() == EntityType.PAINTING && VersionUtils.IS_LEGACY_SERVER) {
+			entityLoc.subtract(0, height/2, 0);
+		}
+		
+		Vector min = entityLoc.clone().subtract(
+				widthX / 2,
 				0,
-				width / 2).toVector();
+				widthZ / 2).toVector();
 		
-		Vector max = entity.getLocation().add(
-				width / 2,
+		Vector max = entityLoc.clone().add(
+				widthX / 2,
 				height,
-				width / 2).toVector();
+				widthZ / 2).toVector();
 		
 		vertices = new ArrayList<>(Arrays.asList(
 				min,
@@ -87,8 +102,9 @@ public class WrappedBoundingBox {
 				
 				return new WrappedBoundingBox(
 						entity,
-						getBoxWidth(entityAabb),
-						getBoxHeight(entityAabb));
+						getBoxWidthX(entityAabb),
+						getBoxHeight(entityAabb),
+						getBoxWidthZ(entityAabb));
 				
 			} catch (IllegalAccessException | InvocationTargetException e) {
 				
@@ -103,16 +119,35 @@ public class WrappedBoundingBox {
 			return new WrappedBoundingBox(
 					entity,
 					box.getWidthX(),
-					box.getHeight());
+					box.getHeight(),
+					box.getWidthZ());
 		}
 	}
 	
-	private static double getBoxWidth(Object aabb) throws IllegalAccessException {
+	private static double getBoxWidthX(Object aabb) throws IllegalAccessException {
 		return AABB_MAX_X.getDouble(aabb) - AABB_MIN_X.getDouble(aabb);
+	}
+	
+	private static double getBoxWidthZ(Object aabb) throws IllegalAccessException {
+		return AABB_MAX_Z.getDouble(aabb) - AABB_MIN_Z.getDouble(aabb);
 	}
 	
 	private static double getBoxHeight(Object aabb) throws IllegalAccessException {
 		return AABB_MAX_Y.getDouble(aabb) - AABB_MIN_Y.getDouble(aabb);
+	}
+	
+	/**
+	 * Returns true if any of the 8 vertices of the bounding box are inside of the block cache.
+	 */
+	public boolean intersectsPortal(Portal portal) {
+		
+		for (Vector vertex : getVertices()) {
+			
+			if (portal.contains(vertex)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**

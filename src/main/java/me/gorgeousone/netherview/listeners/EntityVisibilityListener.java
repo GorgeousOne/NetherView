@@ -46,7 +46,7 @@ public class EntityVisibilityListener {
 				Player player = event.getPlayer();
 				Entity entity = protocolManager.getEntityFromID(player.getWorld(), packet.getIntegers().read(0));
 				
-				if (entity == null || !main.isEntityHidingEnabled() || !viewHandler.isViewingAPortal(player)) {
+				if (entity == null || !main.isEntityHidingEnabled() || !viewHandler.hasViewSession(player)) {
 					return;
 				}
 				
@@ -64,7 +64,7 @@ public class EntityVisibilityListener {
 				BlockCache cache = session.getViewedPortalSide();
 				WrappedBoundingBox box = WrappedBoundingBox.of(entity);
 				
-				if (viewHandler.getHiddenEntities(player).contains(entity)) {
+				if (viewHandler.getViewSession(player).getHiddenEntities().contains(entity)) {
 					
 					if (!box.intersectsFrustum(viewFrustum)) {
 						viewHandler.showEntity(player, entity);
@@ -74,6 +74,8 @@ public class EntityVisibilityListener {
 					
 					if (box.intersectsBlockCache(cache) &&
 					    box.intersectsFrustum(viewFrustum)) {
+						
+						player.sendMessage("only option is here " + cache);
 						viewHandler.hideEntity(player, entity);
 					}
 				}

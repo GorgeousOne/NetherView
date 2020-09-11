@@ -91,7 +91,7 @@ public class BlockChangeListener implements Listener {
 				PacketContainer packet = event.getPacket();
 				Player player = event.getPlayer();
 				
-				if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+				if (packetHandler.isCustomPacket(packet) || !viewHandler.hasViewSession(player)) {
 					return;
 				}
 				
@@ -129,7 +129,7 @@ public class BlockChangeListener implements Listener {
 						PacketContainer packet = event.getPacket();
 						Player player = event.getPlayer();
 						
-						if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+						if (packetHandler.isCustomPacket(packet) || !viewHandler.hasViewSession(player)) {
 							return;
 						}
 						
@@ -159,7 +159,7 @@ public class BlockChangeListener implements Listener {
 						Player player = event.getPlayer();
 						
 						//call the custom packet check first so the packet handler will definitely flush the packet from the list
-						if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+						if (packetHandler.isCustomPacket(packet) || !viewHandler.hasViewSession(player)) {
 							return;
 						}
 						
@@ -309,7 +309,7 @@ public class BlockChangeListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewHandler.isViewingAPortal(player)) {
+		if (!viewHandler.hasViewSession(player)) {
 			return;
 		}
 		
@@ -339,19 +339,6 @@ public class BlockChangeListener implements Listener {
 		
 		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(block), false);
-		
-		Player player = event.getPlayer();
-		
-		if (!viewHandler.isViewingAPortal(player)) {
-			return;
-		}
-		
-		Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player).getProjectedBlocks();
-		BlockVec blockPos = new BlockVec(block);
-		
-		if (viewSession.containsKey(blockPos)) {
-			event.setCancelled(true);
-		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

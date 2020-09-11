@@ -45,8 +45,9 @@ public class BlockCache {
 		
 		chunks = new HashSet<>();
 		
-		for (int chunkX = min.getX() >> 4; chunkX < max.getX() >> 4; chunkX++) {
-			for (int chunkZ = min.getZ() >> 4; chunkZ < max.getZ() >> 4; chunkZ++) {
+		for (int chunkX = min.getX() >> 4; chunkX <= max.getX() >> 4; chunkX++) {
+			for (int chunkZ = min.getZ() >> 4; chunkZ <= max.getZ() >> 4; chunkZ++) {
+				
 				chunks.add(portal.getWorld().getChunkAt(chunkX, chunkZ));
 			}
 		}
@@ -207,7 +208,7 @@ public class BlockCache {
 	/**
 	 * Returns a set of all entities that are contained by this cache
 	 */
-	private Set<Entity> getEntities() {
+	public Set<Entity> getEntities() {
 		
 		Set<Entity> containedEntities = new HashSet<>();
 		
