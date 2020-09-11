@@ -21,7 +21,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import javax.sound.sampled.Port;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,14 +36,10 @@ public class ViewHandler {
 	
 	private final NetherViewPlugin main;
 	private final PortalHandler portalHandler;
-	
 	private final PacketHandler packetHandler;
 	
 	private final Map<UUID, Boolean> portalViewEnabled;
-	private final Map<UUID, Portal> viewedPortals;
-	private final Map<UUID, ProjectionCache> viewedPortalSides;
-	private final Map<UUID, Map<BlockVec, BlockType>> projectedBlocks;
-	private final Map<UUID, ViewFrustum> lastViewFrustums;
+	private final Map<UUID, PlayerViewSession> viewSessions;
 	
 	private final HashMap<UUID, Set<Entity>> hiddenEntities;
 
@@ -57,10 +52,7 @@ public class ViewHandler {
 		this.packetHandler = packetHandler;
 		
 		portalViewEnabled = new HashMap<>();
-		viewedPortalSides = new HashMap<>();
-		projectedBlocks = new HashMap<>();
-		viewedPortals = new HashMap<>();
-		lastViewFrustums = new HashMap<>();
+		viewSessions = new HashMap<>();
 		hiddenEntities = new HashMap<>();
 	}
 	
@@ -74,10 +66,11 @@ public class ViewHandler {
 			packetHandler.showEntities(Bukkit.getPlayer(playerId), hiddenEntities.get(playerId));
 		}
 		
-		viewedPortals.clear();
-		viewedPortalSides.clear();
-		projectedBlocks.clear();
-		lastViewFrustums.clear();
+		viewSessions.clear();
+//		viewedPortals.clear();
+//		viewedPortalSides.clear();
+//		projectedBlocks.clear();
+//		lastViewFrustums.clear();
 		hiddenEntities.clear();
 	}
 	
@@ -109,39 +102,39 @@ public class ViewHandler {
 		}
 	}
 	
+	public PlayerViewSession getViewSession(Player player) {
+		return viewSessions.get(player.getUniqueId());
+	}
+	
+	public PlayerViewSession getOrCreateViewSession(Player player) {
+		
+		viewSessions.putIfAbsent(player.getUniqueId(), new PlayerViewSession(player));
+		return viewSessions.get(player.getUniqueId());
+	}
+	
 	/**
 	 * Returns true if currently a portal projection is being displayed to the player.
 	 */
 	public boolean isViewingAPortal(Player player) {
-		return viewedPortals.containsKey(player.getUniqueId());
+		return viewSessions.containsKey(player.getUniqueId());
 	}
 	
-	public Portal getViewedPortal(Player player) {
-		return viewedPortals.get(player.getUniqueId());
-	}
 	
-	/**
-	 * Returns a Map of BlockTypes linked to their location that are currently displayed with fake blocks to the player.
-	 * The method is being used very frequently so it does not check for the player's permission to view portal projections.
-	 * Returns (and internally adds) an empty Map if no projected blocks found.
-	 */
-	public Map<BlockVec, BlockType> getProjectedBlocks(Player player) {
-		
-		UUID uuid = player.getUniqueId();
-		projectedBlocks.putIfAbsent(uuid, new HashMap<>());
-		return projectedBlocks.get(uuid);
-	}
+//	public Map<BlockVec, BlockType> getViewSession(player).getProjectedBlocks() {
+//
+//		UUID uuid = player.getUniqueId();
+//		projectedBlocks.putIfAbsent(uuid, new HashMap<>());
+//		return projectedBlocks.get(uuid);
+//	}
 	
-	/**
-	 * Returns the one of the two projection caches of a portal that is being displayed to the player in the portal view.
-	 */
-	public ProjectionCache getViewedPortalSide(Player player) {
-		return getViewedPortalSide(player.getUniqueId());
-	}
-	
-	public ProjectionCache getViewedPortalSide(UUID playerId) {
-		return viewedPortalSides.get(playerId);
-	}
+
+//	public ProjectionCache getViewedPortalSide(Player player) {
+//		return getViewedPortalSide(player.getUniqueId());
+//	}
+//
+//	public ProjectionCache getViewedPortalSide(UUID playerId) {
+//		return viewedPortalSides.get(playerId);
+//	}
 	
 	/**
 	 * Removes the player's view session and removes all sent fake blocks.
@@ -152,7 +145,7 @@ public class ViewHandler {
 			return;
 		}
 		
-		packetHandler.removeFakeBlocks(player, getProjectedBlocks(player));
+		packetHandler.removeFakeBlocks(player, getViewSession(player).getProjectedBlocks());
 		packetHandler.showEntities(player, getHiddenEntities(player));
 		unregisterPortalProjection(player);
 	}
@@ -162,21 +155,21 @@ public class ViewHandler {
 	 * Returns the latest view frustum that was used to calculate the projection blocks for the player's projection.
 	 * Returns null if player is not nearby any portal or no blocks were displayed (due to steep view angles)
 	 */
-	public ViewFrustum getLastViewFrustum(Player player) {
-		return getLastViewFrustum(player.getUniqueId());
-	}
+//	public ViewFrustum getLastViewFrustum(Player player) {
+//		return getLastViewFrustum(player.getUniqueId());
+//	}
 	
-	public Map<UUID, ViewFrustum> getLastViewFrustums() {
-		return lastViewFrustums;
-	}
+//	public Map<UUID, ViewFrustum> getLastViewFrustums() {
+//		return lastViewFrustums;
+//	}
 	
 	/**
 	 * Returns the latest view frustum that was used to calculate the projection blocks for the player's projection.
 	 * Returns null if player is not nearby any portal or no blocks were displayed (due to steep view angles)
 	 */
-	public ViewFrustum getLastViewFrustum(UUID playerId) {
-		return lastViewFrustums.get(playerId);
-	}
+//	public ViewFrustum getLastViewFrustum(UUID playerId) {
+//		return lastViewFrustums.get(playerId);
+//	}
 	
 	
 	/**
@@ -221,11 +214,12 @@ public class ViewHandler {
 	public void unregisterPortalProjection(Player player) {
 		
 		UUID playerId = player.getUniqueId();
-		projectedBlocks.remove(playerId);
+		viewSessions.remove(playerId);
+//		projectedBlocks.remove(playerId);
 		hiddenEntities.remove(playerId);
-		viewedPortals.remove(playerId);
-		viewedPortalSides.remove(playerId);
-		lastViewFrustums.remove(playerId);
+//		viewedPortals.remove(playerId);
+//		viewedPortalSides.remove(playerId);
+//		lastViewFrustums.remove(playerId);
 	}
 	
 	/**
@@ -235,7 +229,7 @@ public class ViewHandler {
 		
 		Portal closestPortal = portalHandler.getClosestPortal(playerEyeLoc, true);
 		
-		if (portalDoesNotExist(closestPortal)) {
+		if (portalHandler.portalDoesNotExist(closestPortal)) {
 			hidePortalProjection(player);
 			return;
 		}
@@ -247,7 +241,7 @@ public class ViewHandler {
 			return;
 		}
 		
-		Portal lastViewedPortal = getViewedPortal(player);
+		Portal lastViewedPortal = getOrCreateViewSession(player).getViewedPortal();
 		
 		if (lastViewedPortal != null && !lastViewedPortal.equals(closestPortal)) {
 			hidePortalProjection(player);
@@ -267,20 +261,6 @@ public class ViewHandler {
 		} else {
 			hidePortalProjection(player);
 		}
-	}
-	
-	private boolean portalDoesNotExist(Portal portal) {
-		
-		if (portal == null) {
-			return true;
-		}
-		
-		if (!portalHandler.quickCheckExists(portal)) {
-			portalHandler.removePortal(portal);
-			return true;
-		}
-		
-		return false;
 	}
 	
 	private double getDistanceToPortal(Location playerEyeLoc, AxisAlignedRect portalRect) {
@@ -314,12 +294,12 @@ public class ViewHandler {
 		portalHandler.updateExpirationTime(portal.getCounterPortal());
 		
 		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
-		
-		viewedPortals.put(player.getUniqueId(), portal);
-		viewedPortalSides.put(player.getUniqueId(), projection);
-		
 		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
-		lastViewFrustums.put(player.getUniqueId(), playerFrustum);
+		
+		PlayerViewSession session = getOrCreateViewSession(player);
+		session.setViewedPortal(portal);
+		session.setViewedPortalSide(projection);
+		session.setLastViewFrustum(playerFrustum);
 		
 		displayProjectionBlocks(player, portal, projection, playerFrustum, displayFrustum, hidePortalBlocks);
 		
@@ -395,29 +375,46 @@ public class ViewHandler {
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
 		
+		Map<ProjectionCache, Set<PlayerViewSession>> sortedSessions = getSessionSortedByProjectionCaches();
+		
 		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(cache)) {
 			
 			Map<BlockVec, BlockType> projectionUpdates = updateProjection(projection, updatedBlocks);
 			
-			//TODO stop iterating same players for each projection?
-			for (UUID playerID : viewedPortalSides.keySet()) {
+			if (!sortedSessions.containsKey(projection)) {
+				continue;
+			}
+			
+			for (PlayerViewSession session : sortedSessions.get(projection)) {
 				
-				if (viewedPortalSides.get(playerID) != projection) {
-					continue;
-				}
-				
-				ViewFrustum playerFrustum = lastViewFrustums.get(playerID);
+				ViewFrustum playerFrustum = session.getLastViewFrustum();
 				
 				if (playerFrustum == null) {
 					continue;
 				}
 				
-				Player player = Bukkit.getPlayer(playerID);
 				Map<BlockVec, BlockType> newBlocksInFrustum = getBlocksInFrustum(playerFrustum, projectionUpdates);
-				getProjectedBlocks(player).putAll(newBlocksInFrustum);
+				Player player = session.getPlayer();
+				
+				getViewSession(player).getProjectedBlocks().putAll(newBlocksInFrustum);
 				packetHandler.displayFakeBlocks(player, newBlocksInFrustum);
 			}
 		}
+	}
+	
+	public Map<ProjectionCache, Set<PlayerViewSession>> getSessionSortedByProjectionCaches() {
+		
+		Map<ProjectionCache, Set<PlayerViewSession>> sortedViewers = new HashMap<>();
+
+		for (PlayerViewSession session : viewSessions.values()) {
+
+			ProjectionCache projection = session.getViewedPortalSide();
+
+			sortedViewers.putIfAbsent(projection, new HashSet<>());
+			sortedViewers.get(projection).add(session);
+		}
+
+		return sortedViewers;
 	}
 	
 	private Map<BlockVec, BlockType> updateProjection(ProjectionCache projection,
@@ -471,7 +468,7 @@ public class ViewHandler {
 	 */
 	private void displayBlocks(Player player, Map<BlockVec, BlockType> newBlocksToDisplay) {
 		
-		Map<BlockVec, BlockType> lastDisplayedBlocks = getProjectedBlocks(player);
+		Map<BlockVec, BlockType> lastDisplayedBlocks = getViewSession(player).getProjectedBlocks();
 		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
 		
 		Iterator<BlockVec> blockIter = lastDisplayedBlocks.keySet().iterator();
@@ -535,42 +532,42 @@ public class ViewHandler {
 		Set<Portal> affectedPortals = portalHandler.getPortalsLinkedTo(portal);
 		affectedPortals.add(portal);
 		
-		HashMap<UUID, Portal> viewPortalCopy = new HashMap<>(viewedPortals);
+		HashMap<UUID, PlayerViewSession> viewPortalCopy = new HashMap<>(viewSessions);
 		
-		for (Map.Entry<UUID, Portal> entry : viewPortalCopy.entrySet()) {
+		for (PlayerViewSession session : viewPortalCopy.values()) {
 			
-			if (affectedPortals.contains(entry.getValue())) {
-				hidePortalProjection(Bukkit.getPlayer(entry.getKey()));
+			if (affectedPortals.contains(session.getViewedPortal())) {
+				hidePortalProjection(session.getPlayer());
 			}
 		}
 	}
 	
-	public Set<UUID> getViewers(Portal portal) {
-		
-		Set<UUID> viewers = new HashSet<>();
-		
-		for (UUID playerId : viewedPortals.keySet()) {
-			
-			if (viewedPortals.get(playerId).equals(portal)) {
-				viewers.add(playerId);
-			}
-		}
-		
-		return viewers;
-	}
-	
-	public Map<Portal, Set<Player>> getViewersSorted() {
-		
-		Map<Portal, Set<Player>> sortedViewers = new HashMap<>();
-		
-		for (Map.Entry<UUID, Portal> entry : viewedPortals.entrySet()) {
-			
-			Portal portal = entry.getValue();
-			
-			sortedViewers.putIfAbsent(portal, new HashSet<>());
-			sortedViewers.get(portal).add(Bukkit.getPlayer(entry.getKey()));
-		}
-		
-		return sortedViewers;
-	}
+//	public Set<UUID> getViewers(Portal portal) {
+//
+//		Set<UUID> viewers = new HashSet<>();
+//
+//		for (UUID playerId : viewedPortals.keySet()) {
+//
+//			if (viewedPortals.get(playerId).equals(portal)) {
+//				viewers.add(playerId);
+//			}
+//		}
+//
+//		return viewers;
+//	}
+//
+//	public Map<Portal, Set<Player>> getViewersSorted() {
+//
+//		Map<Portal, Set<Player>> sortedViewers = new HashMap<>();
+//
+//		for (Map.Entry<UUID, Portal> entry : viewedPortals.entrySet()) {
+//
+//			Portal portal = entry.getValue();
+//
+//			sortedViewers.putIfAbsent(portal, new HashSet<>());
+//			sortedViewers.get(portal).add(Bukkit.getPlayer(entry.getKey()));
+//		}
+//
+//		return sortedViewers;
+//	}
 }

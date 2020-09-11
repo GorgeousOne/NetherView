@@ -69,9 +69,9 @@ public class PacketHandler {
 			PACKET_SPAWN_ENTITY_LIVING = NmsUtils.getNmsClass("PacketPlayOutSpawnEntityLiving").getConstructor(NmsUtils.getNmsClass("EntityLiving"));
 			PACKET_SPAWN_ENTITY = NmsUtils.getNmsClass("PacketPlayOutSpawnEntity").getConstructor(nmsEntityClass, int.class);
 			
+			METHOD_ENTITY_GET_DATA_WATCHER = nmsEntityClass.getMethod("getDataWatcher");
 			Class DATA_WATCHER = NmsUtils.getNmsClass("DataWatcher");
 			METHOD_DATA_WATCHER_A = DATA_WATCHER.getMethod("a");
-			METHOD_ENTITY_GET_DATA_WATCHER = nmsEntityClass.getMethod("getDataWatcher");
 			PACKET_ENTITY_METADATA = NmsUtils.getNmsClass("PacketPlayOutEntityMetadata").getConstructor(int.class, DATA_WATCHER, boolean.class);
 			
 		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException e) {
@@ -109,12 +109,22 @@ public class PacketHandler {
 		int packetId = System.identityHashCode(packet.getHandle());
 		
 		try {
+			
 			markedPacketIds.add(packetId);
 			protocolManager.sendServerPacket(player, packet);
 			
 		} catch (InvocationTargetException e) {
 			
 			markedPacketIds.remove(packetId);
+			throw new RuntimeException("Failed to send packet " + packet, e);
+		}
+	}
+	
+	private void sendProtocolPacket(Player player, PacketContainer packet) {
+		
+		try {
+			protocolManager.sendServerPacket(player, packet);
+		} catch (InvocationTargetException e) {
 			throw new RuntimeException("Failed to send packet " + packet, e);
 		}
 	}
@@ -307,13 +317,6 @@ public class PacketHandler {
 		}
 	}
 
-//	public void showEntities(Player player, Set<Entity> entities) {
-//
-//		for (Entity entity : entities) {
-//			protocolManager.updateEntity(entity, Collections.singletonList(player));
-//		}
-//	}
-	
 	public void showEntities(Player player, Set<Entity> visibleEntities) {
 		
 		if (visibleEntities.isEmpty()) {
@@ -433,7 +436,7 @@ public class PacketHandler {
 			equipmentPacket.getIntegers().write(0, entity.getEntityId());
 			equipmentPacket.getItemSlots().write(0, slot);
 			equipmentPacket.getItemModifier().write(0, item);
-			sendCustomPacket(player, equipmentPacket);
+			sendProtocolPacket(player, equipmentPacket);
 		}
 	}
 
@@ -461,7 +464,7 @@ public class PacketHandler {
 		PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
 		equipmentPacket.getIntegers().write(0, entity.getEntityId());
 		equipmentPacket.getSlotStackPairLists().write(0, equipmentList);
-		sendCustomPacket(player, equipmentPacket);
+		sendProtocolPacket(player, equipmentPacket);
 	}
 
 	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity) {

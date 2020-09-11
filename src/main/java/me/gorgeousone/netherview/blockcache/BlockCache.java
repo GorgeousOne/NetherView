@@ -3,10 +3,16 @@ package me.gorgeousone.netherview.blockcache;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.FacingUtils;
+import me.gorgeousone.netherview.wrapping.WrappedBoundingBox;
 import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * One big array of BlockTypes used to store information about all blocks in a cuboid area around a portal.
@@ -21,6 +27,7 @@ public class BlockCache {
 	
 	private final BlockVec facing;
 	private final BlockType borderType;
+	private final Set<Chunk> chunks;
 	
 	public BlockCache(Portal portal,
 	                  BlockVec offset,
@@ -35,6 +42,14 @@ public class BlockCache {
 		
 		this.facing = facing;
 		this.borderType = borderType;
+		
+		chunks = new HashSet<>();
+		
+		for (int chunkX = min.getX() >> 4; chunkX < max.getX() >> 4; chunkX++) {
+			for (int chunkZ = min.getZ() >> 4; chunkZ < max.getZ() >> 4; chunkZ++) {
+				chunks.add(portal.getWorld().getChunkAt(chunkX, chunkZ));
+			}
+		}
 	}
 	
 	private BlockVec size() {
@@ -187,5 +202,25 @@ public class BlockCache {
 		
 		//TODO check if block is directly in front of the portal.
 		return false;
+	}
+	
+	/**
+	 * Returns a set of all entities that are contained by this cache
+	 */
+	private Set<Entity> getEntities() {
+		
+		Set<Entity> containedEntities = new HashSet<>();
+		
+		for (Chunk chunk : chunks) {
+			
+			for (Entity entity : chunk.getEntities()) {
+				
+				if (WrappedBoundingBox.of(entity).intersectsBlockCache(this)) {
+					containedEntities.add(entity);
+				}
+			}
+		}
+		
+		return containedEntities;
 	}
 }

@@ -61,30 +61,6 @@ public class PortalEntityHandler {
 					return;
 				}
 				
-				Map<Portal, Collection<Entity>> newEntitiesNearPortals= new HashMap<>();
-				Map<Entity, Location> newEntityLocs = new HashMap<>();
-				
-				Map<Portal, Set<Entity>> entitiesThatMoved = new HashMap<>();
-				Map<Portal, Set<Entity>> addedEntities = new HashMap<>();
-				Map<Portal, Set<Entity>> removedEntities = new HashMap<>();
-				
-				for (Portal portal : portalHandler.getLoadedPortals()) {
-					
-					int entityDist = 2 * portal.getFrontProjection().getCacheLength() + (int) portal.getPortalRect().width();
-					Collection<Entity> detectedEntities = portal.getWorld().getNearbyEntities(portal.getLocation(), entityDist, entityDist, entityDist);
-					newEntitiesNearPortals.put(portal, detectedEntities);
-					
-					Collection<Entity> lastEntitiesNearPortal = entitiesNearPortals.get(portal);
-					Set<Entity> portalAddedEntities = getAddedEntities(lastEntitiesNearPortal, detectedEntities);
-					Set<Entity> portalRemovedEntities = getRemovedEntities(lastEntitiesNearPortal, detectedEntities);
-					Map<Entity, Location> portalMovingEntities = getMovingEntities(detectedEntities, portalAddedEntities);
-					
-					
-				}
-				
-				Map<Entity, WrappedBoundingBox> entityBoxes = new HashMap<>();
-				Map<Portal, Set<Player>> portalViewers = viewHandler.getViewersSorted();
-				Map<UUID, ViewFrustum> lastFrustums = viewHandler.getLastViewFrustums();
 				
 			}
 		};

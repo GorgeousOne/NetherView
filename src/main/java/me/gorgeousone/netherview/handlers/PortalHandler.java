@@ -158,12 +158,18 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
-	/**
-	 * Returns true if a random portal block of the portal still exists. It's meant to be a small test for assuring
-	 * that a portal simply still exists for portal viewing.
-	 */
-	public boolean quickCheckExists(Portal portal) {
-		return portal.getPortalBlocks().iterator().next().getType() == portalMaterial;
+	public boolean portalDoesNotExist(Portal portal) {
+		
+		if (portal == null) {
+			return true;
+		}
+		
+		if (portal.getPortalBlocks().iterator().next().getType() != portalMaterial) {
+			removePortal(portal);
+			return true;
+		}
+		
+		return false;
 	}
 	
 	/**

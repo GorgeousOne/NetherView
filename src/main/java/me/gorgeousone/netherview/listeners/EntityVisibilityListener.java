@@ -10,6 +10,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
+import me.gorgeousone.netherview.handlers.PlayerViewSession;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.wrapping.WrappedBoundingBox;
 import org.bukkit.entity.Entity;
@@ -53,13 +54,14 @@ public class EntityVisibilityListener {
 					return;
 				}
 				
-				ViewFrustum viewFrustum = viewHandler.getLastViewFrustum(player);
+				PlayerViewSession session = viewHandler.getViewSession(player);
+				ViewFrustum viewFrustum = session.getLastViewFrustum();
 				
 				if (viewFrustum == null) {
 					return;
 				}
 				
-				BlockCache cache = viewHandler.getViewedPortalSide(player);
+				BlockCache cache = session.getViewedPortalSide();
 				WrappedBoundingBox box = WrappedBoundingBox.of(entity);
 				
 				if (viewHandler.getHiddenEntities(player).contains(entity)) {
