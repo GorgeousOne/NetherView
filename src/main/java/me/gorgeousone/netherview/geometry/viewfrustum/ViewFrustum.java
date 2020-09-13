@@ -5,8 +5,8 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.Line;
 import me.gorgeousone.netherview.geometry.Plane;
-import me.gorgeousone.netherview.wrapping.Axis;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.Axis;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;

@@ -4,7 +4,7 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.FacingUtils;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;

@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.wrapping;
+package me.gorgeousone.netherview.wrapper;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
@@ -55,9 +55,7 @@ public class WrappedBoundingBox {
 	
 	private final List<Vector> vertices;
 	
-	public WrappedBoundingBox(Entity entity, double widthX, double height, double widthZ) {
-		
-		Location entityLoc = entity.getLocation();
+	public WrappedBoundingBox(Entity entity, Location entityLoc, double widthX, double height, double widthZ) {
 		
 		//dunno, paintings are a bit off
 		if (entity.getType() == EntityType.PAINTING && VersionUtils.IS_LEGACY_SERVER) {
@@ -94,6 +92,10 @@ public class WrappedBoundingBox {
 	}
 	
 	public static WrappedBoundingBox of(Entity entity) {
+		return of(entity, entity.getLocation());
+	}
+	
+	public static WrappedBoundingBox of(Entity entity, Location entityLoc) {
 		
 		if (VersionUtils.IS_LEGACY_SERVER) {
 			
@@ -102,6 +104,7 @@ public class WrappedBoundingBox {
 				
 				return new WrappedBoundingBox(
 						entity,
+						entityLoc,
 						getBoxWidthX(entityAabb),
 						getBoxHeight(entityAabb),
 						getBoxWidthZ(entityAabb));
@@ -118,6 +121,7 @@ public class WrappedBoundingBox {
 			
 			return new WrappedBoundingBox(
 					entity,
+					entityLoc,
 					box.getWidthX(),
 					box.getHeight(),
 					box.getWidthZ());

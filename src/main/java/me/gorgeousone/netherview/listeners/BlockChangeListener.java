@@ -23,7 +23,7 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.VersionUtils;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;

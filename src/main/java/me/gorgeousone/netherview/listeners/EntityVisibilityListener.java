@@ -12,7 +12,7 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.handlers.PlayerViewSession;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import me.gorgeousone.netherview.wrapping.WrappedBoundingBox;
+import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -30,7 +30,7 @@ public class EntityVisibilityListener {
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
 		
 		addEntityMoveInterception();
-	}
+	}   
 	
 	/**
 	 * Toggles the visibility of entities if they are moving into or out of a player's viewing frustum
@@ -75,7 +75,6 @@ public class EntityVisibilityListener {
 					if (box.intersectsBlockCache(cache) &&
 					    box.intersectsFrustum(viewFrustum)) {
 						
-						player.sendMessage("only option is here " + cache);
 						viewHandler.hideEntity(player, entity);
 					}
 				}

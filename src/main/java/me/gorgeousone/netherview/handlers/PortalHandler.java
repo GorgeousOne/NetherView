@@ -274,7 +274,7 @@ public class PortalHandler {
 		
 		Portal counterPortal = portal.getCounterPortal();
 		boolean linkTransformIsFlipped = portal.isViewFlipped() ^ main.portalsAreFlippedByDefault();
-		Transform linkTransform = TransformFactory.calculateLinkTransform(portal, counterPortal, linkTransformIsFlipped);
+		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, linkTransformIsFlipped);
 		
 		portal.setTpTransform(linkTransform.clone().invert());
 		

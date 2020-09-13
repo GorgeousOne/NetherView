@@ -3,8 +3,8 @@ package me.gorgeousone.netherview.blockcache;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.FacingUtils;
-import me.gorgeousone.netherview.wrapping.WrappedBoundingBox;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -21,13 +21,14 @@ import java.util.Set;
 public class BlockCache {
 	
 	private final Portal portal;
+	private final Set<Chunk> chunks;
+	
 	private final BlockType[][][] blockCopies;
 	private final BlockVec min;
 	private final BlockVec max;
 	
 	private final BlockVec facing;
 	private final BlockType borderType;
-	private final Set<Chunk> chunks;
 	
 	public BlockCache(Portal portal,
 	                  BlockVec offset,
@@ -36,14 +37,14 @@ public class BlockCache {
 	                  BlockType borderType) {
 		
 		this.portal = portal;
+		this.chunks = new HashSet<>();
+		
 		this.blockCopies = new BlockType[size.getX()][size.getY()][size.getZ()];
 		this.min = offset.clone();
 		this.max = offset.clone().add(size());
 		
 		this.facing = facing;
 		this.borderType = borderType;
-		
-		chunks = new HashSet<>();
 		
 		for (int chunkX = min.getX() >> 4; chunkX <= max.getX() >> 4; chunkX++) {
 			for (int chunkZ = min.getZ() >> 4; chunkZ <= max.getZ() >> 4; chunkZ++) {
@@ -63,6 +64,10 @@ public class BlockCache {
 	
 	public World getWorld() {
 		return portal.getWorld();
+	}
+	
+	public Set<Chunk> getChunks() {
+		return chunks;
 	}
 	
 	public BlockVec getMin() {

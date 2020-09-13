@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.wrapping.rotation;
+package me.gorgeousone.netherview.wrapper.rotation;
 
 import org.bukkit.block.data.Rail;
 

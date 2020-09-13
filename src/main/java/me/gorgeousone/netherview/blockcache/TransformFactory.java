@@ -2,7 +2,7 @@ package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapper.Axis;
 
 public class TransformFactory {
 	
@@ -12,9 +12,9 @@ public class TransformFactory {
 	 *
 	 * @param portal that has the projection cache
 	 * @param counterPortal that has the block cache related to it
-	 * @param isViewFlipped flips the transform rotation by 180 degrees
+	 * @param isPortalFlipped flips the transform rotation by 180 degrees
 	 */
-	public static Transform calculateLinkTransform(Portal portal, Portal counterPortal, boolean isViewFlipped) {
+	public static Transform calculateBlockLinkTransform(Portal portal, Portal counterPortal, boolean isPortalFlipped) {
 		
 		Transform linkTransform = new Transform();
 		Axis counterPortalAxis = counterPortal.getAxis();
@@ -24,7 +24,7 @@ public class TransformFactory {
 		
 		if (portal.getAxis() == counterPortalAxis) {
 			
-			if (isViewFlipped) {
+			if (isPortalFlipped) {
 				portalLoc2 = counterPortal.getMin();
 				
 			} else {
@@ -34,13 +34,13 @@ public class TransformFactory {
 			
 		} else {
 			
-			if (counterPortalAxis == Axis.X ^ isViewFlipped) {
+			if (counterPortalAxis == Axis.X ^ isPortalFlipped) {
 				linkTransform.setRotY90DegRight();
 			} else {
 				linkTransform.setRotY90DegLeft();
 			}
 			
-			portalLoc2 = isViewFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMin();
+			portalLoc2 = isPortalFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMin();
 		}
 		
 		linkTransform.setRotCenter(portalLoc2);

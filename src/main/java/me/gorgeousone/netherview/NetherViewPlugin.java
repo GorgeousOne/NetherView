@@ -16,6 +16,7 @@ import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockChangeListener;
+import me.gorgeousone.netherview.listeners.ChunkUnloadListener;
 import me.gorgeousone.netherview.listeners.EntityVisibilityListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
@@ -25,7 +26,7 @@ import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -272,6 +273,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
 		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
+		manager.registerEvents(new ChunkUnloadListener(viewHandler), this);
 		
 		new EntityVisibilityListener(this, viewHandler);
 	}

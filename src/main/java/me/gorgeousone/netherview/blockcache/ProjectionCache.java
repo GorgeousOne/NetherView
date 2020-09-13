@@ -2,8 +2,8 @@ package me.gorgeousone.netherview.blockcache;
 
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.wrapping.Axis;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.Axis;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 
 /**
  * The equivalent to a BlockCache used to store information about all blocks that will be displayed in the animation of a portal.
@@ -35,7 +35,7 @@ public class ProjectionCache extends BlockCache {
 	}
 	
 	public Transform getLinkTransform() {
-		return linkTransform;
+		return linkTransform.clone();
 	}
 	
 	/**
