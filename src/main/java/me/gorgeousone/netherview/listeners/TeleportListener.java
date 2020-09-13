@@ -1,8 +1,8 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
-import me.gorgeousone.netherview.api.PortalUnlinkEvent;
-import me.gorgeousone.netherview.api.UnlinkReason;
+import me.gorgeousone.netherview.event.PortalUnlinkEvent;
+import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;

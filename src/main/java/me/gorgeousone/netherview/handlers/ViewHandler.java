@@ -132,8 +132,21 @@ public class ViewHandler {
 		unregisterPortalProjection(player);
 	}
 	
+	public void projectEntity(Player player, Entity entity, Location location, Transform transform) {
+		
+		getViewSession(player).getProjectedEntities().add(entity);
+		packetHandler.showEntity(player, entity, location, transform);
+	}
+	
+	public void destroyProjectedEntity(Player player, Entity entity) {
+		
+		getViewSession(player).getProjectedEntities().remove(entity);
+		packetHandler.hideEntities(player, Collections.singleton(entity));
+	}
+	
 	public void showEntity(Player player, Entity entity) {
 		
+		player.sendMessage(ChatColor.GRAY + "");
 		getViewSession(player).getHiddenEntities().remove(entity);
 		packetHandler.showEntities(player, Collections.singleton(entity));
 	}
@@ -352,7 +365,7 @@ public class ViewHandler {
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
 		
-		Map<ProjectionCache, Set<PlayerViewSession>> sortedSessions = getSessionSortedByProjectionCaches();
+		Map<ProjectionCache, Set<PlayerViewSession>> sortedSessions = getSessionsSortedByProjectionCaches();
 		
 		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(cache)) {
 			
@@ -379,14 +392,13 @@ public class ViewHandler {
 		}
 	}
 	
-	public Map<ProjectionCache, Set<PlayerViewSession>> getSessionSortedByProjectionCaches() {
+	public Map<ProjectionCache, Set<PlayerViewSession>> getSessionsSortedByProjectionCaches() {
 		
 		Map<ProjectionCache, Set<PlayerViewSession>> sortedViewers = new HashMap<>();
 		
 		for (PlayerViewSession session : viewSessions.values()) {
 			
 			ProjectionCache projection = session.getViewedPortalSide();
-			
 			sortedViewers.putIfAbsent(projection, new HashSet<>());
 			sortedViewers.get(projection).add(session);
 		}

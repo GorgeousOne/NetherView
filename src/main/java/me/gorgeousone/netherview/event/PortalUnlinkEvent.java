@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.api;
+package me.gorgeousone.netherview.event;
 
 import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.event.Event;

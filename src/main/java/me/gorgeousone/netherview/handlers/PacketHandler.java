@@ -33,6 +33,7 @@ import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -347,6 +348,8 @@ public class PacketHandler {
 				if (entity instanceof LivingEntity) {
 					
 					spawnPacket = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
+					spawnPacket.getIntegers().write(1, (int) entity.getType().getTypeId());
+					
 					isLivingEntity = true;
 					writeHeadYaw = true;
 					
@@ -358,9 +361,9 @@ public class PacketHandler {
 		spawnPacket.getIntegers().write(0, entity.getEntityId());
 		spawnPacket.getUUIDs().write(0, entity.getUniqueId());
 		
-		if (isLivingEntity) {
-			spawnPacket.getIntegers().write(1, (int) entity.getType().getTypeId());
-		}
+//		if (isLivingEntity && !isPlayer) {
+//			spawnPacket.getIntegers().write(1, (int) entity.getType().getTypeId());
+//		}
 		
 		writeEntityPos(spawnPacket, entityLoc, isLivingEntity, writeHeadYaw);
 		sendProtocolPacket(player, spawnPacket);
@@ -379,7 +382,7 @@ public class PacketHandler {
 	
 	
 	private PacketContainer createPaintingPacket(Painting painting, Location location, Transform transform) {
-	
+		
 		PacketContainer spawnPacket = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY_PAINTING);
 		
 		BlockPosition blockPosition = new BlockPosition(location.toVector());
@@ -390,7 +393,7 @@ public class PacketHandler {
 		spawnPacket.getUUIDs().writeSafely(0, painting.getUniqueId());
 		spawnPacket.getBlockPositionModifier().write(0, blockPosition);
 		spawnPacket.getDirections().write(0, direction);
-		spawnPacket.getStrings().write(0, WordUtils.capitalize( painting.getArt().name().replace('_', ' ')));
+		spawnPacket.getStrings().write(0, WordUtils.capitalize(painting.getArt().name().replace('_', ' ')));
 		
 		return spawnPacket;
 	}
@@ -407,7 +410,10 @@ public class PacketHandler {
 		return spawnPacket;
 	}
 	
-	public void writeEntityPos(PacketContainer spawnPacket, Location entityLoc, boolean writeFacing, boolean writeHeadYaw) {
+	public void writeEntityPos(PacketContainer spawnPacket,
+	                           Location entityLoc,
+	                           boolean writeFacing,
+	                           boolean writeHeadYaw) {
 		
 		spawnPacket.getDoubles()
 				.write(0, entityLoc.getX())
@@ -419,14 +425,41 @@ public class PacketHandler {
 		}
 		
 		byte yawByte = (byte) (int) (entityLoc.getYaw() * 265 / 360);
-			
+		
 		spawnPacket.getBytes()
 				.write(0, yawByte)
-				.write(1, (byte)(int) (entityLoc.getPitch() * 265 / 360));
+				.write(1, (byte) (int) (entityLoc.getPitch() * 265 / 360));
 		
 		if (writeHeadYaw) {
 			spawnPacket.getBytes().write(2, yawByte);
 		}
+	}
+	
+	public void sendEntityMoveLook(Player player,
+	                               Entity entity,
+	                               Vector relMove,
+	                               double newYaw,
+	                               double newPitch,
+	                               boolean isOnGround) {
+		
+		PacketContainer moveLookPacket = protocolManager.createPacket(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
+		
+		moveLookPacket.getIntegers()
+				.write(0, entity.getEntityId())
+				.write(1, (int) (relMove.getX() * 4096))
+				.write(2, (int) (relMove.getY() * 4096))
+				.write(3, (int) (relMove.getZ() * 4096));
+		
+		moveLookPacket.getBytes()
+				.write(0, (byte) (newYaw * 256 / 260))
+				.write(1, (byte) (newPitch * 256 / 260));
+		
+		moveLookPacket.getBooleans()
+				.write(0, isOnGround)
+				//no idea what this does, seems to be always true
+				.write(1, true);
+		
+		sendProtocolPacket(player, moveLookPacket);
 	}
 	
 	public void showEntities(Player player, Set<Entity> visibleEntities) {

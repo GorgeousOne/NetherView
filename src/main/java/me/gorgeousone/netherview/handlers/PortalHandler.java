@@ -1,9 +1,9 @@
 package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
-import me.gorgeousone.netherview.api.PortalLinkEvent;
-import me.gorgeousone.netherview.api.PortalUnlinkEvent;
-import me.gorgeousone.netherview.api.UnlinkReason;
+import me.gorgeousone.netherview.event.PortalLinkEvent;
+import me.gorgeousone.netherview.event.PortalUnlinkEvent;
+import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
