@@ -316,12 +316,13 @@ public class PacketHandler {
 		}
 	}
 	
-	public void showEntity(Player player, Entity entity, Location entityLoc, Transform transform) {
+	public void showEntity(Player player, Entity entity, Transform transform) {
 		
 		if (entity == null || entity.isDead()) {
 			return;
 		}
 		
+		Location entityLoc = transform.transformLoc(entity.getLocation());
 		PacketContainer spawnPacket;
 		boolean isLivingEntity = false;
 		boolean writeHeadYaw = false;
@@ -360,10 +361,6 @@ public class PacketHandler {
 		
 		spawnPacket.getIntegers().write(0, entity.getEntityId());
 		spawnPacket.getUUIDs().write(0, entity.getUniqueId());
-		
-//		if (isLivingEntity && !isPlayer) {
-//			spawnPacket.getIntegers().write(1, (int) entity.getType().getTypeId());
-//		}
 		
 		writeEntityPos(spawnPacket, entityLoc, isLivingEntity, writeHeadYaw);
 		sendProtocolPacket(player, spawnPacket);
@@ -454,12 +451,17 @@ public class PacketHandler {
 				.write(0, (byte) (newYaw * 256 / 260))
 				.write(1, (byte) (newPitch * 256 / 260));
 		
+		//no idea what field 1 does, seems to be always true
 		moveLookPacket.getBooleans()
 				.write(0, isOnGround)
-				//no idea what this does, seems to be always true
 				.write(1, true);
 		
+		PacketContainer headRotPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
+		headRotPacket.getIntegers().write(0, entity.getEntityId());
+		headRotPacket.getBytes().write(0, (byte) (int) (newYaw * 265 / 360));
+		
 		sendProtocolPacket(player, moveLookPacket);
+		sendProtocolPacket(player, headRotPacket);
 	}
 	
 	public void showEntities(Player player, Set<Entity> visibleEntities) {

@@ -18,18 +18,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class EntityMovementHandler {
+public class EntityMotionHandler {
 	
 	private final NetherViewPlugin main;
 	private final ViewHandler viewHandler;
 	private final PacketHandler packetHandler;
 	
-	private BukkitRunnable entityMovementChecker;
+	private BukkitRunnable entityMotionChecker;
 	
 	private final Map<BlockCache, Set<Entity>> entitiesInSourceCaches;
 	private final Map<Entity, Location> lastEntityLocs;
 	
-	public EntityMovementHandler(NetherViewPlugin main, ViewHandler viewHandler, PacketHandler packetHandler) {
+	public EntityMotionHandler(NetherViewPlugin main, ViewHandler viewHandler, PacketHandler packetHandler) {
 		
 		this.main = main;
 		this.viewHandler = viewHandler;
@@ -50,12 +50,12 @@ public class EntityMovementHandler {
 		
 		entitiesInSourceCaches.clear();
 		lastEntityLocs.clear();
-		entityMovementChecker.cancel();
+		entityMotionChecker.cancel();
 	}
 	
 	private void startMovementChecker() {
 		
-		entityMovementChecker = new BukkitRunnable() {
+		entityMotionChecker = new BukkitRunnable() {
 			@Override
 			public void run() {
 				
@@ -76,6 +76,49 @@ public class EntityMovementHandler {
 						return;
 					}
 					
+					for (ProjectionCache projection : sourceCacheMap.get(sourceCache)) {
+						for (PlayerViewSession session : projectionSessionsMap.get(projection)) {
+						
+							for (Entity entity : session.getProjectedEntities().keySet()) {
+								if (!newEntities.contains(entity)) {
+									
+									Player player = session.getPlayer();
+									viewHandler.destroyProjectedEntity(player, entity);
+									player.sendMessage(ChatColor.GOLD + "hide " + entity.getType().name().toLowerCase());
+								}
+							}
+						}
+					}
+					
+					for (ProjectionCache projection : sourceCacheMap.get(sourceCache)) {
+						for (PlayerViewSession session : projectionSessionsMap.get(projection)) {
+							
+							for (Entity entity : newEntities) {
+								
+								Player player = session.getPlayer();
+								ViewFrustum playerFrustum = session.getLastViewFrustum();
+								
+								if (entity.equals(player) || playerFrustum == null) {
+									continue;
+								}
+								
+								Transform linkTransform = projection.getLinkTransform();
+								Location projectionLoc = linkTransform.transformLoc(entity.getLocation());
+								WrappedBoundingBox boundingBox = WrappedBoundingBox.of(entity, projectionLoc);
+								
+								boolean entityIntersectsProjection = boundingBox.intersectsBlockCache(projection);
+								boolean entityIntersectsFrustum = boundingBox.intersectsFrustum(playerFrustum);
+								
+								if (!session.getProjectedEntities().containsKey(entity) && entityIntersectsProjection && entityIntersectsFrustum) {
+									
+									viewHandler.projectEntity(session.getPlayer(), entity, projection.getLinkTransform());
+									player.sendMessage(ChatColor.GOLD + "show " + entity.getType().name().toLowerCase());
+									player.sendMessage(linkTransform.getTranslation().toString());
+								}
+							}
+						}
+					}
+					
 					Map<Entity, Location> movedEntities = getMovedEntities(newEntities, lastEntityLocs);
 					
 					for (Entity entity : movedEntities.keySet()) {
@@ -92,33 +135,36 @@ public class EntityMovementHandler {
 								
 								Transform linkTransform = projection.getLinkTransform();
 								Location projectionLoc = linkTransform.transformLoc(entity.getLocation());
-								
 								WrappedBoundingBox boundingBox = WrappedBoundingBox.of(entity, projectionLoc);
+								
+								boolean entityIntersectsProjection = boundingBox.intersectsBlockCache(projection);
 								boolean entityIntersectsFrustum = boundingBox.intersectsFrustum(playerFrustum);
 								
-								Location entityMovement = movedEntities.get(entity);
-								
-								
-								if (session.getProjectedEntities().contains(entity)) {
+								if (session.getProjectedEntities().containsKey(entity)) {
 									
-									if (!entityIntersectsFrustum) {
-										viewHandler.destroyProjectedEntity(player, entity);
-										player.sendMessage(ChatColor.GOLD + "hide " + entity.getType().name().toLowerCase());
+									if (entityIntersectsProjection && entityIntersectsFrustum) {
+									
+										Location lastEntityLoc = session.getProjectedEntities().get(entity);
+										Location projectedMovement = linkTransform.rotateLoc(entity.getLocation().subtract(lastEntityLoc));
+										session.getProjectedEntities().put(entity, entity.getLocation());
 										
-									} else {
 										packetHandler.sendEntityMoveLook(
 												player,
 												entity,
-												entityMovement.toVector(),
-												entityMovement.getYaw(),
-												entityMovement.getPitch(),
+												projectedMovement.toVector(),
+												projectedMovement.getYaw(),
+												projectedMovement.getPitch(),
 												entity.isOnGround());
+
+									} else {
+										viewHandler.destroyProjectedEntity(player, entity);
+										player.sendMessage(ChatColor.GOLD + "hide " + entity.getType().name().toLowerCase());
 									}
 									
 								} else {
 									
-									if (entityIntersectsFrustum) {
-										viewHandler.projectEntity(session.getPlayer(), entity, projectionLoc, linkTransform);
+									if (entityIntersectsProjection && entityIntersectsFrustum) {
+										viewHandler.projectEntity(session.getPlayer(), entity, linkTransform);
 										player.sendMessage(ChatColor.GOLD + "show " + entity.getType().name().toLowerCase());
 									}
 								}
@@ -134,7 +180,7 @@ public class EntityMovementHandler {
 			}
 		};
 		
-		entityMovementChecker.runTaskTimer(main, 0, 3);
+		entityMotionChecker.runTaskTimer(main, 0, 3);
 	}
 	
 	private Map<BlockCache, Set<ProjectionCache>> getProjectionsSortedBySources(Set<ProjectionCache> projections) {
@@ -178,13 +224,6 @@ public class EntityMovementHandler {
 		relMovement.setYaw(newLoc.getYaw() - oldLoc.getYaw());
 		relMovement.setPitch(newLoc.getPitch() - oldLoc.getPitch());
 		return relMovement;
-	}
-	
-	private Set<Entity> getEntitiesInFrustum(ViewFrustum frustum, Collection<Entity> nearbyEntities) {
-		
-		Set<Entity> visibleEntities = new HashSet<>();
-		
-		return null;
 	}
 
 //	private Set<Entity> getAddedEntities(Collection<Entity> lastEntities, Collection<Entity> newEntities) {

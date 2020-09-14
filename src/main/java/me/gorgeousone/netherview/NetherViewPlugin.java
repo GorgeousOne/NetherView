@@ -12,7 +12,7 @@ import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
 import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
-import me.gorgeousone.netherview.handlers.EntityMovementHandler;
+import me.gorgeousone.netherview.handlers.EntityMotionHandler;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
@@ -62,7 +62,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private PacketHandler packetHandler;
 	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
-	private EntityMovementHandler movementHandler;
+	private EntityMotionHandler motionHandler;
 	
 	private Set<UUID> worldsWithPortalViewing;
 	
@@ -101,7 +101,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		packetHandler = new PacketHandler();
 		portalHandler = new PortalHandler(this, portalMaterial);
 		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
-		movementHandler = new EntityMovementHandler(this, viewHandler, packetHandler);
+		motionHandler = new EntityMotionHandler(this, viewHandler, packetHandler);
 		
 		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
@@ -149,7 +149,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		viewHandler.reload();
 		portalHandler.reload();
-		movementHandler.reload();
+		motionHandler.reload();
 		
 		loadConfigData();
 		checkForUpdates();
@@ -165,7 +165,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		savePortalsToConfig();
 		viewHandler.reload();
 		portalHandler.disable();
-		movementHandler.disable();
+		motionHandler.disable();
 	}
 	
 	public PortalHandler getPortalHandler() {

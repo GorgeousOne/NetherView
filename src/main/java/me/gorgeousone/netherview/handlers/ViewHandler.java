@@ -129,13 +129,15 @@ public class ViewHandler {
 		
 		packetHandler.removeFakeBlocks(player, session.getProjectedBlocks());
 		packetHandler.showEntities(player, session.getHiddenEntities());
+		packetHandler.hideEntities(player, session.getProjectedEntities().keySet());
+		
 		unregisterPortalProjection(player);
 	}
 	
-	public void projectEntity(Player player, Entity entity, Location location, Transform transform) {
+	public void projectEntity(Player player, Entity entity, Transform transform) {
 		
-		getViewSession(player).getProjectedEntities().add(entity);
-		packetHandler.showEntity(player, entity, location, transform);
+		getViewSession(player).getProjectedEntities().put(entity, entity.getLocation());
+		packetHandler.showEntity(player, entity, transform);
 	}
 	
 	public void destroyProjectedEntity(Player player, Entity entity) {
@@ -254,6 +256,8 @@ public class ViewHandler {
 		session.setViewedPortal(portal);
 		session.setViewedPortalSide(projection);
 		
+		projection.loadSourceChunks();
+		
 		if (!displayFrustum) {
 			session.setLastViewFrustum(null);
 		} else {
@@ -334,7 +338,7 @@ public class ViewHandler {
 		
 		//---------------------------------------
 		
-		Transform linkTransform = projection.getLinkTransform().translateRotCenter(0.5, 0.5, 0.5);
+		Transform linkTransform = projection.getLinkTransform();
 		
 		for (Entity entity : otherWorldlyEntities) {
 			
@@ -347,16 +351,12 @@ public class ViewHandler {
 			    box.intersectsBlockCache(projection) &&
 			    box.intersectsFrustum(playerFrustum)) {
 				
-				projectedEntities.put(entity, transformedEntityLoc);
+				projectedEntities.put(entity, entity.getLocation());
+				transformedEntityLoc.getWorld().spawnParticle(Particle.DRIP_LAVA, transformedEntityLoc, 1);
 			}
 		}
 		
-		for (Location loc1 : projectedEntities.values()) {
-			loc1.getWorld().spawnParticle(Particle.DRIP_LAVA, loc1, 1);
-		}
-		
 		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.AQUA + "total " + projectedEntities.size()));
-		
 		projectEntities(player, projectedEntities, linkTransform);
 	}
 	
@@ -516,21 +516,21 @@ public class ViewHandler {
 	
 	private void projectEntities(Player player, Map<Entity, Location> currentlyProjectedEntities, Transform linkTransform) {
 		
-		Set<Entity> lastProjectedEntities = getViewSession(player).getProjectedEntities();
+		Map<Entity, Location> lastProjectedEntities = getViewSession(player).getProjectedEntities();
 		Set<Entity> invisibleEntities = new HashSet<>();
 		
 		if (currentlyProjectedEntities == null || currentlyProjectedEntities.isEmpty()) {
 			
-			packetHandler.hideEntities(player, lastProjectedEntities);
+			packetHandler.hideEntities(player, lastProjectedEntities.keySet());
 			lastProjectedEntities.clear();
 			return;
 		}
 		
-		Iterator<Entity> entityIter = lastProjectedEntities.iterator();
+		Iterator<Map.Entry<Entity, Location>> entityIter = lastProjectedEntities.entrySet().iterator();
 		
 		while (entityIter.hasNext()) {
 			
-			Entity entity = entityIter.next();
+			Entity entity = entityIter.next().getKey();
 			
 			if (!currentlyProjectedEntities.containsKey(entity)) {
 				invisibleEntities.add(entity);
@@ -538,11 +538,11 @@ public class ViewHandler {
 			}
 		}
 		
-		currentlyProjectedEntities.entrySet().removeIf(entry -> lastProjectedEntities.contains(entry.getKey()));
-		lastProjectedEntities.addAll(currentlyProjectedEntities.keySet());
+		currentlyProjectedEntities.entrySet().removeIf(entry -> lastProjectedEntities.containsKey(entry.getKey()));
+		lastProjectedEntities.putAll(currentlyProjectedEntities);
 		
-		for (Map.Entry<Entity, Location> entry : currentlyProjectedEntities.entrySet()) {
-			packetHandler.showEntity(player, entry.getKey(), entry.getValue(), linkTransform);
+		for (Entity entity : currentlyProjectedEntities.keySet()) {
+			packetHandler.showEntity(player, entity, linkTransform);
 		}
 		
 		packetHandler.hideEntities(player, invisibleEntities);

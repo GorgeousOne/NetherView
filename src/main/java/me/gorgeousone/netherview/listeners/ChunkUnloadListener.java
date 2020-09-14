@@ -2,6 +2,7 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.handlers.PlayerViewSession;
 import me.gorgeousone.netherview.handlers.ViewHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -20,7 +21,9 @@ public class ChunkUnloadListener implements Listener {
 		for (PlayerViewSession session: viewHandler.getViewSessions()) {
 		
 			if (session.getViewedPortalSide().getChunks().contains(event.getChunk())) {
+				
 				event.setCancelled(true);
+				Bukkit.broadcastMessage("stop it " + event.getChunk().getX() + " " + event.getChunk().getZ());
 			}
 		}
 	}

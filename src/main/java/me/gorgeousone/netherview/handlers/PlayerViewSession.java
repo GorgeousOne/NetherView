@@ -6,6 +6,7 @@ import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -25,14 +26,14 @@ public class PlayerViewSession {
 	
 	private final Map<BlockVec, BlockType> projectedBlocks;
 	private final Set<Entity> hiddenEntities;
-	private final Set<Entity> projectedEntities;
+	private final Map<Entity, Location> projectedEntities;
 	
 	public PlayerViewSession(Player player) {
 		
 		this.playerId = player.getUniqueId();
 		this.projectedBlocks = new HashMap<>();
 		this.hiddenEntities = new HashSet<>();
-		this.projectedEntities = new HashSet<>();
+		this.projectedEntities = new HashMap<>();
 	}
 	
 	public UUID getPlayerId() {
@@ -87,7 +88,7 @@ public class PlayerViewSession {
 		return hiddenEntities;
 	}
 	
-	public Set<Entity> getProjectedEntities() {
+	public Map<Entity, Location> getProjectedEntities() {
 		return projectedEntities;
 	}
 }

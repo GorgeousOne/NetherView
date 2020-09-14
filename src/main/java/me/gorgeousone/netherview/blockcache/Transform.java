@@ -14,6 +14,7 @@ public class Transform {
 	private final int[][] rotYMatrix;
 	
 	public Transform() {
+		
 		translation = new Vector();
 		rotCenter = new Vector();
 		rotYMatrix = new int[][]{{1, 0}, {0, 1}};
@@ -22,7 +23,7 @@ public class Transform {
 	protected Transform(BlockVec translation, BlockVec rotCenter, int[][] rotationY) {
 		
 		this.translation = translation.toVector();
-		this.rotCenter = rotCenter.toVector();
+		this.rotCenter = rotCenter.toVector().add(new Vector(0.5, 0, 0.5));
 		this.rotYMatrix = rotationY;
 	}
 	
@@ -33,13 +34,17 @@ public class Transform {
 		this.rotYMatrix = rotationY;
 	}
 	
+	public Vector getTranslation() {
+		return translation.clone();
+	}
+	
 	public Transform setTranslation(Vector pos) {
 		this.translation = pos.clone();
 		return this;
 	}
 	
 	public Transform setTranslation(BlockVec pos) {
-		this.translation = pos.toVector();
+		this.translation = pos.toVector().add(new Vector(0.5, 0, 0.5));
 		return this;
 	}
 	
@@ -52,7 +57,7 @@ public class Transform {
 		this.rotCenter = rotCenter.toVector();
 		return this;
 	}
-
+	
 	public Transform translateRotCenter(double dx, double dy, double dz) {
 		this.rotCenter.add(new Vector(dx, dy, dz));
 		return this;
@@ -103,11 +108,12 @@ public class Transform {
 	
 	public BlockVec transformVec(BlockVec blockVec) {
 		
-		Vector transVec = blockVec.toVector();
-		transVec.subtract(rotCenter);
-		rotateVec(transVec);
+		BlockVec blockRotCenter = new BlockVec(rotCenter);
+		blockVec.subtract(blockRotCenter);
+		rotateVec(blockVec);
+		blockVec.add(blockRotCenter);
 		
-		return new BlockVec(transVec.add(rotCenter).add(translation));
+		return blockVec.add(new BlockVec(translation));
 	}
 	
 	public Vector transformVec(Vector vec) {
@@ -120,39 +126,50 @@ public class Transform {
 	
 	public Location transformLoc(Location loc) {
 		
-		Vector vecRotCenter = rotCenter;
-		loc.subtract(vecRotCenter);
-		rotateLoc(loc);
+		if (!isRotY0Deg()) {
+			
+			loc.subtract(rotCenter);
+			rotateLoc(loc);
+			loc.add(rotCenter);
+		}
 		
-		return loc.add(vecRotCenter).add(translation);
+		if (translation.lengthSquared() != 0) {
+			loc.add(translation);
+		}
+		
+		return loc;
 	}
 	
-	private void rotateVec(BlockVec relativeVec) {
+	private BlockVec rotateVec(BlockVec relativeVec) {
 		
 		int transX = relativeVec.getX();
 		int transZ = relativeVec.getZ();
 		
 		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
 		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
+		return relativeVec;
 	}
 	
-	private void rotateVec(Vector relativeVec) {
+	public Vector rotateVec(Vector relativeVec) {
 		
 		double transX = relativeVec.getX();
 		double transZ = relativeVec.getZ();
 		
 		relativeVec.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
 		relativeVec.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
+		return relativeVec;
 	}
 	
-	private void rotateLoc(Location relativeLoc) {
+	public Location rotateLoc(Location relativeLoc) {
 		
 		double transX = relativeLoc.getX();
 		double transZ = relativeLoc.getZ();
 		
 		relativeLoc.setX(rotYMatrix[0][0] * transX + rotYMatrix[0][1] * transZ);
 		relativeLoc.setZ(rotYMatrix[1][0] * transX + rotYMatrix[1][1] * transZ);
+		
 		relativeLoc.setYaw(rotateYaw(relativeLoc.getYaw()));
+		return relativeLoc;
 	}
 	
 	public float rotateYaw(float yaw) {
