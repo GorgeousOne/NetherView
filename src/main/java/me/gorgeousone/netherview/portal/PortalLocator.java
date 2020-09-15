@@ -19,9 +19,14 @@ import java.util.Set;
 public class PortalLocator {
 	
 	private static Material PORTAL_MATERIAL;
+	private static int MAX_PORTAL_SIZE;
 	
 	public static void configureVersion(Material portalMaterial) {
 		PortalLocator.PORTAL_MATERIAL = portalMaterial;
+	}
+	
+	public static void setMaxPortalSize(int portalSize) {
+		MAX_PORTAL_SIZE = portalSize;
 	}
 	
 	/**
@@ -100,9 +105,12 @@ public class PortalLocator {
 		
 		//translate the portalRect towards the middle of the block;
 		AxisAlignedRect portalRect = new AxisAlignedRect(portalAxis, rectMin, rectMax);
+		
+		if (portalRect.width() > MAX_PORTAL_SIZE || portalRect.height() > MAX_PORTAL_SIZE) {
+			throw new IllegalArgumentException(ChatColor.GRAY + "Cannot make portal views bigger than " + MAX_PORTAL_SIZE + " blocks!");
+		}
+		
 		portalRect.translate(portalRect.getPlane().getNormal().multiply(0.5));
-		
-		
 		return portalRect;
 	}
 	
@@ -113,7 +121,7 @@ public class PortalLocator {
 		
 		Block blockIterator = sourceBlock;
 		
-		for (int i = 0; i < 22; i++) {
+		for (int i = 0; i <= MAX_PORTAL_SIZE; i++) {
 			
 			Block nextBlock = blockIterator.getRelative(facing);
 			
@@ -124,8 +132,8 @@ public class PortalLocator {
 			blockIterator = nextBlock;
 		}
 		
-		MessageUtils.printDebug("Detection stopped after exceeding 21 portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
-		throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal appears bigger than possible in vanilla minecraft!");
+		MessageUtils.printDebug("Detection stopped after exceeding " + MAX_PORTAL_SIZE + " portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
+		throw new IllegalArgumentException(ChatColor.GRAY + "Cannot make portal views bigger than " + MAX_PORTAL_SIZE + " blocks!");
 	}
 	
 	/**

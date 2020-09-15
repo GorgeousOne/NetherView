@@ -1,13 +1,14 @@
-flip-portals-by-default: false
+max-portal-size: 4
 portal-projection-view-distance: 4
 portal-display-range: 32
+flip-portals-by-default: false
 hide-portal-blocks: true
 cancel-teleport-when-linking-portals: true
 instant-teleport: true
-warning-messages: true
-debug-messages: false
 hide-entities-behind-portals: true
 show-entities-inside-portals: true
+warning-messages: true
+debug-messages: false
 worlds-with-portal-viewing:
     - world
     - world_nether
