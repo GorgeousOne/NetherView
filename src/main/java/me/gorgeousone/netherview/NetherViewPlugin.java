@@ -66,6 +66,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private int portalProjectionDist;
 	private int portalDisplayRangeSquared;
 	
+	private boolean portalsAreFlippedByDefault;
 	private boolean hidePortalBlocks;
 	private boolean cancelTeleportWhenLinking;
 	private boolean instantTeleportEnabled;
@@ -73,7 +74,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private boolean debugMessagesEnabled;
 	private boolean entityHidingEnabled;
 	private boolean entityViewingEnabled;
-	private boolean portalsAreFlippedByDefault;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
 	
@@ -288,6 +288,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		int portalDisplayRange = clamp(getConfig().getInt("portal-display-range"), 1, 128);
 		portalDisplayRangeSquared = (int) Math.pow(portalDisplayRange, 2);
 		portalProjectionDist = clamp(getConfig().getInt("portal-projection-view-distance"), 1, 32);
+		PortalLocator.setMaxPortalSize(clamp(getConfig().getInt("max-portal-size"), 3, 21));
+		
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
 		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
