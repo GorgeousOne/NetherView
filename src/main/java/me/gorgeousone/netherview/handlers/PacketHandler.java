@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.injector.PacketConstructor;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.EnumWrappers;
@@ -16,18 +17,15 @@ import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.utils.NmsUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
-import me.gorgeousone.netherview.utils.WordUtils;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import net.minecraft.server.v1_13_R2.EntityLiving;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.ExperienceOrb;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
@@ -316,16 +314,15 @@ public class PacketHandler {
 		}
 	}
 	
-	public void showEntity(Player player, Entity entity, Transform transform) {
+	public void showEntity(Player player,
+	                       Entity entity,
+	                       Transform transform) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
 		
 		if (entity == null || entity.isDead()) {
 			return;
 		}
 		
 		Location entityLoc = transform.transformLoc(entity.getLocation());
-		PacketContainer spawnPacket;
-		boolean isLivingEntity = false;
-		boolean writeHeadYaw = false;
 		
 		switch (entity.getType()) {
 			
@@ -334,78 +331,95 @@ public class PacketHandler {
 				return;
 			
 			case EXPERIENCE_ORB:
-				sendProtocolPacket(player, createXpOrbPacket((ExperienceOrb) entity, entityLoc));
+//				sendProtocolPacket(player, createXpOrbPacket((ExperienceOrb) entity, entityLoc));
 				return;
 			
 			case PLAYER:
-				spawnPacket = protocolManager.createPacket(PacketType.Play.Server.NAMED_ENTITY_SPAWN);
-				spawnPacket.getDataWatcherModifier().write(0, new WrappedDataWatcher(entity));
 				
-				isLivingEntity = true;
-				break;
+				sendProtocolPacket(player, createPlayerPacket((HumanEntity) entity, entityLoc));
+				sendProtocolPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
+				showEquipment(player, (LivingEntity) entity);
+				return;
 			
 			default:
 				
 				if (entity instanceof LivingEntity) {
 					
-					spawnPacket = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
-					spawnPacket.getIntegers().write(1, (int) entity.getType().getTypeId());
-					
-					isLivingEntity = true;
-					writeHeadYaw = true;
-					
+					sendProtocolPacket(player, createEntityLivingPacket((LivingEntity) entity, entityLoc));
+					sendProtocolPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
+					showEquipment(player, (LivingEntity) entity);
 				} else {
-					spawnPacket = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY);
+					sendProtocolPacket(player, createEntityPacket(entity, entityLoc));
+					return;
 				}
-		}
-		
-		spawnPacket.getIntegers().write(0, entity.getEntityId());
-		spawnPacket.getUUIDs().write(0, entity.getUniqueId());
-		
-		writeEntityPos(spawnPacket, entityLoc, isLivingEntity, writeHeadYaw);
-		sendProtocolPacket(player, spawnPacket);
-		sendProtocolPacket(player, createMetadataPacket(entity));
-		
-		if (isLivingEntity) {
-			
-			PacketContainer headRotPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
-			headRotPacket.getIntegers().writeSafely(0, entity.getEntityId());
-			headRotPacket.getBytes().writeSafely(0, (byte) (int) (entityLoc.getYaw() * 265 / 360));
-			sendProtocolPacket(player, headRotPacket);
-			
-			showEquipment(player, (LivingEntity) entity);
 		}
 	}
 	
-	
-	private PacketContainer createPaintingPacket(Painting painting, Location location, Transform transform) {
+	private PacketContainer createHeadRotation(Entity entity, float yaw) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
 		
-		PacketContainer spawnPacket = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY_PAINTING);
+		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(
+				PacketType.Play.Server.ENTITY_HEAD_ROTATION,
+				NmsUtils.getNmsClass("Entity"), byte.class);
+		
+		byte byteYaw = (byte) (int) (yaw * 265 / 360);
+		return packetConstructor.createPacket(NmsUtils.getHandle(entity), byteYaw);
+	}
+	
+	private PacketContainer createPlayerPacket(HumanEntity player, Location entityLoc) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+		
+		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(PacketType.Play.Server.NAMED_ENTITY_SPAWN, NmsUtils.getNmsClass("EntityHuman"));
+		PacketContainer spawnPacket = packetConstructor.createPacket(NmsUtils.getHandle(player));
+		writeEntityPos(spawnPacket, entityLoc, true, false);
+		
+		
+		return spawnPacket;
+	}
+	
+	private PacketContainer createEntityPacket(Entity entity,
+	                                           Location entityLoc) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+		
+		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"));
+		PacketContainer spawnPacket = packetConstructor.createPacket(NmsUtils.getHandle(entity));
+		writeEntityPos(spawnPacket, entityLoc, false, false);
+		return spawnPacket;
+	}
+	
+	private PacketContainer createEntityLivingPacket(LivingEntity entity, Location entityLoc) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+		
+		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_LIVING, NmsUtils.getNmsClass("EntityLiving"));
+		PacketContainer spawnPacket = packetConstructor.createPacket(NmsUtils.getHandle(entity));
+		writeEntityPos(spawnPacket, entityLoc, true, true);
+		return spawnPacket;
+	}
+	
+	private PacketContainer createPaintingPacket(Painting painting,
+	                                             Location location,
+	                                             Transform transform) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+
+		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_PAINTING, NmsUtils.getNmsClass("EntityPainting"));
+		PacketContainer spawnPacket = packetConstructor.createPacket(NmsUtils.getHandle(painting));
 		
 		BlockPosition blockPosition = new BlockPosition(location.toVector());
 		BlockFace rotatedFace = FacingUtils.getRotatedFace(painting.getFacing(), transform.getQuarterTurns());
-		EnumWrappers.Direction direction = FacingUtils.getBlockFaceToDirection(rotatedFace);
-		
-		spawnPacket.getIntegers().writeSafely(0, painting.getEntityId());
-		spawnPacket.getUUIDs().writeSafely(0, painting.getUniqueId());
+		EnumWrappers.Direction rotatedDirection = FacingUtils.getBlockFaceToDirection(rotatedFace);
+
 		spawnPacket.getBlockPositionModifier().write(0, blockPosition);
-		spawnPacket.getDirections().write(0, direction);
-		spawnPacket.getStrings().write(0, WordUtils.capitalize(painting.getArt().name().replace('_', ' ')));
+		spawnPacket.getDirections().write(0, rotatedDirection);
 		
 		return spawnPacket;
 	}
-	
-	private PacketContainer createXpOrbPacket(ExperienceOrb xpOrb, Location location) {
-		
-		PacketContainer spawnPacket = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY_EXPERIENCE_ORB);
-		writeEntityPos(spawnPacket, location, false, false);
-		
-		spawnPacket.getIntegers()
-				.write(0, xpOrb.getEntityId())
-				.write(1, xpOrb.getExperience());
-		
-		return spawnPacket;
-	}
+
+//	private PacketContainer createXpOrbPacket(ExperienceOrb xpOrb, Location location) {
+//
+//		PacketContainer spawnPacket = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY_EXPERIENCE_ORB);
+//		writeEntityPos(spawnPacket, location, false, false);
+//
+//		spawnPacket.getIntegers()
+//				.write(0, xpOrb.getEntityId())
+//				.write(1, xpOrb.getExperience());
+//
+//		return spawnPacket;
+//	}
 	
 	public void writeEntityPos(PacketContainer spawnPacket,
 	                           Location entityLoc,
@@ -442,10 +456,22 @@ public class PacketHandler {
 		PacketContainer moveLookPacket = protocolManager.createPacket(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
 		
 		moveLookPacket.getIntegers()
-				.write(0, entity.getEntityId())
-				.write(1, (int) (relMove.getX() * 4096))
-				.write(2, (int) (relMove.getY() * 4096))
-				.write(3, (int) (relMove.getZ() * 4096));
+				.write(0, entity.getEntityId());
+		
+		if (VersionUtils.serverIsAtOrAbove("1.14.0")) {
+			
+			moveLookPacket.getShorts()
+					.write(0, (short) (relMove.getX() * 4096))
+					.write(1, (short) (relMove.getY() * 4096))
+					.write(2, (short) (relMove.getZ() * 4096));
+			
+		} else {
+			
+			moveLookPacket.getIntegers()
+					.write(1, (int) (relMove.getX() * 4096))
+					.write(2, (int) (relMove.getY() * 4096))
+					.write(3, (int) (relMove.getZ() * 4096));
+		}
 		
 		moveLookPacket.getBytes()
 				.write(0, (byte) (newYaw * 256 / 260))
@@ -518,9 +544,8 @@ public class PacketHandler {
 		
 		WrappedDataWatcher dataWatcher = new WrappedDataWatcher(entity);
 		PacketContainer metadataPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
-		
 		metadataPacket.getIntegers().write(0, entity.getEntityId());
-		metadataPacket.getWatchableCollectionModifier().write(0, dataWatcher.getWatchableObjects());
+		metadataPacket.getWatchableCollectionModifier().writeSafely(0, dataWatcher.getWatchableObjects());
 		return metadataPacket;
 	}
 	

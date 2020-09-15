@@ -25,6 +25,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -137,7 +138,12 @@ public class ViewHandler {
 	public void projectEntity(Player player, Entity entity, Transform transform) {
 		
 		getViewSession(player).getProjectedEntities().put(entity, entity.getLocation());
-		packetHandler.showEntity(player, entity, transform);
+		
+		try {
+			packetHandler.showEntity(player, entity, transform);
+		} catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void destroyProjectedEntity(Player player, Entity entity) {
@@ -514,7 +520,9 @@ public class ViewHandler {
 		packetHandler.hideEntities(player, currentlyHiddenEntities);
 	}
 	
-	private void projectEntities(Player player, Map<Entity, Location> currentlyProjectedEntities, Transform linkTransform) {
+	private void projectEntities(Player player,
+	                             Map<Entity, Location> currentlyProjectedEntities,
+	                             Transform linkTransform) {
 		
 		Map<Entity, Location> lastProjectedEntities = getViewSession(player).getProjectedEntities();
 		Set<Entity> invisibleEntities = new HashSet<>();
@@ -541,8 +549,12 @@ public class ViewHandler {
 		currentlyProjectedEntities.entrySet().removeIf(entry -> lastProjectedEntities.containsKey(entry.getKey()));
 		lastProjectedEntities.putAll(currentlyProjectedEntities);
 		
-		for (Entity entity : currentlyProjectedEntities.keySet()) {
-			packetHandler.showEntity(player, entity, linkTransform);
+		try {
+			for (Entity entity : currentlyProjectedEntities.keySet()) {
+				packetHandler.showEntity(player, entity, linkTransform);
+			}
+		} catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
+			e.printStackTrace();
 		}
 		
 		packetHandler.hideEntities(player, invisibleEntities);
