@@ -4,7 +4,6 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
-import me.gorgeousone.netherview.commmands.Destroy;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
@@ -12,11 +11,11 @@ import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
 import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
+import me.gorgeousone.netherview.handlers.EntityVisibilityHandler;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockChangeListener;
-import me.gorgeousone.netherview.listeners.EntityVisibilityListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
@@ -25,7 +24,7 @@ import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -60,6 +59,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private PacketHandler packetHandler;
 	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
+	private EntityVisibilityHandler motionHandler;
 	
 	private Set<UUID> worldsWithPortalViewing;
 	
@@ -72,7 +72,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private boolean warningMessagesEnabled;
 	private boolean debugMessagesEnabled;
 	private boolean entityHidingEnabled;
-	private boolean playerHidingEnabled;
+	private boolean entityViewingEnabled;
 	private boolean portalsAreFlippedByDefault;
 	
 	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
@@ -95,15 +95,18 @@ public final class NetherViewPlugin extends JavaPlugin {
 		BlockType.configureVersion(VersionUtils.IS_LEGACY_SERVER);
 		PortalLocator.configureVersion(portalMaterial);
 		
+		loadConfigData();
+		
 		packetHandler = new PacketHandler();
 		portalHandler = new PortalHandler(this, portalMaterial);
 		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
+		motionHandler = new EntityVisibilityHandler(this, viewHandler, packetHandler);
 		
 		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
 		registerCommands();
 		
-		loadConfigData();
+		loadBackupedPortals();
 		checkForUpdates();
 	}
 	
@@ -141,8 +144,14 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	public void reload() {
 		
-		onDisable();
+		backupPortals();
 		loadConfigData();
+		
+		viewHandler.reload();
+		portalHandler.reload();
+		motionHandler.reload();
+		
+		loadBackupedPortals();
 		checkForUpdates();
 	}
 	
@@ -153,9 +162,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 			return;
 		}
 		
-		savePortalsToConfig();
-		viewHandler.reset();
-		portalHandler.reset();
+		backupPortals();
+		viewHandler.reload();
+		portalHandler.disable();
+		motionHandler.disable();
 	}
 	
 	public PortalHandler getPortalHandler() {
@@ -200,8 +210,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return entityHidingEnabled;
 	}
 	
-	public boolean isPlayerHidingEnabled() {
-		return playerHidingEnabled;
+	public boolean isEntityViewingEnabled() {
+		return entityViewingEnabled;
 	}
 	
 	public boolean portalsAreFlippedByDefault() {
@@ -254,8 +264,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
 		
-		netherViewCommand.addChild(new Destroy(netherViewCommand));
-		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
 		cmdHandler.registerCommand(new TogglePortalViewCommand(viewHandler));
@@ -268,8 +276,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
 		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
-		
-		new EntityVisibilityListener(this, viewHandler);
 	}
 	
 	private void loadConfigData() {
@@ -285,8 +291,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
 		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
 		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
-		entityHidingEnabled = getConfig().getBoolean("hide-entities.enabled");
-		playerHidingEnabled = getConfig().getBoolean("hide-entities.hide-players");
+		entityHidingEnabled = getConfig().getBoolean("hide-entities-behind-portals");
+		entityViewingEnabled = getConfig().getBoolean("show-entities-inside-portals");
 		portalsAreFlippedByDefault = getConfig().getBoolean("flip-portals-by-default");
 		
 		setWarningMessagesEnabled(getConfig().getBoolean("warning-messages"));
@@ -294,7 +300,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		loadWorldBorderBlockTypes();
 		loadWorldsWithPortalViewing();
-		loadRegisteredPortals();
 	}
 	
 	private void addVersionSpecificDefaults() {
@@ -360,7 +365,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return worldBorder;
 	}
 	
-	private void loadRegisteredPortals() {
+	private void loadBackupedPortals() {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
 		
@@ -370,10 +375,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		portalHandler.loadPortals(portalConfig);
-		savePortalsToConfig();
+		backupPortals();
 	}
 	
-	public void savePortalsToConfig() {
+	public void backupPortals() {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
 		portalConfigFile.delete();
@@ -393,7 +398,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	private void registerPortalsOnline(Metrics metrics) {
-		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> portalHandler.getRecentlyViewedPortalsCount()));
+		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> portalHandler.getLoadedPortals().size()));
 	}
 	
 	private void checkForUpdates() {

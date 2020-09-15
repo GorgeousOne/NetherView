@@ -1,7 +1,7 @@
-package me.gorgeousone.netherview.wrapping.blocktype;
+package me.gorgeousone.netherview.wrapper.blocktype;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
-import me.gorgeousone.netherview.wrapping.rotation.RotationUtils;
+import me.gorgeousone.netherview.utils.FacingUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -77,13 +77,13 @@ public class LegacyBlockType extends BlockType {
 				facing = facing.getOppositeFace();
 			}
 			
-			directional.setFacingDirection(RotationUtils.getRotatedFace(facing, quarterTurns));
+			directional.setFacingDirection(FacingUtils.getRotatedFace(facing, quarterTurns));
 			
 		} else if (materialData instanceof Rails) {
 			
 			Rails rails = (Rails) materialData;
 			BlockFace facing = rails.getDirection();
-			rails.setDirection(RotationUtils.getRotatedFace(facing, quarterTurns), rails.isOnSlope());
+			rails.setDirection(FacingUtils.getRotatedFace(facing, quarterTurns), rails.isOnSlope());
 			
 		} else if (materialData instanceof Mushroom) {
 			
@@ -95,7 +95,7 @@ public class LegacyBlockType extends BlockType {
 			}
 			
 			for (BlockFace paintedFace : paintedFaces) {
-				mushroom.setFacePainted(RotationUtils.getRotatedFace(paintedFace, quarterTurns), true);
+				mushroom.setFacePainted(FacingUtils.getRotatedFace(paintedFace, quarterTurns), true);
 			}
 		}
 		return this;

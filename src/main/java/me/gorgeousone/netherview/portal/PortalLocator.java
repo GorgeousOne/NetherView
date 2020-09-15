@@ -4,7 +4,7 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.utils.MessageUtils;
-import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapper.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -81,30 +81,27 @@ public class PortalLocator {
 		
 		Axis portalAxis = FacingUtils.getAxis(portalBlock);
 		
-		Vector position = new Vector(
+		Vector rectMin = new Vector(
 				portalBlock.getX(),
 				getPortalExtent(portalBlock, BlockFace.DOWN).getY(),
 				portalBlock.getZ());
 		
-		int height = getPortalExtent(portalBlock, BlockFace.UP).getY() + 1 - position.getBlockY();
-		int width;
+		Vector rectMax = rectMin.clone();
+		rectMax.setY(getPortalExtent(portalBlock, BlockFace.UP).getY() + 1);
 		
 		if (portalAxis == Axis.X) {
-			position.setX(getPortalExtent(portalBlock, BlockFace.WEST).getX());
-			width = getPortalExtent(portalBlock, BlockFace.EAST).getX() - position.getBlockX() + 1;
+			rectMin.setX(getPortalExtent(portalBlock, BlockFace.WEST).getX());
+			rectMax.setX(getPortalExtent(portalBlock, BlockFace.EAST).getX() + 1);
 			
 		} else {
-			position.setZ(getPortalExtent(portalBlock, BlockFace.NORTH).getZ());
-			width = getPortalExtent(portalBlock, BlockFace.SOUTH).getZ() - position.getBlockZ() + 1;
-		}
-		
-		if (width > 21 || height > 21) {
-			throw new IllegalArgumentException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is bigger than possible in vanilla minecraft!");
+			rectMin.setZ(getPortalExtent(portalBlock, BlockFace.NORTH).getZ());
+			rectMax.setZ(getPortalExtent(portalBlock, BlockFace.SOUTH).getZ() + 1);
 		}
 		
 		//translate the portalRect towards the middle of the block;
-		AxisAlignedRect portalRect = new AxisAlignedRect(portalAxis, position, width, height);
+		AxisAlignedRect portalRect = new AxisAlignedRect(portalAxis, rectMin, rectMax);
 		portalRect.translate(portalRect.getPlane().getNormal().multiply(0.5));
+		
 		
 		return portalRect;
 	}

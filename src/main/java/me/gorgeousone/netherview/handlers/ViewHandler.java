@@ -9,10 +9,8 @@ import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.wrapping.Axis;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
-import me.gorgeousone.netherview.wrapping.boundingbox.BoundingBoxUtils;
-import me.gorgeousone.netherview.wrapping.boundingbox.WrappedBoundingBox;
+import me.gorgeousone.netherview.wrapper.Axis;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,6 +20,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,16 +36,10 @@ public class ViewHandler {
 	
 	private final NetherViewPlugin main;
 	private final PortalHandler portalHandler;
-	
 	private final PacketHandler packetHandler;
 	
 	private final Map<UUID, Boolean> portalViewEnabled;
-	private final Map<UUID, Portal> viewedPortals;
-	private final Map<UUID, ProjectionCache> viewedPortalSides;
-	private final Map<UUID, Map<BlockVec, BlockType>> projectedBlocks;
-	private final Map<UUID, ViewFrustum> lastViewFrustums;
-	
-	private final HashMap<UUID, Set<Entity>> hiddenEntities;
+	private final Map<UUID, PlayerViewSession> viewSessions;
 	
 	public ViewHandler(NetherViewPlugin main,
 	                   PortalHandler portalHandler,
@@ -57,28 +50,16 @@ public class ViewHandler {
 		this.packetHandler = packetHandler;
 		
 		portalViewEnabled = new HashMap<>();
-		viewedPortalSides = new HashMap<>();
-		projectedBlocks = new HashMap<>();
-		viewedPortals = new HashMap<>();
-		lastViewFrustums = new HashMap<>();
-		hiddenEntities = new HashMap<>();
+		viewSessions = new HashMap<>();
 	}
 	
-	public void reset() {
+	public void reload() {
 		
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			hidePortalProjection(player);
 		}
 		
-		for (UUID playerId : hiddenEntities.keySet()) {
-			packetHandler.showEntities(Bukkit.getPlayer(playerId), hiddenEntities.get(playerId));
-		}
-		
-		viewedPortals.clear();
-		viewedPortalSides.clear();
-		projectedBlocks.clear();
-		lastViewFrustums.clear();
-		hiddenEntities.clear();
+		viewSessions.clear();
 	}
 	
 	/**
@@ -109,34 +90,25 @@ public class ViewHandler {
 		}
 	}
 	
+	public Collection<PlayerViewSession> getViewSessions() {
+		return viewSessions.values();
+	}
+	
+	public PlayerViewSession getViewSession(Player player) {
+		return viewSessions.get(player.getUniqueId());
+	}
+	
+	public PlayerViewSession getOrCreateViewSession(Player player) {
+		
+		viewSessions.putIfAbsent(player.getUniqueId(), new PlayerViewSession(player));
+		return viewSessions.get(player.getUniqueId());
+	}
+	
 	/**
 	 * Returns true if currently a portal projection is being displayed to the player.
 	 */
-	public boolean isViewingAPortal(Player player) {
-		return viewedPortals.containsKey(player.getUniqueId());
-	}
-	
-	public Portal getViewedPortal(Player player) {
-		return viewedPortals.get(player.getUniqueId());
-	}
-	
-	/**
-	 * Returns a Map of BlockTypes linked to their location that are currently displayed with fake blocks to the player.
-	 * The method is being used very frequently so it does not check for the player's permission to view portal projections.
-	 * Returns (and internally adds) an empty Map if no projected blocks found.
-	 */
-	public Map<BlockVec, BlockType> getProjectedBlocks(Player player) {
-		
-		UUID uuid = player.getUniqueId();
-		projectedBlocks.putIfAbsent(uuid, new HashMap<>());
-		return projectedBlocks.get(uuid);
-	}
-	
-	/**
-	 * Returns the one of the two projection caches of a portal that is being displayed to the player in the portal view.
-	 */
-	public ProjectionCache getViewedPortalSide(Player player) {
-		return viewedPortalSides.get(player.getUniqueId());
+	public boolean hasViewSession(Player player) {
+		return viewSessions.containsKey(player.getUniqueId());
 	}
 	
 	/**
@@ -144,70 +116,57 @@ public class ViewHandler {
 	 */
 	public void hidePortalProjection(Player player) {
 		
-		if (!isViewingAPortal(player)) {
+		if (!hasViewSession(player)) {
 			return;
 		}
 		
-		packetHandler.removeFakeBlocks(player, getProjectedBlocks(player));
-		packetHandler.showEntities(player, getHiddenEntities(player));
+		PlayerViewSession session = getViewSession(player);
+		
+		packetHandler.removeFakeBlocks(player, session.getProjectedBlocks());
+		packetHandler.showEntities(player, session.getHiddenEntities());
+		packetHandler.hideEntities(player, session.getProjectedEntities().keySet());
+		
 		unregisterPortalProjection(player);
 	}
 	
-	/**
-	 * Returns the latest view frustum that was used to calculate the projection blocks for the player's projection.
-	 * Returns null if player is not nearby any portal or no blocks were displayed (due to steep view angles)
-	 */
-	public ViewFrustum getLastViewFrustum(Player player) {
-		return lastViewFrustums.get(player.getUniqueId());
+	public void projectEntity(Player player, Entity entity, Transform transform) {
+		
+		getViewSession(player).getProjectedEntities().put(entity, entity.getLocation());
+		packetHandler.showEntity(player, entity, transform);
 	}
 	
-	/**
-	 * Returns a set of entities that intersect with the player's portal projection and have been hidden from the them with packets.
-	 */
-	public Set<Entity> getHiddenEntities(Player player) {
+	public void destroyProjectedEntity(Player player, Entity entity) {
 		
-		UUID playerId = player.getUniqueId();
-		hiddenEntities.putIfAbsent(playerId, new HashSet<>());
-		return hiddenEntities.get(playerId);
+		getViewSession(player).getProjectedEntities().remove(entity);
+		packetHandler.hideEntities(player, Collections.singleton(entity));
 	}
 	
 	public void showEntity(Player player, Entity entity) {
 		
-		getHiddenEntities(player).remove(entity);
-		packetHandler.showEntities(player, Collections.singleton(entity));
+		getViewSession(player).getHiddenEntities().remove(entity);
+		packetHandler.showEntity(player, entity, new Transform());
 	}
 	
 	public void hideEntity(Player player, Entity entity) {
 		
-		getHiddenEntities(player).add(entity);
+		getViewSession(player).getHiddenEntities().add(entity);
 		packetHandler.hideEntities(player, Collections.singleton(entity));
 	}
-	
 	
 	/**
 	 * Removes any portal view related data of the player
 	 */
 	public void unregisterPlayer(Player player) {
 		
-		UUID playerId = player.getUniqueId();
-		portalViewEnabled.remove(playerId);
-		
-		if (isViewingAPortal(player)) {
-			unregisterPortalProjection(player);
-		}
+		portalViewEnabled.remove(player.getUniqueId());
+		unregisterPortalProjection(player);
 	}
 	
 	/**
 	 * Removes the player's portal projection from the system.
 	 */
 	public void unregisterPortalProjection(Player player) {
-		
-		UUID playerId = player.getUniqueId();
-		projectedBlocks.remove(playerId);
-		hiddenEntities.remove(playerId);
-		viewedPortals.remove(playerId);
-		viewedPortalSides.remove(playerId);
-		lastViewFrustums.remove(playerId);
+		viewSessions.remove(player.getUniqueId());
 	}
 	
 	/**
@@ -217,7 +176,7 @@ public class ViewHandler {
 		
 		Portal closestPortal = portalHandler.getClosestPortal(playerEyeLoc, true);
 		
-		if (portalDoesNotExist(closestPortal)) {
+		if (portalHandler.portalDoesNotExist(closestPortal)) {
 			hidePortalProjection(player);
 			return;
 		}
@@ -229,7 +188,7 @@ public class ViewHandler {
 			return;
 		}
 		
-		Portal lastViewedPortal = getViewedPortal(player);
+		Portal lastViewedPortal = getOrCreateViewSession(player).getViewedPortal();
 		
 		if (lastViewedPortal != null && !lastViewedPortal.equals(closestPortal)) {
 			hidePortalProjection(player);
@@ -251,20 +210,9 @@ public class ViewHandler {
 		}
 	}
 	
-	private boolean portalDoesNotExist(Portal portal) {
-		
-		if (portal == null) {
-			return true;
-		}
-		
-		if (!portalHandler.quickCheckExists(portal)) {
-			portalHandler.removePortal(portal);
-			return true;
-		}
-		
-		return false;
-	}
-	
+	/**
+	 * Returns the distance of the location to the rectangle on the axis orthogonal to the axis of the rectangle.
+	 */
 	private double getDistanceToPortal(Location playerEyeLoc, AxisAlignedRect portalRect) {
 		
 		double distanceToPortal;
@@ -296,22 +244,23 @@ public class ViewHandler {
 		portalHandler.updateExpirationTime(portal.getCounterPortal());
 		
 		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
-		
-		viewedPortals.put(player.getUniqueId(), portal);
-		viewedPortalSides.put(player.getUniqueId(), projection);
-		
 		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
-		lastViewFrustums.put(player.getUniqueId(), playerFrustum);
+		
+		PlayerViewSession session = getOrCreateViewSession(player);
+		session.setViewedPortal(portal);
+		session.setViewedPortalSide(projection);
+		
+		if (!displayFrustum) {
+			session.setLastViewFrustum(null);
+		} else {
+			session.setLastViewFrustum(playerFrustum);
+		}
 		
 		displayProjectionBlocks(player, portal, projection, playerFrustum, displayFrustum, hidePortalBlocks);
-		
-		if (main.isEntityHidingEnabled()) {
-			toggleEntityVisibilities(player, portal, projection, playerFrustum, displayFrustum, main.isPlayerHidingEnabled());
-		}
 	}
 	
 	/**
-	 * Puts all blocks to display to the player in one map
+	 * Collects and displays fake blocks for player to view the portal projection.
 	 */
 	private void displayProjectionBlocks(Player player,
 	                                     Portal portal,
@@ -333,70 +282,76 @@ public class ViewHandler {
 			}
 		}
 		
-		displayBlocks(player, visibleBlocks);
+		updateDisplayedBlocks(player, visibleBlocks);
 	}
 	
-	/**
-	 * Hides or re-shows any entity to the player from around the portal the player is looking at
-	 * depending on if they are inside or outside of the player's view frustum.
-	 */
-	private void toggleEntityVisibilities(Player player,
-	                                      Portal portal,
-	                                      ProjectionCache projection,
-	                                      ViewFrustum playerFrustum,
-	                                      boolean displayFrustum,
-	                                      boolean hidePlayers) {
-		
-		if (playerFrustum == null || !displayFrustum) {
-			hideEntities(player, null);
-			return;
-		}
-		
-		Set<Entity> hiddenEntities = new HashSet<>();
-		int entityDist = 2 * projection.getCacheLength();
-		
-		for (Entity entity : portal.getWorld().getNearbyEntities(portal.getLocation(), entityDist, entityDist, entityDist)) {
-			
-			if (entity.equals(player) || (!hidePlayers && entity.getType() == EntityType.PLAYER)) {
-				continue;
-			}
-			
-			WrappedBoundingBox box = BoundingBoxUtils.getWrappedBoxOf(entity);
-			
-			if (BoundingBoxUtils.boxIntersectsBlockCache(box, projection) &&
-			    BoundingBoxUtils.boxIntersectsFrustum(box, playerFrustum)) {
-				hiddenEntities.add(entity);
-			}
-		}
-		
-		hideEntities(player, hiddenEntities);
-	}
+//	/**
+//	 * Checks around the portal the player is looking at and around it's counter portal for entities
+//	 * that currently have to either be hidden from the player for a clear view on the other world or projected from the other world.
+//	 */
+//	private void toggleEntityVisibilities(PlayerViewSession session,
+//	                                      ProjectionCache projection,
+//	                                      ViewFrustum playerFrustum,
+//	                                      boolean displayFrustum,
+//	                                      boolean hidePlayers) {
+//
+//		if (playerFrustum == null || !displayFrustum) {
+//			updateHiddenEntities(session, null);
+//			return;
+//		}
+//
+//		Set<Entity> hiddenEntities = new HashSet<>();
+//		Map<Entity, Location> projectedEntities = new HashMap<>();
+//
+//		for (Entity entity : projection.getEntities()) {
+//
+//			if (entity.equals(session.getPlayer()) || (!hidePlayers && entity.getType() == EntityType.PLAYER)) {
+//				continue;
+//			}
+//
+//			if (session.isHiddenBehindProjection(entity)) {
+//				hiddenEntities.add(entity);
+//			}
+//		}
+//
+//		for (Entity entity : projection.getSourceCache().getEntities()) {
+//
+//			if (session.isVisibleInProjection(entity)) {
+//				projectedEntities.put(entity, entity.getLocation());
+//			}
+//		}
+//
+//		updateHiddenEntities(session, hiddenEntities);
+//		updateProjectedEntities(session, projectedEntities, projection.getLinkTransform());
+//	}
 	
 	/**
 	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what players see.
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
 		
+		Map<ProjectionCache, Set<PlayerViewSession>> sortedSessions = getSessionsSortedByPortalSides();
+		
 		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(cache)) {
 			
 			Map<BlockVec, BlockType> projectionUpdates = updateProjection(projection, updatedBlocks);
 			
-			//TODO stop iterating same players for each projection?
-			for (UUID playerID : viewedPortalSides.keySet()) {
+			if (!sortedSessions.containsKey(projection)) {
+				continue;
+			}
+			
+			for (PlayerViewSession session : sortedSessions.get(projection)) {
 				
-				if (viewedPortalSides.get(playerID) != projection) {
-					continue;
-				}
-				
-				ViewFrustum playerFrustum = lastViewFrustums.get(playerID);
+				ViewFrustum playerFrustum = session.getLastViewFrustum();
 				
 				if (playerFrustum == null) {
 					continue;
 				}
 				
-				Player player = Bukkit.getPlayer(playerID);
 				Map<BlockVec, BlockType> newBlocksInFrustum = getBlocksInFrustum(playerFrustum, projectionUpdates);
-				getProjectedBlocks(player).putAll(newBlocksInFrustum);
+				Player player = session.getPlayer();
+				
+				getViewSession(player).getProjectedBlocks().putAll(newBlocksInFrustum);
 				packetHandler.displayFakeBlocks(player, newBlocksInFrustum);
 			}
 		}
@@ -447,13 +402,27 @@ public class ViewHandler {
 		return blocksInFrustum;
 	}
 	
+	public Map<ProjectionCache, Set<PlayerViewSession>> getSessionsSortedByPortalSides() {
+		
+		Map<ProjectionCache, Set<PlayerViewSession>> sortedViewers = new HashMap<>();
+		
+		for (PlayerViewSession session : viewSessions.values()) {
+			
+			ProjectionCache projection = session.getViewedPortalSide();
+			sortedViewers.putIfAbsent(projection, new HashSet<>());
+			sortedViewers.get(projection).add(session);
+		}
+		
+		return sortedViewers;
+	}
+	
 	/**
 	 * Adding new blocks to the portal animation for a player.
 	 * But first redundant blocks are filtered out and outdated blocks are refreshed for the player.
 	 */
-	private void displayBlocks(Player player, Map<BlockVec, BlockType> newBlocksToDisplay) {
+	private void updateDisplayedBlocks(Player player, Map<BlockVec, BlockType> newBlocksToDisplay) {
 		
-		Map<BlockVec, BlockType> lastDisplayedBlocks = getProjectedBlocks(player);
+		Map<BlockVec, BlockType> lastDisplayedBlocks = getViewSession(player).getProjectedBlocks();
 		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
 		
 		Iterator<BlockVec> blockIter = lastDisplayedBlocks.keySet().iterator();
@@ -475,39 +444,78 @@ public class ViewHandler {
 		packetHandler.displayFakeBlocks(player, newBlocksToDisplay);
 	}
 	
-	/**
-	 * Hides any entity isn't already hidden for the player. Any previously hidden entity that is not contained by
-	 * passed set anymore will be shown again.
-	 */
-	private void hideEntities(Player player, Set<Entity> newHiddenEntities) {
-		
-		Set<Entity> lastHiddenEntities = getHiddenEntities(player);
-		Set<Entity> visibleEntities = new HashSet<>();
-		
-		if (newHiddenEntities == null || newHiddenEntities.isEmpty()) {
-			packetHandler.showEntities(player, lastHiddenEntities);
-			lastHiddenEntities.clear();
-			return;
-		}
-		
-		Iterator<Entity> entityIter = lastHiddenEntities.iterator();
-		
-		while (entityIter.hasNext()) {
-			
-			Entity entity = entityIter.next();
-			
-			if (!newHiddenEntities.contains(entity)) {
-				visibleEntities.add(entity);
-				entityIter.remove();
-			}
-		}
-		
-		newHiddenEntities.removeIf(lastHiddenEntities::contains);
-		lastHiddenEntities.addAll(newHiddenEntities);
-		
-		packetHandler.showEntities(player, visibleEntities);
-		packetHandler.hideEntities(player, newHiddenEntities);
-	}
+//	/**
+//	 * Hides any entity isn't already hidden for the player. Any previously hidden entity that is not contained by
+//	 * passed set anymore will be shown again.
+//	 */
+//	private void updateHiddenEntities(PlayerViewSession session, Set<Entity> currentlyHiddenEntities) {
+//
+//		Player player = session.getPlayer();
+//		Set<Entity> lastHiddenEntities = session.getHiddenEntities();
+//		Set<Entity> visibleEntities = new HashSet<>();
+//
+//		if (currentlyHiddenEntities == null || currentlyHiddenEntities.isEmpty()) {
+//
+//			packetHandler.showEntities(player, lastHiddenEntities);
+//			lastHiddenEntities.clear();
+//			return;
+//		}
+//
+//		Iterator<Entity> entityIter = lastHiddenEntities.iterator();
+//
+//		while (entityIter.hasNext()) {
+//
+//			Entity entity = entityIter.next();
+//
+//			if (!currentlyHiddenEntities.contains(entity)) {
+//				visibleEntities.add(entity);
+//				entityIter.remove();
+//			}
+//		}
+//
+//		currentlyHiddenEntities.removeIf(lastHiddenEntities::contains);
+//		lastHiddenEntities.addAll(currentlyHiddenEntities);
+//
+//		packetHandler.showEntities(player, visibleEntities);
+//		packetHandler.hideEntities(player, currentlyHiddenEntities);
+//	}
+	
+//	private void updateProjectedEntities(PlayerViewSession session,
+//	                                     Map<Entity, Location> currentlyProjectedEntities,
+//	                                     Transform linkTransform) {
+//
+//		Player player = session.getPlayer();
+//		Map<Entity, Location> lastProjectedEntities = session.getProjectedEntities();
+//		Set<Entity> invisibleEntities = new HashSet<>();
+//
+//		if (currentlyProjectedEntities == null || currentlyProjectedEntities.isEmpty()) {
+//
+//			packetHandler.hideEntities(player, lastProjectedEntities.keySet());
+//			lastProjectedEntities.clear();
+//			return;
+//		}
+//
+//		Iterator<Map.Entry<Entity, Location>> entityIter = lastProjectedEntities.entrySet().iterator();
+//
+//		while (entityIter.hasNext()) {
+//
+//			Entity entity = entityIter.next().getKey();
+//
+//			if (!currentlyProjectedEntities.containsKey(entity)) {
+//				invisibleEntities.add(entity);
+//				entityIter.remove();
+//			}
+//		}
+//
+//		currentlyProjectedEntities.entrySet().removeIf(entry -> lastProjectedEntities.containsKey(entry.getKey()));
+//		lastProjectedEntities.putAll(currentlyProjectedEntities);
+//
+//		for (Entity entity : currentlyProjectedEntities.keySet()) {
+//			packetHandler.showEntity(player, entity, linkTransform);
+//		}
+//
+//		packetHandler.hideEntities(player, invisibleEntities);
+//	}
 	
 	/**
 	 * Stops all portal projections that are from this portal or from portals connected to it.
@@ -517,12 +525,12 @@ public class ViewHandler {
 		Set<Portal> affectedPortals = portalHandler.getPortalsLinkedTo(portal);
 		affectedPortals.add(portal);
 		
-		HashMap<UUID, Portal> viewPortalCopy = new HashMap<>(viewedPortals);
+		HashMap<UUID, PlayerViewSession> viewPortalCopy = new HashMap<>(viewSessions);
 		
-		for (Map.Entry<UUID, Portal> entry : viewPortalCopy.entrySet()) {
+		for (PlayerViewSession session : viewPortalCopy.values()) {
 			
-			if (affectedPortals.contains(entry.getValue())) {
-				hidePortalProjection(Bukkit.getPlayer(entry.getKey()));
+			if (affectedPortals.contains(session.getViewedPortal())) {
+				hidePortalProjection(session.getPlayer());
 			}
 		}
 	}

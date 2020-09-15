@@ -1,8 +1,8 @@
 package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
-import me.gorgeousone.netherview.api.PortalUnlinkEvent;
-import me.gorgeousone.netherview.api.UnlinkReason;
+import me.gorgeousone.netherview.event.PortalUnlinkEvent;
+import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
@@ -61,9 +61,9 @@ public class TeleportListener implements Listener {
 			return;
 		}
 		
-		boolean createdNewPortalView = createPortalView(event);
+		boolean createdNewPortalLink = createPortalLink(event);
 		
-		if (createdNewPortalView && viewHandler.hasPortalViewEnabled(player) &&
+		if (createdNewPortalLink && viewHandler.hasPortalViewEnabled(player) &&
 		    (player.getGameMode() == GameMode.CREATIVE || main.cancelTeleportWhenLinkingPortalsEnabled())) {
 			event.setCancelled(true);
 		}
@@ -72,7 +72,7 @@ public class TeleportListener implements Listener {
 	/**
 	 * Tries to locates or register portals at the given locations and to link them if they aren't already.
 	 */
-	private boolean createPortalView(PlayerTeleportEvent event) {
+	private boolean createPortalLink(PlayerTeleportEvent event) {
 		
 		Player player = event.getPlayer();
 		Location from = event.getFrom();
@@ -116,9 +116,7 @@ public class TeleportListener implements Listener {
 			}
 			
 			portalHandler.linkPortalTo(portal, counterPortal, player);
-			
 			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
-			
 			return true;
 			
 		} catch (IllegalArgumentException | IllegalStateException e) {

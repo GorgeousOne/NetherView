@@ -1,8 +1,8 @@
-package me.gorgeousone.netherview.wrapping.blocktype;
+package me.gorgeousone.netherview.wrapper.blocktype;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
-import me.gorgeousone.netherview.wrapping.rotation.AquaticRailUtils;
-import me.gorgeousone.netherview.wrapping.rotation.RotationUtils;
+import me.gorgeousone.netherview.utils.FacingUtils;
+import me.gorgeousone.netherview.wrapper.rotation.AquaticRailUtils;
 import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -73,13 +73,13 @@ public class AquaticBlockType extends BlockType {
 		} else if (blockData instanceof Directional) {
 			
 			Directional directional = (Directional) blockData;
-			directional.setFacing(RotationUtils.getRotatedFace(directional.getFacing(), quarterTurns));
+			directional.setFacing(FacingUtils.getRotatedFace(directional.getFacing(), quarterTurns));
 			
 			//e.g. signs
 		} else if (blockData instanceof Rotatable) {
 			
 			Rotatable rotatable = (Rotatable) blockData;
-			rotatable.setRotation(RotationUtils.getRotatedFace(rotatable.getRotation(), quarterTurns));
+			rotatable.setRotation(FacingUtils.getRotatedFace(rotatable.getRotation(), quarterTurns));
 			
 			//e.g. fences
 		} else if (blockData instanceof MultipleFacing) {
@@ -92,7 +92,7 @@ public class AquaticBlockType extends BlockType {
 			}
 			
 			for (BlockFace face : facings) {
-				multiFacing.setFace(RotationUtils.getRotatedFace(face, quarterTurns), true);
+				multiFacing.setFace(FacingUtils.getRotatedFace(face, quarterTurns), true);
 			}
 			
 		} else if (blockData instanceof RedstoneWire) {
@@ -105,7 +105,7 @@ public class AquaticBlockType extends BlockType {
 			}
 			
 			for (BlockFace face : connections.keySet())
-				wire.setFace(RotationUtils.getRotatedFace(face, quarterTurns), connections.get(face));
+				wire.setFace(FacingUtils.getRotatedFace(face, quarterTurns), connections.get(face));
 			
 		} else if (blockData instanceof Rail) {
 			

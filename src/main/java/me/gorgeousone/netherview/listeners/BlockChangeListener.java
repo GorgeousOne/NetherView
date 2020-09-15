@@ -18,11 +18,12 @@ import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PacketHandler;
+import me.gorgeousone.netherview.handlers.PlayerViewSession;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.VersionUtils;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -90,7 +91,7 @@ public class BlockChangeListener implements Listener {
 				PacketContainer packet = event.getPacket();
 				Player player = event.getPlayer();
 				
-				if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+				if (packetHandler.isCustomPacket(packet) || !viewHandler.hasViewSession(player)) {
 					return;
 				}
 				
@@ -128,7 +129,7 @@ public class BlockChangeListener implements Listener {
 						PacketContainer packet = event.getPacket();
 						Player player = event.getPlayer();
 						
-						if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+						if (packetHandler.isCustomPacket(packet) || !viewHandler.hasViewSession(player)) {
 							return;
 						}
 						
@@ -158,13 +159,14 @@ public class BlockChangeListener implements Listener {
 						Player player = event.getPlayer();
 						
 						//call the custom packet check first so the packet handler will definitely flush the packet from the list
-						if (packetHandler.isCustomPacket(packet) || !viewHandler.isViewingAPortal(player)) {
+						if (packetHandler.isCustomPacket(packet) || !viewHandler.hasViewSession(player)) {
 							return;
 						}
 						
-						Portal viewedPortal = viewHandler.getViewedPortal(player);
-						ProjectionCache viewedCache = viewHandler.getViewedPortalSide(player);
-						Map<BlockVec, BlockType> viewSession = viewHandler.getProjectedBlocks(player);
+						PlayerViewSession session = viewHandler.getViewSession(player);
+						Portal viewedPortal = session.getViewedPortal();
+						ProjectionCache viewedCache = session.getViewedPortalSide();
+						Map<BlockVec, BlockType> viewSession = session.getProjectedBlocks();
 						
 						if (VersionUtils.serverIsAtOrAbove("1.16.2")) {
 							rewriteProjectionBlockTypes1_16_2(packet, viewedPortal, viewedCache, viewSession);
@@ -243,10 +245,12 @@ public class BlockChangeListener implements Listener {
 	
 	private BlockType getProjectedBlockType(Player player, BlockVec blockPos) {
 		
-		if (viewHandler.getViewedPortal(player).contains(blockPos) ||
-		    viewHandler.getViewedPortalSide(player).contains(blockPos)) {
+		PlayerViewSession session = viewHandler.getViewSession(player);
+		
+		if (session.getViewedPortal().contains(blockPos) ||
+		    session.getViewedPortalSide().contains(blockPos)) {
 			
-			return viewHandler.getProjectedBlocks(player).get(blockPos);
+			return viewHandler.getViewSession(player).getProjectedBlocks().get(blockPos);
 		}
 		
 		return null;
@@ -305,11 +309,11 @@ public class BlockChangeListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!viewHandler.isViewingAPortal(player)) {
+		if (!viewHandler.hasViewSession(player)) {
 			return;
 		}
 		
-		Map<BlockVec, BlockType> viewSession = viewHandler.getProjectedBlocks(player);
+		Map<BlockVec, BlockType> viewSession = viewHandler.getViewSession(player).getProjectedBlocks();
 		BlockVec blockPos = new BlockVec(event.getClickedBlock());
 		
 		if (viewSession.containsKey(blockPos)) {
@@ -335,19 +339,6 @@ public class BlockChangeListener implements Listener {
 		
 		Block block = event.getBlock();
 		updateBlockCaches(block, BlockType.of(block), false);
-		
-		Player player = event.getPlayer();
-		
-		if (!viewHandler.isViewingAPortal(player)) {
-			return;
-		}
-		
-		Map<BlockVec, BlockType> viewSession = viewHandler.getProjectedBlocks(player);
-		BlockVec blockPos = new BlockVec(block);
-		
-		if (viewSession.containsKey(blockPos)) {
-			event.setCancelled(true);
-		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

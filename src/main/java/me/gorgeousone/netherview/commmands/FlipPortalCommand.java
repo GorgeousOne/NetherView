@@ -42,7 +42,7 @@ public class FlipPortalCommand extends BasicCommand {
 			return;
 		}
 		
-		Portal viewedPortal = viewHandler.getViewedPortal(player);
+		Portal viewedPortal = viewHandler.getViewSession(player).getViewedPortal();
 		
 		if (viewedPortal == null) {
 			player.sendMessage(ChatColor.GRAY + "You need to look at a nether portal with NetherView enabled for this command to work.");

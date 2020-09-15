@@ -3,10 +3,16 @@ package me.gorgeousone.netherview.blockcache;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.FacingUtils;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
+import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * One big array of BlockTypes used to store information about all blocks in a cuboid area around a portal.
@@ -15,6 +21,8 @@ import org.bukkit.util.Vector;
 public class BlockCache {
 	
 	private final Portal portal;
+	private final Set<Chunk> chunks;
+	
 	private final BlockType[][][] blockCopies;
 	private final BlockVec min;
 	private final BlockVec max;
@@ -29,12 +37,21 @@ public class BlockCache {
 	                  BlockType borderType) {
 		
 		this.portal = portal;
+		this.chunks = new HashSet<>();
+		
 		this.blockCopies = new BlockType[size.getX()][size.getY()][size.getZ()];
 		this.min = offset.clone();
 		this.max = offset.clone().add(size());
 		
 		this.facing = facing;
 		this.borderType = borderType;
+		
+		for (int chunkX = min.getX() >> 4; chunkX <= max.getX() >> 4; chunkX++) {
+			for (int chunkZ = min.getZ() >> 4; chunkZ <= max.getZ() >> 4; chunkZ++) {
+				
+				chunks.add(portal.getWorld().getChunkAt(chunkX, chunkZ));
+			}
+		}
 	}
 	
 	private BlockVec size() {
@@ -47,6 +64,10 @@ public class BlockCache {
 	
 	public World getWorld() {
 		return portal.getWorld();
+	}
+	
+	public Set<Chunk> getChunks() {
+		return chunks;
 	}
 	
 	public BlockVec getMin() {
@@ -187,5 +208,25 @@ public class BlockCache {
 		
 		//TODO check if block is directly in front of the portal.
 		return false;
+	}
+	
+	/**
+	 * Returns a set of all entities that are contained by this cache
+	 */
+	public Set<Entity> getEntities() {
+		
+		Set<Entity> containedEntities = new HashSet<>();
+		
+		for (Chunk chunk : chunks) {
+			
+			for (Entity entity : chunk.getEntities()) {
+				
+				if (WrappedBoundingBox.of(entity).intersectsBlockCache(this)) {
+					containedEntities.add(entity);
+				}
+			}
+		}
+		
+		return containedEntities;
 	}
 }

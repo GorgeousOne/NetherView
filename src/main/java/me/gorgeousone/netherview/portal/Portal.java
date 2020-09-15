@@ -5,11 +5,12 @@ import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
-import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapper.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -64,16 +65,18 @@ public class Portal {
 		return portalRect.getMin().toLocation(world);
 	}
 	
-	public BlockVec getMinBlock() {
+	public BlockVec getMin() {
 		return min.clone();
+	}
+	
+	public BlockVec getMax() {
+		return max.clone();
 	}
 	
 	public BlockVec getMaxBlockAtFloor() {
 		
-		BlockVec maxBlock = max.clone();
-		maxBlock.add(-1, 0, -1);
+		BlockVec maxBlock = max.clone().add(-1, 0, -1);
 		maxBlock.setY(min.getY());
-		
 		return maxBlock;
 	}
 	
@@ -97,6 +100,12 @@ public class Portal {
 	 * Returns true if the given BlockVec is inside portal structure including the frame.
 	 */
 	public boolean contains(BlockVec loc) {
+		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
+		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
+		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
+	}
+	
+	public boolean contains(Vector loc) {
 		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
 		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();

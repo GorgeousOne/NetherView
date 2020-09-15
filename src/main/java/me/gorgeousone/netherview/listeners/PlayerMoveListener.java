@@ -83,15 +83,16 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (viewHandler.isViewingAPortal(player)) {
-			
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
-				}
-			}.runTaskLater(main, 2);
+		if (!viewHandler.hasViewSession(player)) {
+			return;
 		}
+		
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
+			}
+		}.runTaskLater(main, 2);
 	}
 	
 	@EventHandler

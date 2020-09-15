@@ -1,14 +1,14 @@
 package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
-import me.gorgeousone.netherview.api.PortalLinkEvent;
-import me.gorgeousone.netherview.api.PortalUnlinkEvent;
-import me.gorgeousone.netherview.api.UnlinkReason;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.blockcache.TransformFactory;
+import me.gorgeousone.netherview.event.PortalLinkEvent;
+import me.gorgeousone.netherview.event.PortalUnlinkEvent;
+import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
@@ -45,7 +45,7 @@ public class PortalHandler {
 	private final Material portalMaterial;
 	
 	private final Map<UUID, Set<Portal>> worldsWithPortals;
-	private final Map<Portal, Long> recentlyViewedPortals;
+	private final Map<Portal, Long> loadedPortals;
 	private BukkitRunnable expirationTimer;
 	
 	public PortalHandler(NetherViewPlugin main, Material portalMaterial) {
@@ -54,20 +54,30 @@ public class PortalHandler {
 		this.portalMaterial = portalMaterial;
 		
 		worldsWithPortals = new HashMap<>();
-		recentlyViewedPortals = new HashMap<>();
+		loadedPortals = new HashMap<>();
 		
 		startCacheExpirationTimer();
 	}
 	
-	public void reset() {
+	public void reload() {
+		
+		disable();
+		startCacheExpirationTimer();
+	}
+	
+	public void disable() {
 		
 		worldsWithPortals.clear();
-		recentlyViewedPortals.clear();
+		loadedPortals.clear();
 		expirationTimer.cancel();
 	}
 	
 	public Set<Portal> getPortals(World world) {
 		return worldsWithPortals.getOrDefault(world.getUID(), new HashSet<>());
+	}
+	
+	public Set<Portal> getLoadedPortals() {
+		return loadedPortals.keySet();
 	}
 	
 	public boolean hasPortals(World world) {
@@ -89,15 +99,8 @@ public class PortalHandler {
 	}
 	
 	/**
-	 * Returns the count of portals that have been viewed in the last 10 minutes.
-	 */
-	public Integer getRecentlyViewedPortalsCount() {
-		return recentlyViewedPortals.size();
-	}
-	
-	/**
 	 * Returns the first portal that contains the passed block as part of the portal surface.
-	 * If none was found it will  be tried to add the portal related to this block.
+	 * If none was found it will be tried to add the portal related to this block.
 	 */
 	public Portal getPortalByBlock(Block portalBlock) {
 		
@@ -155,12 +158,18 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
-	/**
-	 * Returns true if a random portal block of the portal still exists. It's meant to be a small test for assuring
-	 * that a portal simply still exists for portal viewing.
-	 */
-	public boolean quickCheckExists(Portal portal) {
-		return portal.getPortalBlocks().iterator().next().getType() == portalMaterial;
+	public boolean portalDoesNotExist(Portal portal) {
+		
+		if (portal == null) {
+			return true;
+		}
+		
+		if (portal.getPortalBlocks().iterator().next().getType() != portalMaterial) {
+			removePortal(portal);
+			return true;
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -170,8 +179,8 @@ public class PortalHandler {
 		
 		Set<Portal> linkedToPortals = new HashSet<>();
 		
-		for (UUID worldID : worldsWithPortals.keySet()) {
-			for (Portal secondPortal : worldsWithPortals.get(worldID)) {
+		for (UUID worldId : worldsWithPortals.keySet()) {
+			for (Portal secondPortal : worldsWithPortals.get(worldId)) {
 				
 				if (secondPortal.equals(portal)) {
 					continue;
@@ -213,7 +222,7 @@ public class PortalHandler {
 		Set<ProjectionCache> linkedToProjections = new HashSet<>();
 		Portal portal = cache.getPortal();
 		
-		boolean isBlockCacheFront = portal.getFrontCache() == cache;
+		boolean isBlockCacheFront = portal.getFrontCache().equals(cache);
 		
 		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
 			
@@ -264,8 +273,8 @@ public class PortalHandler {
 		}
 		
 		Portal counterPortal = portal.getCounterPortal();
-		boolean linkTransformIsFlipped = main.portalsAreFlippedByDefault() ^ portal.isViewFlipped();
-		Transform linkTransform = TransformFactory.calculateLinkTransform(portal, counterPortal, linkTransformIsFlipped);
+		boolean linkTransformIsFlipped = portal.isViewFlipped() ^ main.portalsAreFlippedByDefault();
+		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, linkTransformIsFlipped);
 		
 		portal.setTpTransform(linkTransform.clone().invert());
 		
@@ -277,19 +286,19 @@ public class PortalHandler {
 		BlockCache backCache = counterPortal.getBackCache();
 		
 		if (linkTransformIsFlipped) {
-			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(backCache, frontCache, linkTransform));
+			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, backCache, frontCache, linkTransform));
 		} else {
-			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(frontCache, backCache, linkTransform));
+			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, frontCache, backCache, linkTransform));
 		}
 		addPortalToExpirationTimer(portal);
 	}
 	
 	private void addPortalToExpirationTimer(Portal portal) {
-		recentlyViewedPortals.put(portal, System.currentTimeMillis());
+		loadedPortals.put(portal, System.currentTimeMillis());
 	}
 	
 	public void updateExpirationTime(Portal portal) {
-		recentlyViewedPortals.put(portal, System.currentTimeMillis());
+		loadedPortals.put(portal, System.currentTimeMillis());
 	}
 	
 	/**
@@ -308,7 +317,7 @@ public class PortalHandler {
 			linkedPortal.removeLink();
 		}
 		
-		recentlyViewedPortals.remove(portal);
+		loadedPortals.remove(portal);
 		
 		if (portal.isLinked()) {
 			
@@ -497,44 +506,6 @@ public class PortalHandler {
 	}
 	
 	/**
-	 * Calculates a Transform that is needed to translate and rotate the blocks from the block cache
-	 * of the counter portal to the related positions in the projection cache of the viewed portal.
-	 */
-//	private Transform calculateLinkTransform(Portal portal, Portal counterPortal, boolean isViewFlipped) {
-//
-//		Transform linkTransform = new Transform();
-//		Axis counterPortalAxis = counterPortal.getAxis();
-//
-//		BlockVec portalLoc1 = portal.getMinBlock();
-//		BlockVec portalLoc2;
-//
-//		if (portal.getAxis() == counterPortalAxis) {
-//
-//			if (isViewFlipped) {
-//				portalLoc2 = counterPortal.getMinBlock();
-//
-//			} else {
-//				portalLoc2 = counterPortal.getMaxBlockAtFloor();
-//				linkTransform.setRotY180Deg();
-//			}
-//
-//		} else {
-//
-//			if (counterPortalAxis == Axis.X ^ isViewFlipped) {
-//				linkTransform.setRotY90DegRight();
-//			} else {
-//				linkTransform.setRotY90DegLeft();
-//			}
-//
-//			portalLoc2 = isViewFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMinBlock();
-//		}
-//
-//		linkTransform.setRotCenter(portalLoc2);
-//		linkTransform.setTranslation(portalLoc1.subtract(portalLoc2));
-//		return linkTransform;
-//	}
-	
-	/**
 	 * Starts a scheduler that handles the removal of block caches (and projection caches) that weren't used for a certain expiration time.
 	 */
 	private void startCacheExpirationTimer() {
@@ -548,7 +519,7 @@ public class PortalHandler {
 			@Override
 			public void run() {
 				
-				Iterator<Map.Entry<Portal, Long>> entries = recentlyViewedPortals.entrySet().iterator();
+				Iterator<Map.Entry<Portal, Long>> entries = loadedPortals.entrySet().iterator();
 				long now = System.currentTimeMillis();
 				
 				while (entries.hasNext()) {

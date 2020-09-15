@@ -10,10 +10,12 @@ public class NmsUtils {
 	
 	private static final String VERSION = Bukkit.getServer().getClass().getName().split("\\.")[3];
 	private static Method ENTITY_GET_HANDLE;
+	private static Method ENTITY_GET_DATA_WATCHER;
 	
 	static {
 		try {
 			ENTITY_GET_HANDLE = NmsUtils.getCraftBukkitClass("entity.CraftEntity").getMethod("getHandle");
+			ENTITY_GET_DATA_WATCHER = NmsUtils.getNmsClass("Entity").getMethod("getDataWatcher");
 		} catch (NoSuchMethodException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -21,6 +23,10 @@ public class NmsUtils {
 	
 	public static Object getHandle(Entity entity) throws InvocationTargetException, IllegalAccessException {
 		return ENTITY_GET_HANDLE.invoke(entity);
+	}
+	
+	public static Object getDataWatcher(Entity entity) throws InvocationTargetException, IllegalAccessException {
+		return ENTITY_GET_DATA_WATCHER.invoke(getHandle(entity));
 	}
 	
 	public static Class<?> getNmsClass(String nmsClassString) throws ClassNotFoundException {

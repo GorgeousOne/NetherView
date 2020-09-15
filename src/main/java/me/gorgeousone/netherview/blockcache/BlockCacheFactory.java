@@ -4,7 +4,7 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.FacingUtils;
-import me.gorgeousone.netherview.wrapping.blocktype.BlockType;
+import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -111,13 +111,14 @@ public class BlockCacheFactory {
 		return blockCache;
 	}
 	
-	public static Map.Entry<ProjectionCache, ProjectionCache> createProjectionCaches(BlockCache frontCache,
+	public static Map.Entry<ProjectionCache, ProjectionCache> createProjectionCaches(Portal projectingPortal,
+	                                                                                 BlockCache frontCache,
 	                                                                                 BlockCache backCache,
 	                                                                                 Transform portalLinkTransform) {
 		
 		return new AbstractMap.SimpleEntry<>(
-				createProjection(backCache, portalLinkTransform),
-				createProjection(frontCache, portalLinkTransform));
+				createProjection(projectingPortal, backCache, portalLinkTransform),
+				createProjection(projectingPortal, frontCache, portalLinkTransform));
 	}
 	
 	/**
@@ -126,7 +127,9 @@ public class BlockCacheFactory {
 	 * @param sourceCache   block cache to be copied
 	 * @param linkTransform transformation between the locations of the block cache and the projection cache
 	 */
-	public static ProjectionCache createProjection(BlockCache sourceCache, Transform linkTransform) {
+	public static ProjectionCache createProjection(Portal projectingPortal,
+	                                               BlockCache sourceCache,
+	                                               Transform linkTransform) {
 		
 		BlockVec sourceMin = sourceCache.getMin();
 		BlockVec sourceMax = sourceCache.getMax();
@@ -139,11 +142,12 @@ public class BlockCacheFactory {
 		BlockVec projectionSize = projectionMax.clone().subtract(projectionMin);
 		
 		ProjectionCache projectionCache = new ProjectionCache(
-				sourceCache.getPortal(),
+				projectingPortal,
 				projectionMin,
 				projectionSize,
 				linkTransform.transformVec(sourceCache.getFacing()),
 				sourceCache.getBorderBlockType(),
+				sourceCache,
 				linkTransform);
 		
 		for (int x = sourceMin.getX(); x < sourceMax.getX(); x++) {

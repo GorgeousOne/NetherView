@@ -4,7 +4,7 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.Line;
 import me.gorgeousone.netherview.geometry.Plane;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.wrapping.Axis;
+import me.gorgeousone.netherview.wrapper.Axis;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -81,16 +81,13 @@ public final class ViewFrustumFactory {
 			}
 		}
 		
-		Vector viewingRectSize = viewingRectMax.clone().subtract(viewingRectMin);
-		double rectWidth = portalAxis == Axis.X ? viewingRectSize.getX() : viewingRectSize.getZ();
-		double rectHeight = viewingRectSize.getY();
-		
-		if (rectWidth < 0 || rectHeight < 0) {
+		try {
+			AxisAlignedRect actualViewingRect = new AxisAlignedRect(totalViewingRect.getAxis(), viewingRectMin, viewingRectMax);
+			return new ViewFrustum(viewPoint, actualViewingRect, frustumLength);
+			
+		} catch (IllegalArgumentException e) {
 			return null;
 		}
-		
-		AxisAlignedRect actualViewingRect = new AxisAlignedRect(totalViewingRect.getAxis(), viewingRectMin, rectWidth, rectHeight);
-		return new ViewFrustum(viewPoint, actualViewingRect, frustumLength);
 	}
 	
 	public static boolean isPlayerBehindPortal(Player player, Portal portal) {
