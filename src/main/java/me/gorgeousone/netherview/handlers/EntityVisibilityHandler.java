@@ -16,11 +16,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A class that runs a BukkitRunnable to check the movements of entities nearby portals.
+ * A class that runs a BukkitRunnable to check the entities nearby portals and their movements.
  * It will show/hide entities that walk in/out of areas viewed by players from portals.
- * It also displays the entities' movement animations to players.
+ * It also creates movement animations for projected entities for players.
  */
-public class EntityMotionHandler {
+public class EntityVisibilityHandler {
 	
 	private final NetherViewPlugin main;
 	private final ViewHandler viewHandler;
@@ -30,7 +30,7 @@ public class EntityMotionHandler {
 	private final Map<BlockCache, Set<Entity>> entitiesInBlockCaches;
 	private final Map<Entity, Location> lastEntityLocs;
 	
-	public EntityMotionHandler(NetherViewPlugin main, ViewHandler viewHandler, PacketHandler packetHandler) {
+	public EntityVisibilityHandler(NetherViewPlugin main, ViewHandler viewHandler, PacketHandler packetHandler) {
 		
 		this.main = main;
 		this.viewHandler = viewHandler;
@@ -38,13 +38,18 @@ public class EntityMotionHandler {
 		this.entitiesInBlockCaches = new HashMap<>();
 		this.lastEntityLocs = new HashMap<>();
 		
-		startMotionChecker();
+		if (main.isEntityHidingEnabled()) {
+			startEntityCheckerChecker();
+		}
 	}
 	
 	public void reload() {
 		
 		disable();
-		startMotionChecker();
+		
+		if (main.isEntityHidingEnabled()) {
+			startEntityCheckerChecker();
+		}
 	}
 	
 	public void disable() {
@@ -54,13 +59,29 @@ public class EntityMotionHandler {
 		entityMotionChecker.cancel();
 	}
 	
-	private void startMotionChecker() {
+	private void startEntityCheckerChecker() {
 		
 		entityMotionChecker = new BukkitRunnable() {
 			@Override
 			public void run() {
 				
 				Map<ProjectionCache, Set<PlayerViewSession>> portalSideViewers = viewHandler.getSessionsSortedByPortalSides();
+				
+				for (ProjectionCache projection : portalSideViewers.keySet()) {
+					
+					Set<Entity> currentEntities = projection.getEntities();
+					
+					for (PlayerViewSession session : portalSideViewers.get(projection)) {
+						
+						showEntitiesNextToFrustum(session);
+						hideEntitiesInFrustum(session, currentEntities);
+					}
+				}
+				
+				if (!main.isEntityViewingEnabled()) {
+					return;
+				}
+				
 				Map<BlockCache, Set<ProjectionCache>> watchedBlockCaches = getProjectionsSortedByBlockCaches(portalSideViewers.keySet());
 				
 				for (BlockCache blockCache : watchedBlockCaches.keySet()) {
@@ -73,7 +94,7 @@ public class EntityMotionHandler {
 						return;
 					}
 					
-					Map<Entity, Location> movedEntities = getMovedEntities(currentEntities, lastEntityLocs);
+					Map<Entity, Location> movedEntities = getMovingEntities(currentEntities, lastEntityLocs);
 					
 					for (ProjectionCache projection : watchedBlockCaches.get(blockCache)) {
 						for (PlayerViewSession session : portalSideViewers.get(projection)) {
@@ -90,16 +111,6 @@ public class EntityMotionHandler {
 					
 					entitiesInBlockCaches.put(blockCache, currentEntities);
 					currentEntities.forEach(entity -> lastEntityLocs.put(entity, entity.getLocation()));
-				}
-				
-				for (ProjectionCache projection : portalSideViewers.keySet()) {
-					
-					Set<Entity> currentEntities = projection.getEntities();
-					
-					for (PlayerViewSession session : portalSideViewers.get(projection)) {
-						showEntitiesNextToFrustum(session);
-						hideEntitiesInFrustum(session, currentEntities);
-					}
 				}
 				
 				entitiesInBlockCaches.entrySet().removeIf(entry -> !watchedBlockCaches.containsKey(entry.getKey()));
@@ -123,7 +134,7 @@ public class EntityMotionHandler {
 		return sortedSources;
 	}
 	
-	private Map<Entity, Location> getMovedEntities(Collection<Entity> entities, Map<Entity, Location> lastEntityLocs) {
+	private Map<Entity, Location> getMovingEntities(Collection<Entity> entities, Map<Entity, Location> lastEntityLocs) {
 		
 		Map<Entity, Location> movingEntities = new HashMap<>();
 		
@@ -150,7 +161,7 @@ public class EntityMotionHandler {
 		
 		for (Entity entity : new HashSet<>(session.getProjectedEntities().keySet())) {
 			
-			if (!newEntities.contains(entity)) {
+			if (!newEntities.contains(entity) || !session.isVisibleInProjection(entity)) {
 				viewHandler.destroyProjectedEntity(session.getPlayer(), entity);
 			}
 		}
