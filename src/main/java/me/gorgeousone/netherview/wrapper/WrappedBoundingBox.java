@@ -53,9 +53,16 @@ public class WrappedBoundingBox {
 		}
 	}
 	
+	private final double widthX;
+	private final double widthZ;
+	private final double height;
 	private final List<Vector> vertices;
 	
 	public WrappedBoundingBox(Entity entity, Location entityLoc, double widthX, double height, double widthZ) {
+		
+		this.widthX = widthX;
+		this.widthZ = widthZ;
+		this.height = height;
 		
 		//dunno, paintings are a bit off
 		if (entity.getType() == EntityType.PAINTING && VersionUtils.IS_LEGACY_SERVER) {
@@ -82,6 +89,18 @@ public class WrappedBoundingBox {
 				new Vector(min.getX(), max.getY(), max.getZ()),
 				max
 		));
+	}
+	
+	public double getWidthX() {
+		return widthX;
+	}
+	
+	public double getWidthZ() {
+		return widthZ;
+	}
+	
+	public double getHeight() {
+		return height;
 	}
 	
 	/**

@@ -138,12 +138,7 @@ public class ViewHandler {
 	public void projectEntity(Player player, Entity entity, Transform transform) {
 		
 		getViewSession(player).getProjectedEntities().put(entity, entity.getLocation());
-		
-		try {
-			packetHandler.showEntity(player, entity, transform);
-		} catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		packetHandler.showEntity(player, entity, transform);
 	}
 	
 	public void destroyProjectedEntity(Player player, Entity entity) {
@@ -548,13 +543,9 @@ public class ViewHandler {
 		
 		currentlyProjectedEntities.entrySet().removeIf(entry -> lastProjectedEntities.containsKey(entry.getKey()));
 		lastProjectedEntities.putAll(currentlyProjectedEntities);
-		
-		try {
-			for (Entity entity : currentlyProjectedEntities.keySet()) {
-				packetHandler.showEntity(player, entity, linkTransform);
-			}
-		} catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
-			e.printStackTrace();
+	
+		for (Entity entity : currentlyProjectedEntities.keySet()) {
+			packetHandler.showEntity(player, entity, linkTransform);
 		}
 		
 		packetHandler.hideEntities(player, invisibleEntities);

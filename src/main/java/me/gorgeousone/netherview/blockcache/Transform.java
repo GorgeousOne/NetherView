@@ -44,7 +44,7 @@ public class Transform {
 	}
 	
 	public Transform setTranslation(BlockVec pos) {
-		this.translation = pos.toVector().add(new Vector(0.5, 0, 0.5));
+		this.translation = pos.toVector();
 		return this;
 	}
 	
@@ -54,7 +54,7 @@ public class Transform {
 	}
 	
 	public Transform setRotCenter(BlockVec rotCenter) {
-		this.rotCenter = rotCenter.toVector();
+		this.rotCenter = rotCenter.toVector().add(new Vector(0.5, 0, 0.5));
 		return this;
 	}
 	

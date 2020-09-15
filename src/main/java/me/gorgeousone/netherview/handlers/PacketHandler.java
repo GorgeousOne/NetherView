@@ -17,14 +17,13 @@ import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.utils.NmsUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
+import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
-import net.minecraft.server.v1_13_R2.EntityLiving;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
@@ -33,10 +32,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,33 +47,6 @@ import java.util.Set;
  */
 public class PacketHandler {
 	
-	private static Field FIELD_PLAYER_CONNECTION;
-	private static Method METHOD_PLAYER_CONNECTION_SEND_PACKET;
-	
-	private static Constructor PACKET_SPAWN_EX_ORB;
-	private static Constructor PACKET_SPAWN_PAINTING;
-	private static Constructor PACKET_SPAWN_PLAYER;
-	private static Constructor PACKET_SPAWN_ENTITY_LIVING;
-	private static Constructor PACKET_SPAWN_ENTITY;
-	
-	static {
-		
-		try {
-			FIELD_PLAYER_CONNECTION = NmsUtils.getNmsClass("EntityPlayer").getField("playerConnection");
-			METHOD_PLAYER_CONNECTION_SEND_PACKET = NmsUtils.getNmsClass("PlayerConnection").getMethod("sendPacket", NmsUtils.getNmsClass("Packet"));
-			
-			Class nmsEntityClass = NmsUtils.getNmsClass("Entity");
-			PACKET_SPAWN_EX_ORB = NmsUtils.getNmsClass("PacketPlayOutSpawnEntityExperienceOrb").getConstructor(NmsUtils.getNmsClass("EntityExperienceOrb"));
-			PACKET_SPAWN_PAINTING = NmsUtils.getNmsClass("PacketPlayOutSpawnEntityPainting").getConstructor(NmsUtils.getNmsClass("EntityPainting"));
-			PACKET_SPAWN_PLAYER = NmsUtils.getNmsClass("PacketPlayOutNamedEntitySpawn").getConstructor(NmsUtils.getNmsClass("EntityHuman"));
-			PACKET_SPAWN_ENTITY_LIVING = NmsUtils.getNmsClass("PacketPlayOutSpawnEntityLiving").getConstructor(NmsUtils.getNmsClass("EntityLiving"));
-			PACKET_SPAWN_ENTITY = NmsUtils.getNmsClass("PacketPlayOutSpawnEntity").getConstructor(nmsEntityClass, int.class);
-			
-		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	private final ProtocolManager protocolManager;
 	private final Set<Integer> markedPacketIds;
 	
@@ -85,18 +54,6 @@ public class PacketHandler {
 		
 		protocolManager = ProtocolLibrary.getProtocolManager();
 		markedPacketIds = new HashSet<>();
-	}
-	
-	public static void sendPacket(Player player, Object packet) {
-		
-		try {
-			Object nmsPlayer = NmsUtils.getHandle(player);
-			Object connection = FIELD_PLAYER_CONNECTION.get(nmsPlayer);
-			METHOD_PLAYER_CONNECTION_SEND_PACKET.invoke(connection, packet);
-			
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -119,7 +76,7 @@ public class PacketHandler {
 		}
 	}
 	
-	private void sendProtocolPacket(Player player, PacketContainer packet) {
+	private void sendPacket(Player player, PacketContainer packet) {
 		
 		try {
 			protocolManager.sendServerPacket(player, packet);
@@ -306,17 +263,12 @@ public class PacketHandler {
 		
 		PacketContainer destroyPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
 		destroyPacket.getIntegerArrays().write(0, entityIds);
-		
-		try {
-			protocolManager.sendServerPacket(player, destroyPacket);
-		} catch (InvocationTargetException e) {
-			throw new RuntimeException("Failed to send packet " + destroyPacket, e);
-		}
+		sendPacket(player, destroyPacket);
 	}
 	
 	public void showEntity(Player player,
 	                       Entity entity,
-	                       Transform transform) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+	                       Transform transform) {
 		
 		if (entity == null || entity.isDead()) {
 			return;
@@ -324,38 +276,48 @@ public class PacketHandler {
 		
 		Location entityLoc = transform.transformLoc(entity.getLocation());
 		
-		switch (entity.getType()) {
+		try {
 			
-			case PAINTING:
-				sendProtocolPacket(player, createPaintingPacket((Painting) entity, entityLoc, transform));
-				return;
-			
-			case EXPERIENCE_ORB:
-//				sendProtocolPacket(player, createXpOrbPacket((ExperienceOrb) entity, entityLoc));
-				return;
-			
-			case PLAYER:
+			switch (entity.getType()) {
 				
-				sendProtocolPacket(player, createPlayerPacket((HumanEntity) entity, entityLoc));
-				sendProtocolPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
-				showEquipment(player, (LivingEntity) entity);
-				return;
-			
-			default:
-				
-				if (entity instanceof LivingEntity) {
-					
-					sendProtocolPacket(player, createEntityLivingPacket((LivingEntity) entity, entityLoc));
-					sendProtocolPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
-					showEquipment(player, (LivingEntity) entity);
-				} else {
-					sendProtocolPacket(player, createEntityPacket(entity, entityLoc));
+				case EXPERIENCE_ORB:
+					//I don't like fake experience orbs. They float around and are confusing only.
+//				    sendProtocolPacket(player, createXpOrbPacket((ExperienceOrb) entity, entityLoc));
 					return;
-				}
+				
+				case PAINTING:
+					sendPacket(player, createPaintingPacket((Painting) entity, entityLoc, transform));
+					break;
+				
+				case PLAYER:
+					
+					sendPacket(player, createPlayerPacket((HumanEntity) entity, entityLoc));
+					sendPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
+					showEquipment(player, (LivingEntity) entity);
+					break;
+				
+				default:
+					
+					if (entity instanceof LivingEntity) {
+						
+						sendPacket(player, createEntityLivingPacket((LivingEntity) entity, entityLoc));
+						sendPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
+						showEquipment(player, (LivingEntity) entity);
+						
+					} else {
+						sendPacket(player, createEntityPacket(entity, entityLoc));
+					}
+			}
+			
+			sendPacket(player, createMetadataPacket(entity));
+			
+		} catch (IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
+			throw new RuntimeException("Failed to do nms stuff", e);
 		}
 	}
 	
-	private PacketContainer createHeadRotation(Entity entity, float yaw) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+	private PacketContainer createHeadRotation(Entity entity,
+	                                           float yaw) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
 		
 		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(
 				PacketType.Play.Server.ENTITY_HEAD_ROTATION,
@@ -365,7 +327,8 @@ public class PacketHandler {
 		return packetConstructor.createPacket(NmsUtils.getHandle(entity), byteYaw);
 	}
 	
-	private PacketContainer createPlayerPacket(HumanEntity player, Location entityLoc) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+	private PacketContainer createPlayerPacket(HumanEntity player,
+	                                           Location entityLoc) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
 		
 		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(PacketType.Play.Server.NAMED_ENTITY_SPAWN, NmsUtils.getNmsClass("EntityHuman"));
 		PacketContainer spawnPacket = packetConstructor.createPacket(NmsUtils.getHandle(player));
@@ -384,7 +347,8 @@ public class PacketHandler {
 		return spawnPacket;
 	}
 	
-	private PacketContainer createEntityLivingPacket(LivingEntity entity, Location entityLoc) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
+	private PacketContainer createEntityLivingPacket(LivingEntity entity,
+	                                                 Location entityLoc) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
 		
 		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_LIVING, NmsUtils.getNmsClass("EntityLiving"));
 		PacketContainer spawnPacket = packetConstructor.createPacket(NmsUtils.getHandle(entity));
@@ -395,14 +359,16 @@ public class PacketHandler {
 	private PacketContainer createPaintingPacket(Painting painting,
 	                                             Location location,
 	                                             Transform transform) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
-
+		
 		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_PAINTING, NmsUtils.getNmsClass("EntityPainting"));
 		PacketContainer spawnPacket = packetConstructor.createPacket(NmsUtils.getHandle(painting));
 		
-		BlockPosition blockPosition = new BlockPosition(location.toVector());
+		int halfHeight = (int) (WrappedBoundingBox.of(painting).getHeight() / 2);
+		BlockPosition blockPosition = new BlockPosition(location.toVector()).subtract(new BlockPosition(0, halfHeight, 0));
+		
 		BlockFace rotatedFace = FacingUtils.getRotatedFace(painting.getFacing(), transform.getQuarterTurns());
 		EnumWrappers.Direction rotatedDirection = FacingUtils.getBlockFaceToDirection(rotatedFace);
-
+		
 		spawnPacket.getBlockPositionModifier().write(0, blockPosition);
 		spawnPacket.getDirections().write(0, rotatedDirection);
 		
@@ -486,64 +452,72 @@ public class PacketHandler {
 		headRotPacket.getIntegers().write(0, entity.getEntityId());
 		headRotPacket.getBytes().write(0, (byte) (int) (newYaw * 265 / 360));
 		
-		sendProtocolPacket(player, moveLookPacket);
-		sendProtocolPacket(player, headRotPacket);
+		sendPacket(player, moveLookPacket);
+		sendPacket(player, headRotPacket);
 	}
 	
 	public void showEntities(Player player, Set<Entity> visibleEntities) {
 		
-		if (visibleEntities.isEmpty()) {
-			return;
-		}
-		
-		try {
-			
-			for (Entity entity : visibleEntities) {
-				
-				if (entity == null || !entity.isValid()) {
-					continue;
-				}
-				
-				Object spawnPacket;
-				boolean entityHasEquipment = false;
-				Object nmsEntity = NmsUtils.getHandle(entity);
-				
-				if (entity.getType() == EntityType.PAINTING) {
-					spawnPacket = PACKET_SPAWN_PAINTING.newInstance(nmsEntity);
-					
-				} else if (entity.getType() == EntityType.EXPERIENCE_ORB) {
-					spawnPacket = PACKET_SPAWN_EX_ORB.newInstance(nmsEntity);
-					
-				} else if (entity instanceof LivingEntity) {
-					
-					if (entity.getType() == EntityType.PLAYER) {
-						spawnPacket = PACKET_SPAWN_PLAYER.newInstance(nmsEntity);
-					} else {
-						spawnPacket = PACKET_SPAWN_ENTITY_LIVING.newInstance(nmsEntity);
-					}
-					
-					entityHasEquipment = true;
-					
-				} else {
-					spawnPacket = PACKET_SPAWN_ENTITY.newInstance(nmsEntity, entity.getEntityId());
-				}
-				
-				sendPacket(player, spawnPacket);
-				sendProtocolPacket(player, createMetadataPacket(entity));
-				
-				if (entityHasEquipment) {
-					showEquipment(player, (LivingEntity) entity);
-				}
-			}
-		} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-			e.printStackTrace();
+		for (Entity entity : visibleEntities) {
+			showEntity(player, entity, new Transform());
 		}
 	}
+	
+//	public void showEntitieees(Player player, Set<Entity> visibleEntities) {
+//
+//		if (visibleEntities.isEmpty()) {
+//			return;
+//		}
+//
+//		try {
+//
+//			for (Entity entity : visibleEntities) {
+//
+//				if (entity == null || !entity.isValid()) {
+//					continue;
+//				}
+//
+//				Object spawnPacket;
+//				boolean entityHasEquipment = false;
+//				Object nmsEntity = NmsUtils.getHandle(entity);
+//
+//				if (entity.getType() == EntityType.PAINTING) {
+//					spawnPacket = PACKET_SPAWN_PAINTING.newInstance(nmsEntity);
+//
+//				} else if (entity.getType() == EntityType.EXPERIENCE_ORB) {
+//					spawnPacket = PACKET_SPAWN_EX_ORB.newInstance(nmsEntity);
+//
+//				} else if (entity instanceof LivingEntity) {
+//
+//					if (entity.getType() == EntityType.PLAYER) {
+//						spawnPacket = PACKET_SPAWN_PLAYER.newInstance(nmsEntity);
+//					} else {
+//						spawnPacket = PACKET_SPAWN_ENTITY_LIVING.newInstance(nmsEntity);
+//					}
+//
+//					entityHasEquipment = true;
+//
+//				} else {
+//					spawnPacket = PACKET_SPAWN_ENTITY.newInstance(nmsEntity, entity.getEntityId());
+//				}
+//
+//				sendPacket(player, spawnPacket);
+//				sendProtocolPacket(player, createMetadataPacket(entity));
+//
+//				if (entityHasEquipment) {
+//					showEquipment(player, (LivingEntity) entity);
+//				}
+//			}
+//		} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
 	private PacketContainer createMetadataPacket(Entity entity) {
 		
 		WrappedDataWatcher dataWatcher = new WrappedDataWatcher(entity);
 		PacketContainer metadataPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+		
 		metadataPacket.getIntegers().write(0, entity.getEntityId());
 		metadataPacket.getWatchableCollectionModifier().writeSafely(0, dataWatcher.getWatchableObjects());
 		return metadataPacket;
@@ -604,7 +578,7 @@ public class PacketHandler {
 			equipmentPacket.getIntegers().write(0, entity.getEntityId());
 			equipmentPacket.getItemSlots().write(0, slot);
 			equipmentPacket.getItemModifier().write(0, item);
-			sendProtocolPacket(player, equipmentPacket);
+			sendPacket(player, equipmentPacket);
 		}
 	}
 	
@@ -632,7 +606,7 @@ public class PacketHandler {
 		PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
 		equipmentPacket.getIntegers().write(0, entity.getEntityId());
 		equipmentPacket.getSlotStackPairLists().write(0, equipmentList);
-		sendProtocolPacket(player, equipmentPacket);
+		sendPacket(player, equipmentPacket);
 	}
 	
 	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity) {

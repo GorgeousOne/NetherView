@@ -78,7 +78,7 @@ public class EntityMotionHandler {
 					
 					for (ProjectionCache projection : sourceCacheMap.get(sourceCache)) {
 						for (PlayerViewSession session : projectionSessionsMap.get(projection)) {
-						
+							
 							for (Entity entity : session.getProjectedEntities().keySet()) {
 								if (!newEntities.contains(entity)) {
 									
@@ -90,19 +90,22 @@ public class EntityMotionHandler {
 						}
 					}
 					
+					Map<Entity, Location> movedEntities = getMovedEntities(newEntities, lastEntityLocs);
+					
 					for (ProjectionCache projection : sourceCacheMap.get(sourceCache)) {
 						for (PlayerViewSession session : projectionSessionsMap.get(projection)) {
 							
+							Player player = session.getPlayer();
+							ViewFrustum playerFrustum = session.getLastViewFrustum();
+							
+							if (playerFrustum == null) {
+								continue;
+							}
+							
+							Transform linkTransform = projection.getLinkTransform();
+							
 							for (Entity entity : newEntities) {
 								
-								Player player = session.getPlayer();
-								ViewFrustum playerFrustum = session.getLastViewFrustum();
-								
-								if (entity.equals(player) || playerFrustum == null) {
-									continue;
-								}
-								
-								Transform linkTransform = projection.getLinkTransform();
 								Location projectionLoc = linkTransform.transformLoc(entity.getLocation());
 								WrappedBoundingBox boundingBox = WrappedBoundingBox.of(entity, projectionLoc);
 								
@@ -116,24 +119,9 @@ public class EntityMotionHandler {
 									player.sendMessage(linkTransform.getTranslation().toString());
 								}
 							}
-						}
-					}
-					
-					Map<Entity, Location> movedEntities = getMovedEntities(newEntities, lastEntityLocs);
-					
-					for (Entity entity : movedEntities.keySet()) {
-						
-						for (ProjectionCache projection : sourceCacheMap.get(sourceCache)) {
-							for (PlayerViewSession session : projectionSessionsMap.get(projection)) {
+							
+							for (Entity entity : movedEntities.keySet()) {
 								
-								Player player = session.getPlayer();
-								ViewFrustum playerFrustum = session.getLastViewFrustum();
-								
-								if (entity.equals(player) || playerFrustum == null) {
-									continue;
-								}
-								
-								Transform linkTransform = projection.getLinkTransform();
 								Location projectionLoc = linkTransform.transformLoc(entity.getLocation());
 								WrappedBoundingBox boundingBox = WrappedBoundingBox.of(entity, projectionLoc);
 								
@@ -143,7 +131,7 @@ public class EntityMotionHandler {
 								if (session.getProjectedEntities().containsKey(entity)) {
 									
 									if (entityIntersectsProjection && entityIntersectsFrustum) {
-									
+										
 										Location lastEntityLoc = session.getProjectedEntities().get(entity);
 										Location projectedMovement = linkTransform.rotateLoc(entity.getLocation().subtract(lastEntityLoc));
 										session.getProjectedEntities().put(entity, entity.getLocation());
@@ -155,7 +143,7 @@ public class EntityMotionHandler {
 												projectedMovement.getYaw(),
 												projectedMovement.getPitch(),
 												entity.isOnGround());
-
+										
 									} else {
 										viewHandler.destroyProjectedEntity(player, entity);
 										player.sendMessage(ChatColor.GOLD + "hide " + entity.getType().name().toLowerCase());
