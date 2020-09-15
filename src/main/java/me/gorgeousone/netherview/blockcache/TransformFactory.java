@@ -10,8 +10,8 @@ public class TransformFactory {
 	 * Calculates a Transform that can translate and rotate the block cache blocks from one portal
 	 * to the related projection cache blocks of another portal.
 	 *
-	 * @param portal that has the projection cache
-	 * @param counterPortal that has the block cache related to it
+	 * @param portal          that has the projection cache
+	 * @param counterPortal   that has the block cache related to it
 	 * @param isPortalFlipped flips the transform rotation by 180 degrees
 	 */
 	public static Transform calculateBlockLinkTransform(Portal portal, Portal counterPortal, boolean isPortalFlipped) {

@@ -4,6 +4,7 @@ import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -90,5 +91,27 @@ public class PlayerViewSession {
 	
 	public Map<Entity, Location> getProjectedEntities() {
 		return projectedEntities;
+	}
+	
+	public boolean isHiddenBehindProjection(Entity entity) {
+		
+		if (lastViewFrustum == null) {
+			return false;
+		}
+		
+		WrappedBoundingBox boundingBox = WrappedBoundingBox.of(entity, entity.getLocation());
+		return boundingBox.intersectsBlockCache(viewedPortalSide) && boundingBox.intersectsFrustum(lastViewFrustum);
+	}
+	
+	public boolean isVisibleInProjection(Entity entity) {
+		
+		if (lastViewFrustum == null) {
+			return false;
+		}
+		
+		Location projectionLoc = viewedPortalSide.getLinkTransform().transformLoc(entity.getLocation());
+		WrappedBoundingBox boundingBox = WrappedBoundingBox.of(entity, projectionLoc);
+		
+		return boundingBox.intersectsBlockCache(viewedPortalSide) && boundingBox.intersectsFrustum(lastViewFrustum);
 	}
 }

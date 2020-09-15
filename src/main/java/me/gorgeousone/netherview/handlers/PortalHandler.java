@@ -1,14 +1,14 @@
 package me.gorgeousone.netherview.handlers;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
-import me.gorgeousone.netherview.event.PortalLinkEvent;
-import me.gorgeousone.netherview.event.PortalUnlinkEvent;
-import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.blockcache.TransformFactory;
+import me.gorgeousone.netherview.event.PortalLinkEvent;
+import me.gorgeousone.netherview.event.PortalUnlinkEvent;
+import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;

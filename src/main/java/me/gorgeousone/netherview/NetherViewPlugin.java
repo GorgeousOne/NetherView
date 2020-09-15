@@ -4,7 +4,6 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
-import me.gorgeousone.netherview.commmands.Destroy;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
@@ -17,8 +16,6 @@ import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockChangeListener;
-import me.gorgeousone.netherview.listeners.ChunkUnloadListener;
-import me.gorgeousone.netherview.listeners.EntityVisibilityListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
@@ -264,8 +261,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
 		
-		netherViewCommand.addChild(new Destroy(netherViewCommand));
-		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
 		cmdHandler.registerCommand(new TogglePortalViewCommand(viewHandler));
@@ -278,9 +273,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
 		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
-		manager.registerEvents(new ChunkUnloadListener(viewHandler), this);
-		
-		new EntityVisibilityListener(this, viewHandler);
 	}
 	
 	private void loadConfigData() {

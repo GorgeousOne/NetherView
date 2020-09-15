@@ -7,8 +7,8 @@ instant-teleport: true
 warning-messages: true
 debug-messages: false
 hide-entities:
-  enabled: true
-  hide-players: true
+    enabled: true
+    hide-players: true
 worlds-with-portal-viewing:
-  - world
-  - world_nether
+    - world
+    - world_nether

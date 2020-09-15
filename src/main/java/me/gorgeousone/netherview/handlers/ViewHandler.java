@@ -12,20 +12,15 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.wrapper.Axis;
 import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -149,9 +144,8 @@ public class ViewHandler {
 	
 	public void showEntity(Player player, Entity entity) {
 		
-		player.sendMessage(ChatColor.GRAY + "");
 		getViewSession(player).getHiddenEntities().remove(entity);
-		packetHandler.showEntities(player, Collections.singleton(entity));
+		packetHandler.showEntity(player, entity, new Transform());
 	}
 	
 	public void hideEntity(Player player, Entity entity) {
@@ -257,8 +251,6 @@ public class ViewHandler {
 		session.setViewedPortal(portal);
 		session.setViewedPortalSide(projection);
 		
-		projection.loadSourceChunks();
-		
 		if (!displayFrustum) {
 			session.setLastViewFrustum(null);
 		} else {
@@ -273,7 +265,7 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * Puts all blocks to display to the player in one map
+	 * Collects and displays fake blocks for player to view the portal projection.
 	 */
 	private void displayProjectionBlocks(Player player,
 	                                     Portal portal,
@@ -295,12 +287,12 @@ public class ViewHandler {
 			}
 		}
 		
-		displayBlocks(player, visibleBlocks);
+		updateDisplayedBlocks(player, visibleBlocks);
 	}
 	
 	/**
-	 * Hides or re-shows any entity to the player from around the portal the player is looking at
-	 * depending on if they are inside or outside of the player's view frustum.
+	 * Checks around the portal the player is looking at and around it's counter portal for entities
+	 * that currently have to either be hidden from the player for a clear view on the other world or projected from the other world.
 	 */
 	private void toggleEntityVisibilities(Player player,
 	                                      ProjectionCache projection,
@@ -309,7 +301,7 @@ public class ViewHandler {
 	                                      boolean hidePlayers) {
 		
 		if (playerFrustum == null || !displayFrustum) {
-			hideEntities(player, null);
+			updateHiddenEntities(player, null);
 			return;
 		}
 		
@@ -327,17 +319,16 @@ public class ViewHandler {
 			
 			WrappedBoundingBox box = WrappedBoundingBox.of(entity);
 			
-			if (!box.intersectsPortal(projection.getPortal()) &&
-			    box.intersectsBlockCache(projection) &&
+			if (box.intersectsBlockCache(projection) &&
 			    box.intersectsFrustum(playerFrustum)) {
 				
 				hiddenEntities.add(entity);
 			}
 		}
 		
-		hideEntities(player, hiddenEntities);
+		updateHiddenEntities(player, hiddenEntities);
 		
-		//---------------------------------------
+		//--------------------------------------- long method, bad excuse :D
 		
 		Transform linkTransform = projection.getLinkTransform();
 		
@@ -348,17 +339,14 @@ public class ViewHandler {
 			
 			WrappedBoundingBox box = WrappedBoundingBox.of(entity, transformedEntityLoc);
 			
-			if (!box.intersectsPortal(projection.getPortal()) &&
-			    box.intersectsBlockCache(projection) &&
+			if (box.intersectsBlockCache(projection) &&
 			    box.intersectsFrustum(playerFrustum)) {
 				
 				projectedEntities.put(entity, entity.getLocation());
-				transformedEntityLoc.getWorld().spawnParticle(Particle.DRIP_LAVA, transformedEntityLoc, 1);
 			}
 		}
 		
-		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.AQUA + "total " + projectedEntities.size()));
-		projectEntities(player, projectedEntities, linkTransform);
+		updateProjectedEntities(player, projectedEntities, linkTransform);
 	}
 	
 	/**
@@ -366,7 +354,7 @@ public class ViewHandler {
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
 		
-		Map<ProjectionCache, Set<PlayerViewSession>> sortedSessions = getSessionsSortedByProjectionCaches();
+		Map<ProjectionCache, Set<PlayerViewSession>> sortedSessions = getSessionsSortedByPortalSides();
 		
 		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(cache)) {
 			
@@ -391,20 +379,6 @@ public class ViewHandler {
 				packetHandler.displayFakeBlocks(player, newBlocksInFrustum);
 			}
 		}
-	}
-	
-	public Map<ProjectionCache, Set<PlayerViewSession>> getSessionsSortedByProjectionCaches() {
-		
-		Map<ProjectionCache, Set<PlayerViewSession>> sortedViewers = new HashMap<>();
-		
-		for (PlayerViewSession session : viewSessions.values()) {
-			
-			ProjectionCache projection = session.getViewedPortalSide();
-			sortedViewers.putIfAbsent(projection, new HashSet<>());
-			sortedViewers.get(projection).add(session);
-		}
-		
-		return sortedViewers;
 	}
 	
 	private Map<BlockVec, BlockType> updateProjection(ProjectionCache projection,
@@ -452,11 +426,25 @@ public class ViewHandler {
 		return blocksInFrustum;
 	}
 	
+	public Map<ProjectionCache, Set<PlayerViewSession>> getSessionsSortedByPortalSides() {
+		
+		Map<ProjectionCache, Set<PlayerViewSession>> sortedViewers = new HashMap<>();
+		
+		for (PlayerViewSession session : viewSessions.values()) {
+			
+			ProjectionCache projection = session.getViewedPortalSide();
+			sortedViewers.putIfAbsent(projection, new HashSet<>());
+			sortedViewers.get(projection).add(session);
+		}
+		
+		return sortedViewers;
+	}
+	
 	/**
 	 * Adding new blocks to the portal animation for a player.
 	 * But first redundant blocks are filtered out and outdated blocks are refreshed for the player.
 	 */
-	private void displayBlocks(Player player, Map<BlockVec, BlockType> newBlocksToDisplay) {
+	private void updateDisplayedBlocks(Player player, Map<BlockVec, BlockType> newBlocksToDisplay) {
 		
 		Map<BlockVec, BlockType> lastDisplayedBlocks = getViewSession(player).getProjectedBlocks();
 		Map<BlockVec, BlockType> removedBlocks = new HashMap<>();
@@ -484,7 +472,7 @@ public class ViewHandler {
 	 * Hides any entity isn't already hidden for the player. Any previously hidden entity that is not contained by
 	 * passed set anymore will be shown again.
 	 */
-	private void hideEntities(Player player, Set<Entity> currentlyHiddenEntities) {
+	private void updateHiddenEntities(Player player, Set<Entity> currentlyHiddenEntities) {
 		
 		Set<Entity> lastHiddenEntities = getViewSession(player).getHiddenEntities();
 		Set<Entity> visibleEntities = new HashSet<>();
@@ -515,9 +503,9 @@ public class ViewHandler {
 		packetHandler.hideEntities(player, currentlyHiddenEntities);
 	}
 	
-	private void projectEntities(Player player,
-	                             Map<Entity, Location> currentlyProjectedEntities,
-	                             Transform linkTransform) {
+	private void updateProjectedEntities(Player player,
+	                                     Map<Entity, Location> currentlyProjectedEntities,
+	                                     Transform linkTransform) {
 		
 		Map<Entity, Location> lastProjectedEntities = getViewSession(player).getProjectedEntities();
 		Set<Entity> invisibleEntities = new HashSet<>();
@@ -543,7 +531,7 @@ public class ViewHandler {
 		
 		currentlyProjectedEntities.entrySet().removeIf(entry -> lastProjectedEntities.containsKey(entry.getKey()));
 		lastProjectedEntities.putAll(currentlyProjectedEntities);
-	
+		
 		for (Entity entity : currentlyProjectedEntities.keySet()) {
 			packetHandler.showEntity(player, entity, linkTransform);
 		}

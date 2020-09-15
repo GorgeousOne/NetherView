@@ -2,7 +2,6 @@ package me.gorgeousone.netherview.wrapper;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
-import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.NmsUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import org.bukkit.Location;
@@ -66,7 +65,7 @@ public class WrappedBoundingBox {
 		
 		//dunno, paintings are a bit off
 		if (entity.getType() == EntityType.PAINTING && VersionUtils.IS_LEGACY_SERVER) {
-			entityLoc.subtract(0, height/2, 0);
+			entityLoc.subtract(0, height / 2, 0);
 		}
 		
 		Vector min = entityLoc.clone().subtract(
@@ -157,20 +156,6 @@ public class WrappedBoundingBox {
 	
 	private static double getBoxHeight(Object aabb) throws IllegalAccessException {
 		return AABB_MAX_Y.getDouble(aabb) - AABB_MIN_Y.getDouble(aabb);
-	}
-	
-	/**
-	 * Returns true if any of the 8 vertices of the bounding box are inside of the block cache.
-	 */
-	public boolean intersectsPortal(Portal portal) {
-		
-		for (Vector vertex : getVertices()) {
-			
-			if (portal.contains(vertex)) {
-				return true;
-			}
-		}
-		return false;
 	}
 	
 	/**

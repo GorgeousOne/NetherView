@@ -11,7 +11,6 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import com.comphenix.protocol.wrappers.Pair;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.FacingUtils;
@@ -266,6 +265,13 @@ public class PacketHandler {
 		sendPacket(player, destroyPacket);
 	}
 	
+	public void showEntities(Player player, Set<Entity> visibleEntities) {
+		
+		for (Entity entity : visibleEntities) {
+			showEntity(player, entity, new Transform());
+		}
+	}
+	
 	public void showEntity(Player player,
 	                       Entity entity,
 	                       Transform transform) {
@@ -282,7 +288,6 @@ public class PacketHandler {
 				
 				case EXPERIENCE_ORB:
 					//I don't like fake experience orbs. They float around and are confusing only.
-//				    sendProtocolPacket(player, createXpOrbPacket((ExperienceOrb) entity, entityLoc));
 					return;
 				
 				case PAINTING:
@@ -333,8 +338,6 @@ public class PacketHandler {
 		PacketConstructor packetConstructor = protocolManager.createPacketConstructor(PacketType.Play.Server.NAMED_ENTITY_SPAWN, NmsUtils.getNmsClass("EntityHuman"));
 		PacketContainer spawnPacket = packetConstructor.createPacket(NmsUtils.getHandle(player));
 		writeEntityPos(spawnPacket, entityLoc, true, false);
-		
-		
 		return spawnPacket;
 	}
 	
@@ -392,10 +395,17 @@ public class PacketHandler {
 	                           boolean writeFacing,
 	                           boolean writeHeadYaw) {
 		
-		spawnPacket.getDoubles()
-				.write(0, entityLoc.getX())
-				.write(1, entityLoc.getY())
-				.write(2, entityLoc.getZ());
+		if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
+			spawnPacket.getDoubles()
+					.write(0, entityLoc.getX())
+					.write(1, entityLoc.getY())
+					.write(2, entityLoc.getZ());
+		} else {
+			spawnPacket.getIntegers()
+					.write(0, entityLoc.getBlockX())
+					.write(1, entityLoc.getBlockY())
+					.write(2, entityLoc.getBlockZ());
+		}
 		
 		if (!writeFacing) {
 			return;
@@ -456,70 +466,10 @@ public class PacketHandler {
 		sendPacket(player, headRotPacket);
 	}
 	
-	public void showEntities(Player player, Set<Entity> visibleEntities) {
+	private PacketContainer createMetadataPacket(Entity entity) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
 		
-		for (Entity entity : visibleEntities) {
-			showEntity(player, entity, new Transform());
-		}
-	}
-	
-//	public void showEntitieees(Player player, Set<Entity> visibleEntities) {
-//
-//		if (visibleEntities.isEmpty()) {
-//			return;
-//		}
-//
-//		try {
-//
-//			for (Entity entity : visibleEntities) {
-//
-//				if (entity == null || !entity.isValid()) {
-//					continue;
-//				}
-//
-//				Object spawnPacket;
-//				boolean entityHasEquipment = false;
-//				Object nmsEntity = NmsUtils.getHandle(entity);
-//
-//				if (entity.getType() == EntityType.PAINTING) {
-//					spawnPacket = PACKET_SPAWN_PAINTING.newInstance(nmsEntity);
-//
-//				} else if (entity.getType() == EntityType.EXPERIENCE_ORB) {
-//					spawnPacket = PACKET_SPAWN_EX_ORB.newInstance(nmsEntity);
-//
-//				} else if (entity instanceof LivingEntity) {
-//
-//					if (entity.getType() == EntityType.PLAYER) {
-//						spawnPacket = PACKET_SPAWN_PLAYER.newInstance(nmsEntity);
-//					} else {
-//						spawnPacket = PACKET_SPAWN_ENTITY_LIVING.newInstance(nmsEntity);
-//					}
-//
-//					entityHasEquipment = true;
-//
-//				} else {
-//					spawnPacket = PACKET_SPAWN_ENTITY.newInstance(nmsEntity, entity.getEntityId());
-//				}
-//
-//				sendPacket(player, spawnPacket);
-//				sendProtocolPacket(player, createMetadataPacket(entity));
-//
-//				if (entityHasEquipment) {
-//					showEquipment(player, (LivingEntity) entity);
-//				}
-//			}
-//		} catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-//			e.printStackTrace();
-//		}
-//	}
-	
-	private PacketContainer createMetadataPacket(Entity entity) {
-		
-		WrappedDataWatcher dataWatcher = new WrappedDataWatcher(entity);
-		PacketContainer metadataPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
-		
-		metadataPacket.getIntegers().write(0, entity.getEntityId());
-		metadataPacket.getWatchableCollectionModifier().writeSafely(0, dataWatcher.getWatchableObjects());
+		PacketConstructor constructor = protocolManager.createPacketConstructor(PacketType.Play.Server.ENTITY_METADATA, int.class, NmsUtils.getNmsClass("DataWatcher"), boolean.class);
+		PacketContainer metadataPacket = constructor.createPacket(entity.getEntityId(), NmsUtils.getDataWatcher(entity), true);
 		return metadataPacket;
 	}
 	
@@ -528,19 +478,19 @@ public class PacketHandler {
 		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = getEquipmentList(entity);
 		
 		if (VersionUtils.serverIsAtOrAbove("1.16.0")) {
-			createEquipmentPacket_1_16(player, entity, equipmentMap);
+			sendEquipment1_16(player, entity, equipmentMap);
 			
 		} else if (VersionUtils.serverIsAtOrAbove("1.9.0")) {
-			createEquipmentPacket(player, entity, equipmentMap);
+			sendEquipment(player, entity, equipmentMap);
 			
 		} else {
-			createEquipmentPacket_1_8(player, entity, equipmentMap);
+			sendEquipment1_8(player, entity, equipmentMap);
 		}
 	}
 	
-	private void createEquipmentPacket_1_8(Player player,
-	                                       Entity entity,
-	                                       Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+	private void sendEquipment1_8(Player player,
+	                              Entity entity,
+	                              Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
 		
 		List<EnumWrappers.ItemSlot> itemSlots = new ArrayList<>(Arrays.asList(EnumWrappers.ItemSlot.values()));
 		
@@ -562,9 +512,9 @@ public class PacketHandler {
 		}
 	}
 	
-	private void createEquipmentPacket(Player player,
-	                                   Entity entity,
-	                                   Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+	private void sendEquipment(Player player,
+	                           Entity entity,
+	                           Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
 		
 		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
 			
@@ -582,9 +532,9 @@ public class PacketHandler {
 		}
 	}
 	
-	private void createEquipmentPacket_1_16(Player player,
-	                                        Entity entity,
-	                                        Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+	private void sendEquipment1_16(Player player,
+	                               Entity entity,
+	                               Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
 		
 		List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipmentList = new ArrayList<>();
 		

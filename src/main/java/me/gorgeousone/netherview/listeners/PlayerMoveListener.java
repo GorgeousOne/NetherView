@@ -86,7 +86,7 @@ public class PlayerMoveListener implements Listener {
 		if (!viewHandler.hasViewSession(player)) {
 			return;
 		}
-			
+		
 		new BukkitRunnable() {
 			@Override
 			public void run() {

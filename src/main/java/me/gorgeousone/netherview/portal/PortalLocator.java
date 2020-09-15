@@ -87,7 +87,7 @@ public class PortalLocator {
 				portalBlock.getZ());
 		
 		Vector rectMax = rectMin.clone();
-		rectMax.setY(getPortalExtent(portalBlock, BlockFace.UP).getY() + 1);;
+		rectMax.setY(getPortalExtent(portalBlock, BlockFace.UP).getY() + 1);
 		
 		if (portalAxis == Axis.X) {
 			rectMin.setX(getPortalExtent(portalBlock, BlockFace.WEST).getX());

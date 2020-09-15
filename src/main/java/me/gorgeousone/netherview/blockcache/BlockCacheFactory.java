@@ -127,7 +127,9 @@ public class BlockCacheFactory {
 	 * @param sourceCache   block cache to be copied
 	 * @param linkTransform transformation between the locations of the block cache and the projection cache
 	 */
-	public static ProjectionCache createProjection(Portal projectingPortal, BlockCache sourceCache, Transform linkTransform) {
+	public static ProjectionCache createProjection(Portal projectingPortal,
+	                                               BlockCache sourceCache,
+	                                               Transform linkTransform) {
 		
 		BlockVec sourceMin = sourceCache.getMin();
 		BlockVec sourceMax = sourceCache.getMax();
