@@ -61,6 +61,7 @@ public class TeleportListener implements Listener {
 			return;
 		}
 		
+		viewHandler.unregisterPortalProjection(player);
 		boolean createdNewPortalLink = createPortalLink(event);
 		
 		if (createdNewPortalLink && viewHandler.hasPortalViewEnabled(player) &&
