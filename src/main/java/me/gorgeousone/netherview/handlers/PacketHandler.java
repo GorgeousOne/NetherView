@@ -378,18 +378,6 @@ public class PacketHandler {
 		return spawnPacket;
 	}
 
-//	private PacketContainer createXpOrbPacket(ExperienceOrb xpOrb, Location location) {
-//
-//		PacketContainer spawnPacket = protocolManager.createPacket(PacketType.Play.Server.SPAWN_ENTITY_EXPERIENCE_ORB);
-//		writeEntityPos(spawnPacket, location, false, false);
-//
-//		spawnPacket.getIntegers()
-//				.write(0, xpOrb.getEntityId())
-//				.write(1, xpOrb.getExperience());
-//
-//		return spawnPacket;
-//	}
-	
 	public void writeEntityPos(PacketContainer spawnPacket,
 	                           Location entityLoc,
 	                           boolean writeFacing,
@@ -498,7 +486,7 @@ public class PacketHandler {
 			
 			ItemStack item = equipmentMap.get(slot);
 			
-			if (item.getType() == Material.AIR) {
+			if (item == null || item.getType() == Material.AIR) {
 				continue;
 			}
 			
@@ -542,7 +530,7 @@ public class PacketHandler {
 			
 			ItemStack item = equipmentMap.get(slot);
 			
-			if (item.getType() == Material.AIR) {
+			if (item == null || item.getType() == Material.AIR) {
 				continue;
 			}
 			
