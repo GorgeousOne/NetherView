@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.commmands;
 
+import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;
 import me.gorgeousone.netherview.cmdframework.argument.ArgValue;
@@ -8,6 +9,7 @@ import me.gorgeousone.netherview.cmdframework.command.ArgCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -38,27 +40,28 @@ public class ListPortalsCommand extends ArgCommand {
 		World world = Bukkit.getWorld(worldName);
 		
 		if (world == null) {
-			sender.sendMessage(ChatColor.GRAY + "No world found with name '" + worldName + "'.");
+			MessageUtils.sendInfo(sender, Message.NO_WORLD_FOUND, worldName);
 			return;
 		}
 		
 		if (!main.canCreatePortalViews(world)) {
-			sender.sendMessage(ChatColor.GRAY + "NetherView is not enabled for world '" + worldName + "'.");
-			sender.sendMessage(ChatColor.GRAY + "Enable it by adding it's name to 'worlds-with-portal-viewing' in the config.");
+			MessageUtils.sendInfo(sender, Message.WORLD_NOT_WHITE_LISTED, worldName);
 			return;
 		}
 		
 		if (!portalHandler.hasPortals(world)) {
-			sender.sendMessage(ChatColor.GRAY + "No portals listed for world '" + worldName + "'.");
+			MessageUtils.sendInfo(sender, Message.NO_PORTALS_FOUND, worldName);
 			return;
 		}
 		
 		Set<Portal> portalSet = portalHandler.getPortals(world);
-		sender.sendMessage(ChatColor.GRAY + "" + portalSet.size() + " portal(s) listed for world '" + worldName + "':");
+		StringBuilder portals = new StringBuilder();
 		
 		for (Portal portal : portalHandler.getPortals(world)) {
-			sender.sendMessage(ChatColor.GRAY + "- " + portal.toWhiteString());
+			portals.append("\\n").append(ChatColor.GRAY + "- ").append(portal.toWhiteString());
 		}
+		
+		MessageUtils.sendInfo(sender, Message.WORLD_INFO, String.valueOf(portalSet.size()), worldName, portals.toString());
 	}
 	
 	@Override

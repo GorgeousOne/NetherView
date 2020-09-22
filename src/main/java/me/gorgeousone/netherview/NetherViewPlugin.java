@@ -22,6 +22,7 @@ import me.gorgeousone.netherview.listeners.TeleportListener;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
+import me.gorgeousone.netherview.utils.ConfigUtils;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
@@ -53,6 +54,12 @@ public final class NetherViewPlugin extends JavaPlugin {
 	public final static String CONFIG_PERM = "netherview.config";
 	public final static String INFO_PERM = "netherview.info";
 	public final static String PORTAL_FLIP_PERM = "netherview.flipportal";
+	
+	public final static String CHAT_PREFIX =
+			ChatColor.DARK_RED + "[" +
+			ChatColor.DARK_PURPLE + "NV" +
+			ChatColor.DARK_RED + "]" +
+			ChatColor.LIGHT_PURPLE;
 	
 	private Material portalMaterial;
 	
@@ -96,6 +103,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		PortalLocator.configureVersion(portalMaterial);
 		
 		loadConfigData();
+		loadLangConfigData();
 		
 		packetHandler = new PacketHandler();
 		portalHandler = new PortalHandler(this, portalMaterial);
@@ -146,6 +154,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		backupPortals();
 		loadConfigData();
+		loadLangConfigData();
 		
 		viewHandler.reload();
 		portalHandler.reload();
@@ -262,6 +271,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, this, portalHandler));
 		netherViewCommand.addChild(new ToggleDebugCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
+		netherViewCommand.addChild(new TogglePortalViewCommand(viewHandler));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
@@ -302,6 +312,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		loadWorldBorderBlockTypes();
 		loadWorldsWithPortalViewing();
+	}
+	
+	private void loadLangConfigData() {
+		Message.loadLangConfigValues(ConfigUtils.loadConfig("language", this));
 	}
 	
 	private void addVersionSpecificDefaults() {
@@ -376,7 +390,11 @@ public final class NetherViewPlugin extends JavaPlugin {
 		}
 		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
-		portalHandler.loadPortals(portalConfig);
+		
+		try {
+			portalHandler.loadPortals(portalConfig);
+		} catch (Exception ignored) {}
+		
 		backupPortals();
 	}
 	

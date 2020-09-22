@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
+import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.event.PortalUnlinkEvent;
 import me.gorgeousone.netherview.event.UnlinkReason;
@@ -8,9 +9,9 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
+import me.gorgeousone.netherview.utils.MessageException;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -117,12 +118,12 @@ public class TeleportListener implements Listener {
 			}
 			
 			portalHandler.linkPortalTo(portal, counterPortal, player);
-			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "The veil between the two worlds has lifted a little bit!");
+			MessageUtils.sendInfo(player, Message.SUCCESSFUL_PORTAL_LINKING);
 			return true;
 			
-		} catch (IllegalArgumentException | IllegalStateException e) {
+		} catch (MessageException e) {
 			
-			MessageUtils.sendWarning(player, e.getMessage());
+			MessageUtils.sendWarning(player, e.getPlayerMessage(), e.getPlaceholderValues());
 			return false;
 		}
 	}

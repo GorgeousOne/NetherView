@@ -1,8 +1,9 @@
 package me.gorgeousone.netherview.utils;
 
+import me.gorgeousone.netherview.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 public final class MessageUtils {
 	
@@ -19,10 +20,14 @@ public final class MessageUtils {
 		MessageUtils.debugMessagesEnabled = debugMessagesEnabled;
 	}
 	
-	public static void sendWarning(Player player, String message) {
+	public static void sendInfo(CommandSender sender, Message message, String... placeholderValues) {
+		sender.sendMessage(message.getFormattedMessage(placeholderValues));
+	}
+	
+	public static void sendWarning(CommandSender sender, Message message, String... placeholderValues) {
 		
 		if (warningMessagesEnabled) {
-			player.sendMessage(message);
+			sender.sendMessage(message.getFormattedMessage(placeholderValues));
 		}
 	}
 	
