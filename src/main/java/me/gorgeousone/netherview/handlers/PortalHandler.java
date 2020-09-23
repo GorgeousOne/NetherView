@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
+import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
@@ -12,9 +13,9 @@ import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
+import me.gorgeousone.netherview.utils.MessageException;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -102,7 +103,7 @@ public class PortalHandler {
 	 * Returns the first portal that contains the passed block as part of the portal surface.
 	 * If none was found it will be tried to add the portal related to this block.
 	 */
-	public Portal getPortalByBlock(Block portalBlock) {
+	public Portal getPortalByBlock(Block portalBlock) throws MessageException {
 		
 		for (Portal portal : getPortals(portalBlock.getWorld())) {
 			if (portal.getPortalBlocks().contains(portalBlock)) {
@@ -241,7 +242,7 @@ public class PortalHandler {
 	 *
 	 * @param portalBlock one block of the structure required to detect the rest of it
 	 */
-	public Portal addPortalStructure(Block portalBlock) {
+	public Portal addPortalStructure(Block portalBlock) throws MessageException {
 		
 		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
 		UUID worldID = portal.getWorld().getUID();
@@ -331,7 +332,7 @@ public class PortalHandler {
 	/**
 	 * Links a portal to it's counter portal it teleports to.
 	 */
-	public void linkPortalTo(Portal portal, Portal counterPortal, Player player) {
+	public void linkPortalTo(Portal portal, Portal counterPortal, Player player) throws MessageException {
 		
 		if (!counterPortal.equalsInSize(portal)) {
 			
@@ -339,7 +340,7 @@ public class PortalHandler {
 			                        + (int) portal.getPortalRect().width() + "x" + (int) portal.getPortalRect().height() + " to portal with size "
 			                        + (int) counterPortal.getPortalRect().width() + "x" + (int) counterPortal.getPortalRect().height());
 			
-			throw new IllegalStateException(ChatColor.GRAY + "These portals are not the same size.");
+			throw new MessageException(Message.UNEQUAL_PORTALS);
 		}
 		
 		if (player != null) {
@@ -388,7 +389,7 @@ public class PortalHandler {
 		}
 	}
 	
-	public void loadPortals(FileConfiguration portalConfig) {
+	public void loadPortals(FileConfiguration portalConfig) throws MessageException {
 		
 		boolean portalsHaveBeenLoaded = loadPortalLocations(portalConfig);
 		
@@ -447,7 +448,7 @@ public class PortalHandler {
 				addPortalStructure(world.getBlockAt(portalLoc.getX(), portalLoc.getY(), portalLoc.getZ()));
 				somePortalsCouldBeLoaded = true;
 				
-			} catch (IllegalArgumentException | IllegalStateException e) {
+			} catch (IllegalArgumentException | IllegalStateException | MessageException e) {
 				main.getLogger().warning("Unable to load portal at [" + world.getName() + ", " + serializedBlockVec + "]: " + e.getMessage());
 			}
 		}
@@ -455,7 +456,7 @@ public class PortalHandler {
 		return somePortalsCouldBeLoaded;
 	}
 	
-	private void loadPortalData(FileConfiguration portalConfig) {
+	private void loadPortalData(FileConfiguration portalConfig) throws MessageException {
 		
 		if (!portalConfig.contains("portal-data")) {
 			return;
@@ -486,7 +487,7 @@ public class PortalHandler {
 		}
 	}
 	
-	private void loadDeprecatedPortalLinks(FileConfiguration portalConfig) {
+	private void loadDeprecatedPortalLinks(FileConfiguration portalConfig) throws MessageException {
 		
 		if (!portalConfig.contains("linked-portals")) {
 			return;

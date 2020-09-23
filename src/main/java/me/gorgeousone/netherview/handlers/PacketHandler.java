@@ -377,7 +377,7 @@ public class PacketHandler {
 		
 		return spawnPacket;
 	}
-
+	
 	public void writeEntityPos(PacketContainer spawnPacket,
 	                           Location entityLoc,
 	                           boolean writeFacing,

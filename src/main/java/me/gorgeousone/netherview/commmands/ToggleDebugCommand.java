@@ -6,7 +6,6 @@ import me.gorgeousone.netherview.cmdframework.argument.ArgValue;
 import me.gorgeousone.netherview.cmdframework.argument.Argument;
 import me.gorgeousone.netherview.cmdframework.command.ArgCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public class ToggleDebugCommand extends ArgCommand {
@@ -28,8 +27,7 @@ public class ToggleDebugCommand extends ArgCommand {
 		boolean stateChanged = main.setDebugMessagesEnabled(newState);
 		
 		if (stateChanged) {
-			sender.sendMessage(ChatColor.DARK_RED + "[" + ChatColor.DARK_PURPLE + "NV" + ChatColor.DARK_RED + "]"
-			                   + ChatColor.LIGHT_PURPLE + (newState ? " Enabled" : " Disabled") + " debug messages.");
+			sender.sendMessage(NetherViewPlugin.CHAT_PREFIX + (newState ? " Enabled" : " Disabled") + " debug messages.");
 		}
 	}
 }

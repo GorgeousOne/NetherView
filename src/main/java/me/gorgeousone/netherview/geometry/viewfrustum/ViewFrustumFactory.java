@@ -10,8 +10,7 @@ import org.bukkit.util.Vector;
 
 public final class ViewFrustumFactory {
 	
-	private ViewFrustumFactory() {
-	}
+	private ViewFrustumFactory() {}
 	
 	/**
 	 * Returns a viewing frustum with a near plane precisely representing the area the player can see through the portal.

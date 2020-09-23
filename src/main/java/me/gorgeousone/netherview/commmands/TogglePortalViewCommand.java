@@ -1,9 +1,10 @@
 package me.gorgeousone.netherview.commmands;
 
+import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.command.BasicCommand;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import org.bukkit.ChatColor;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -25,6 +26,6 @@ public class TogglePortalViewCommand extends BasicCommand {
 		boolean wantsToSeePortalViews = !viewHandler.hasPortalViewEnabled(player);
 		viewHandler.setPortalViewEnabled(player, wantsToSeePortalViews);
 		
-		player.sendMessage(ChatColor.GRAY + (wantsToSeePortalViews ? "Enabled" : "Disabled") + " portal viewing for you.");
+		MessageUtils.sendInfo(player, wantsToSeePortalViews ? Message.PORTAL_VIEWING_ON : Message.PORTAL_VIEWING_OFF);
 	}
 }

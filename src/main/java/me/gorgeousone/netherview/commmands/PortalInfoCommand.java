@@ -1,11 +1,12 @@
 package me.gorgeousone.netherview.commmands;
 
+import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.command.BasicCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import org.bukkit.ChatColor;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -32,44 +33,33 @@ public class PortalInfoCommand extends BasicCommand {
 		World world = player.getWorld();
 		
 		if (!main.canCreatePortalViews(world)) {
-			
-			sender.sendMessage(ChatColor.GRAY + "NetherView is not enabled for world '" + world.getName() + "'.");
-			sender.sendMessage(ChatColor.GRAY + "You can enable it by adding the world's name to 'worlds-with-portal-viewing' in the config.");
+			MessageUtils.sendInfo(player, Message.WORLD_NOT_WHITE_LISTED, player.getWorld().getName());
 			return;
 		}
 		
 		Portal portal = portalHandler.getClosestPortal(player.getLocation(), false);
 		
 		if (portal == null) {
-			
-			sender.sendMessage(ChatColor.GRAY + "There are no nether portals listed for world '" + player.getWorld().getName() + "'.");
+			MessageUtils.sendInfo(player, Message.NO_PORTALS_FOUND, player.getWorld().getName());
 			return;
 		}
 		
-		player.sendMessage(ChatColor.GRAY + "Info about portal at " + portal.toWhiteString() + ":");
-		player.sendMessage(ChatColor.GRAY + "  is flipped: " + ChatColor.RESET + portal.isViewFlipped());
+		String isFlipped = String.valueOf(portal.isViewFlipped());
+		String counterPortal = portal.isLinked() ? portal.getCounterPortal().toString() : "-no portal-";
+		Set<Portal> connectedPortalsSet = portalHandler.getPortalsLinkedTo(portal);
+		StringBuilder connectedPortals;
 		
-		if (portal.isLinked()) {
-			
-			player.sendMessage(ChatColor.GRAY + "  is linked to:");
-			player.sendMessage(ChatColor.GRAY + "  - " + portal.getCounterPortal().toWhiteString());
+		if (connectedPortalsSet.isEmpty()) {
+			connectedPortals = new StringBuilder("-no portals-");
 			
 		} else {
-			player.sendMessage(ChatColor.GRAY + "  is linked to: -no portal-");
-		}
-		
-		Set<Portal> connectedPortals = portalHandler.getPortalsLinkedTo(portal);
-		
-		if (connectedPortals.isEmpty()) {
-			player.sendMessage(ChatColor.GRAY + "  portals linked to portal: -none-");
+			connectedPortals = new StringBuilder();
 			
-		} else {
-			
-			player.sendMessage(ChatColor.GRAY + "  portals linked to portal: ");
-			
-			for (Portal counterPortal : connectedPortals) {
-				player.sendMessage(ChatColor.GRAY + "  - " + counterPortal.toWhiteString());
+			for (Portal connectedPortal : connectedPortalsSet) {
+				connectedPortals.append("\\n&7  - &r").append(connectedPortal.toString());
 			}
 		}
+		
+		MessageUtils.sendInfo(player, Message.PORTAL_INFO, portal.toString(), isFlipped, counterPortal, connectedPortals.toString());
 	}
 }

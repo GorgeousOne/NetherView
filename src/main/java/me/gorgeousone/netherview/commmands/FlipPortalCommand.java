@@ -1,12 +1,13 @@
 package me.gorgeousone.netherview.commmands;
 
+import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.command.BasicCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import org.bukkit.ChatColor;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -36,16 +37,14 @@ public class FlipPortalCommand extends BasicCommand {
 		World world = player.getWorld();
 		
 		if (!main.canCreatePortalViews(world)) {
-			
-			sender.sendMessage(ChatColor.GRAY + "NetherView is not enabled for world '" + world.getName() + "'.");
-			sender.sendMessage(ChatColor.GRAY + "You can enable it by adding the world's name to 'worlds-with-portal-viewing' in the config.");
+			MessageUtils.sendInfo(player, Message.WORLD_NOT_WHITE_LISTED, player.getWorld().getName());
 			return;
 		}
 		
 		Portal viewedPortal = viewHandler.getViewSession(player).getViewedPortal();
 		
 		if (viewedPortal == null) {
-			player.sendMessage(ChatColor.GRAY + "You need to look at a nether portal with NetherView enabled for this command to work.");
+			MessageUtils.sendInfo(player, Message.NO_PORTAL_FOUND_NEARBY);
 			return;
 		}
 		
@@ -54,6 +53,6 @@ public class FlipPortalCommand extends BasicCommand {
 		
 		viewHandler.hidePortalProjection(player);
 		viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
-		sender.sendMessage(ChatColor.GRAY + "Flipped view of portal " + viewedPortal.toWhiteString());
+		MessageUtils.sendInfo(player, Message.FLIPPED_PORTAL, viewedPortal.toString());
 	}
 }

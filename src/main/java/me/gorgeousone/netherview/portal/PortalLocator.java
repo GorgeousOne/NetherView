@@ -1,11 +1,12 @@
 package me.gorgeousone.netherview.portal;
 
+import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.FacingUtils;
+import me.gorgeousone.netherview.utils.MessageException;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.wrapper.Axis;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -52,10 +53,10 @@ public class PortalLocator {
 		return null;
 	}
 	
-	public static Portal locatePortalStructure(Block portalBlock) {
+	public static Portal locatePortalStructure(Block portalBlock) throws MessageException {
 		
 		//this only happens when some data read from the portal config is wrong
-		//that's why it is not a gray italic message
+		//that's why it is not a gray message
 		if (portalBlock.getType() != PORTAL_MATERIAL) {
 			throw new IllegalStateException("No portal block found at " + new BlockVec(portalBlock).toString());
 		}
@@ -82,7 +83,7 @@ public class PortalLocator {
 	/**
 	 * Returns a rectangle with the size and location of the rectangle the inner portal blocks form.
 	 */
-	private static AxisAlignedRect getPortalRect(Block portalBlock) {
+	private static AxisAlignedRect getPortalRect(Block portalBlock) throws MessageException {
 		
 		Axis portalAxis = FacingUtils.getAxis(portalBlock);
 		
@@ -107,7 +108,7 @@ public class PortalLocator {
 		AxisAlignedRect portalRect = new AxisAlignedRect(portalAxis, rectMin, rectMax);
 		
 		if (portalRect.width() > MAX_PORTAL_SIZE || portalRect.height() > MAX_PORTAL_SIZE) {
-			throw new IllegalArgumentException(ChatColor.GRAY + "Cannot make portal views bigger than " + MAX_PORTAL_SIZE + " blocks!");
+			throw new MessageException(Message.PORTAL_TOO_BIG, String.valueOf(MAX_PORTAL_SIZE));
 		}
 		
 		portalRect.translate(portalRect.getPlane().getNormal().multiply(0.5));
@@ -117,7 +118,7 @@ public class PortalLocator {
 	/**
 	 * Returns the last portal block of a portal's extent into a certain direction.
 	 */
-	private static Block getPortalExtent(Block sourceBlock, BlockFace facing) {
+	private static Block getPortalExtent(Block sourceBlock, BlockFace facing) throws MessageException {
 		
 		Block blockIterator = sourceBlock;
 		
@@ -133,13 +134,15 @@ public class PortalLocator {
 		}
 		
 		MessageUtils.printDebug("Detection stopped after exceeding " + MAX_PORTAL_SIZE + " portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
-		throw new IllegalArgumentException(ChatColor.GRAY + "Cannot make portal views bigger than " + MAX_PORTAL_SIZE + " blocks!");
+		throw new MessageException(Message.PORTAL_TOO_BIG, String.valueOf(MAX_PORTAL_SIZE));
 	}
 	
 	/**
 	 * Returns a set of blocks of all portal blocks of a portal according to the passed rectangle.
 	 */
-	private static Set<Block> getInnerPortalBlocks(World world, BlockVec portalMin, BlockVec portalMax) {
+	private static Set<Block> getInnerPortalBlocks(World world,
+	                                               BlockVec portalMin,
+	                                               BlockVec portalMax) throws MessageException {
 		
 		Set<Block> portalBlocks = new HashSet<>();
 		
@@ -155,7 +158,8 @@ public class PortalLocator {
 					} else {
 						
 						MessageUtils.printDebug("Expected portal block at " + new BlockVec(x, y, z).toString());
-						throw new IllegalStateException(ChatColor.GRAY + "" + ChatColor.ITALIC + "This portal is not rectangular.");
+						String worldType = world.getEnvironment().name().toLowerCase().replaceAll("_", " ");
+						throw new MessageException(Message.PORTAL_NOT_INTACT, worldType);
 					}
 				}
 			}
@@ -170,7 +174,7 @@ public class PortalLocator {
 	private static Set<Block> getPortalFrameBlocks(World world,
 	                                               BlockVec portalMin,
 	                                               BlockVec portalMax,
-	                                               Axis portalAxis) {
+	                                               Axis portalAxis) throws MessageException {
 		
 		Set<Block> frameBlocks = new HashSet<>();
 		
@@ -204,7 +208,7 @@ public class PortalLocator {
 						                        + new BlockVec(portalBlock).toString());
 						
 						String worldType = world.getEnvironment().name().toLowerCase().replaceAll("_", " ");
-						throw new IllegalStateException(ChatColor.GRAY + "The frame of this " + worldType + "-world portal is missing some obsidian blocks.");
+						throw new MessageException(Message.PORTAL_FRAME_INCOMPLETE, worldType);
 					}
 				}
 			}
