@@ -33,11 +33,11 @@ public enum Message {
 		return configKey;
 	}
 	
-	public String[] getMessage() {
-		return ChatColor.translateAlternateColorCodes('&', configValue).split("\\\\n");
+	public String[] getPlaceholdersTokens() {
+		return placeholdersTokens;
 	}
 	
-	public String[] getFormattedMessage(String... placeholderValues) {
+	public String[] getMessage(String... placeholderValues) {
 		
 		if (placeholderValues.length != placeholdersTokens.length) {
 			throw new IllegalArgumentException("Expected " + placeholdersTokens.length + " placeholder values, found " + placeholderValues.length);

@@ -10,7 +10,7 @@ public class MessageException extends Exception {
 	private final String[] placeholderValues;
 	
 	public MessageException(Message message, String... placeholderValues) {
-		super(Arrays.toString(message.getFormattedMessage(placeholderValues)));
+		super(Arrays.toString(message.getMessage(placeholderValues)));
 		this.message = message;
 		this.placeholderValues = placeholderValues;
 	}

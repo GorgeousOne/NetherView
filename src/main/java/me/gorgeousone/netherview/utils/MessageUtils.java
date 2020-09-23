@@ -21,13 +21,13 @@ public final class MessageUtils {
 	}
 	
 	public static void sendInfo(CommandSender sender, Message message, String... placeholderValues) {
-		sender.sendMessage(message.getFormattedMessage(placeholderValues));
+		sender.sendMessage(message.getMessage(placeholderValues));
 	}
 	
 	public static void sendWarning(CommandSender sender, Message message, String... placeholderValues) {
 		
 		if (warningMessagesEnabled) {
-			sender.sendMessage(message.getFormattedMessage(placeholderValues));
+			sender.sendMessage(message.getMessage(placeholderValues));
 		}
 	}
 	
