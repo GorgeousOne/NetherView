@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.geometry.viewfrustum;
 
+import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
@@ -7,6 +8,7 @@ import me.gorgeousone.netherview.geometry.Line;
 import me.gorgeousone.netherview.geometry.Plane;
 import me.gorgeousone.netherview.wrapper.Axis;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -115,7 +117,7 @@ public class ViewFrustum {
 	/**
 	 * Returns a map of all blocks from a projection cache visible with this frustum.
 	 */
-	public Map<BlockVec, BlockType> getContainedBlocks(ProjectionCache projection) {
+	public Map<BlockVec, BlockType> getContainedBlocks(BlockCache projection) {
 		
 		AxisAlignedRect startLayer;
 		AxisAlignedRect endLayer;
@@ -136,112 +138,118 @@ public class ViewFrustum {
 		}
 	}
 	
-	private Map<BlockVec, BlockType> getBlocksInXAlignedFrustum(ProjectionCache projection,
+	/**
+	 * Iterates through all coordinates of the the block cache that the frustum contains and returns a map of all blocks in that area.
+	 */
+	private Map<BlockVec, BlockType> getBlocksInXAlignedFrustum(BlockCache blockCache,
 	                                                            AxisAlignedRect startLayer,
 	                                                            AxisAlignedRect endLayer) {
 		
-		Vector iterationMaxPoint = endLayer.getMax();
-		Vector currentLayerMinPoint = startLayer.getMin();
-		Vector currentLayerMaxPoint = startLayer.getMax();
+		//I get it. It's long and not comprehensible, but it has to be all in 1 method for max efficiency
+		Vector startMinPoint = startLayer.getMin();
+		Vector startMaxPoint = startLayer.getMax();
 		
 		Vector layerMinPointStep = endLayer.getMin().subtract(startLayer.getMin()).multiply(1d / frustumLength);
 		Vector layerMaxPointStep = endLayer.getMax().subtract(startLayer.getMax()).multiply(1d / frustumLength);
 		
+		//imagine cutting a frustum in single block layers along the z axis
+		//these are the minimum and maximum coordinates for each of these layers
+		int[] minXs = new int[frustumLength + 1];
+		int[] minYs = new int[frustumLength + 1];
+		int[] maxXs = new int[frustumLength + 1];
+		int[] maxYs = new int[frustumLength + 1];
+		
+		for (int i = 0; i <= frustumLength; i++) {
+			
+			minXs[i] = startMinPoint.getBlockX();
+			minYs[i] = startMinPoint.getBlockY();
+			maxXs[i] = startMaxPoint.getBlockX();
+			maxYs[i] = startMaxPoint.getBlockY();
+			
+			startMinPoint.add(layerMinPointStep);
+			startMaxPoint.add(layerMaxPointStep);
+		}
+		
+		//since blocks often intersect a view frustum with other vertices than the coordinates can tell these layer offsets are created
+		//if the frustum is widening in any direction the coordinates of a wider layer have to be included into the previous thinner layer.
+		//the offsets will be used to determine when to use the bounds of a next greater layer (layer index + 1) or not (layer index + 0)
+		int layerOffsetMinX = (int) Math.signum(layerMinPointStep.getX()) == -1 ? 1 : 0;
+		int layerOffsetMinY = (int) Math.signum(layerMinPointStep.getY()) == -1 ? 1 : 0;
+		int layerOffsetMaxX = (int) Math.signum(layerMaxPointStep.getX()) == 1 ? 1 : 0;
+		int layerOffsetMaxY = (int) Math.signum(layerMaxPointStep.getY()) == 1 ? 1 : 0;
+		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
-		for (int layerZ = (int) Math.round(currentLayerMinPoint.getZ()); layerZ <= iterationMaxPoint.getZ(); layerZ++) {
+		//now this is just the iteration I was talking about all the time
+		for (int i = 0; i < frustumLength; i++) {
 			
-			int layerMax = currentLayerMaxPoint.getBlockX();
-			boolean isFirstColumn = true;
-			boolean isLastColumn = false;
+			int layerZ = startLayer.getMin().getBlockZ() + i;
+			int startX = minXs[i + layerOffsetMinX];
+			int startY = minYs[i + layerOffsetMinY];
+			int endX = maxXs[i + layerOffsetMaxX];
+			int endY = maxYs[i + layerOffsetMaxY];
 			
-			for (int columnX = (int) Math.ceil(currentLayerMinPoint.getX()); isFirstColumn || columnX <= layerMax; columnX++) {
-				
-				int columnMax = currentLayerMaxPoint.getBlockY();
-				boolean isFirstRow = true;
-				boolean isLastRow = false;
-				
-				if (columnX == layerMax) {
-					isLastColumn = true;
+			for (int row = startX; row <= endX; row++) {
+				for (int columnY = startY; columnY <= endY; columnY++) {
+					addBlock(row, columnY, layerZ, blockCache, blocksInFrustum);
 				}
-				
-				for (int rowY = (int) Math.ceil(currentLayerMinPoint.getY()); isFirstRow || rowY <= columnMax; rowY++) {
-					
-					if (rowY == columnMax) {
-						isLastRow = true;
-					}
-					
-					//since the iteration only passes every block at one point, the surrounding blocks have to be added on edges for accurately determining all blocks
-					if (isFirstColumn || isLastColumn || isFirstRow || isLastRow) {
-						addSurroundingBlocks(columnX, rowY, layerZ, projection, blocksInFrustum);
-					} else {
-						addBlock(columnX, rowY, layerZ, projection, blocksInFrustum);
-					}
-					
-					isFirstRow = false;
-				}
-				isFirstColumn = false;
 			}
-			
-			currentLayerMinPoint.add(layerMinPointStep);
-			currentLayerMaxPoint.add(layerMaxPointStep);
 		}
 		
 		return blocksInFrustum;
 	}
 	
-	private Map<BlockVec, BlockType> getBlocksInZAlignedFrustum(ProjectionCache projection,
+	private Map<BlockVec, BlockType> getBlocksInZAlignedFrustum(BlockCache blockCache,
 	                                                            AxisAlignedRect startLayer,
 	                                                            AxisAlignedRect endLayer) {
 		
-		Vector iterationMaxPoint = endLayer.getMax();
-		Vector currentLayerMinPoint = startLayer.getMin();
-		Vector currentLayerMaxPoint = startLayer.getMax();
+		Vector startMinPoint = startLayer.getMin();
+		Vector startMaxPoint = startLayer.getMax();
 		
 		Vector layerMinPointStep = endLayer.getMin().subtract(startLayer.getMin()).multiply(1d / frustumLength);
 		Vector layerMaxPointStep = endLayer.getMax().subtract(startLayer.getMax()).multiply(1d / frustumLength);
 		
+		int[] minZs = new int[frustumLength + 1];
+		int[] minYs = new int[frustumLength + 1];
+		int[] maxZs = new int[frustumLength + 1];
+		int[] maxYs = new int[frustumLength + 1];
+		
+		for (int i = 0; i <= frustumLength; i++) {
+			
+			minZs[i] = startMinPoint.getBlockZ();
+			minYs[i] = startMinPoint.getBlockY();
+			maxZs[i] = startMaxPoint.getBlockZ();
+			maxYs[i] = startMaxPoint.getBlockY();
+			
+			startMinPoint.add(layerMinPointStep);
+			startMaxPoint.add(layerMaxPointStep);
+		}
+		
+		int offMinZ = (int) Math.signum(layerMinPointStep.getZ()) == -1 ? 1 : 0;
+		int offMinY = (int) Math.signum(layerMinPointStep.getY()) == -1 ? 1 : 0;
+		int offMaxZ = (int) Math.signum(layerMaxPointStep.getZ()) == 1 ? 1 : 0;
+		int offMaxY = (int) Math.signum(layerMaxPointStep.getY()) == 1 ? 1 : 0;
+		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
 		
-		for (int layerX = (int) Math.round(currentLayerMinPoint.getX()); layerX <= iterationMaxPoint.getX(); layerX++) {
+		for (int i = 0; i < frustumLength; i++) {
 			
-			int layerMax = currentLayerMaxPoint.getBlockZ();
-			boolean isFirstColumn = true;
-			boolean isLastColumn = false;
+			int layerX = startLayer.getMin().getBlockX() + i;
+			int startZ = minZs[i + offMinZ];
+			int startY = minYs[i + offMinY];
+			int endZ = maxZs[i + offMaxZ];
+			int endY = maxYs[i + offMaxY];
 			
-			for (int columnZ = (int) Math.ceil(currentLayerMinPoint.getZ()); isFirstColumn || columnZ <= layerMax; columnZ++) {
-				
-				int columnMax = currentLayerMaxPoint.getBlockY();
-				boolean isFirstRow = true;
-				boolean isLastRow = false;
-				
-				if (columnZ == layerMax) {
-					isLastColumn = true;
+			for (int rowZ = startZ; rowZ <= endZ; rowZ++) {
+				for (int columnY = startY; columnY <= endY; columnY++) {
+					addBlock(layerX, columnY, rowZ, blockCache, blocksInFrustum);
 				}
-				
-				for (int rowY = (int) Math.ceil(currentLayerMinPoint.getY()); isFirstRow || rowY <= columnMax; rowY++) {
-					
-					if (rowY == columnMax) {
-						isLastRow = true;
-					}
-					
-					if (isFirstColumn || isLastColumn || isFirstRow || isLastRow) {
-						addSurroundingBlocks(layerX, rowY, columnZ, projection, blocksInFrustum);
-					} else {
-						addBlock(layerX, rowY, columnZ, projection, blocksInFrustum);
-					}
-					
-					isFirstRow = false;
-				}
-				isFirstColumn = false;
 			}
-			
-			currentLayerMinPoint.add(layerMinPointStep);
-			currentLayerMaxPoint.add(layerMaxPointStep);
 		}
 		
 		return blocksInFrustum;
 	}
+	
 	
 	/**
 	 * Adds a blocks from the projection cache to the visible blocks in the frustum.
@@ -249,37 +257,13 @@ public class ViewFrustum {
 	private void addBlock(int x,
 	                      int y,
 	                      int z,
-	                      ProjectionCache projection,
+	                      BlockCache projection,
 	                      Map<BlockVec, BlockType> blocksInFrustum) {
 		
 		BlockType blockType = projection.getBlockTypeAt(x, y, z);
 		
 		if (blockType != null) {
 			blocksInFrustum.put(new BlockVec(x, y, z), blockType);
-		}
-	}
-	
-	/**
-	 * Adds the 8 blocks from the projection cache around a block location to the map of visible blocks in the frustum.
-	 */
-	private void addSurroundingBlocks(int x,
-	                                  int y,
-	                                  int z,
-	                                  ProjectionCache projection,
-	                                  Map<BlockVec, BlockType> blocksInFrustum) {
-		
-		for (int dx = -1; dx <= 0; dx++) {
-			for (int dy = -1; dy <= 0; dy++) {
-				for (int dz = -1; dz <= 0; dz++) {
-					
-					BlockType blockType = projection.getBlockTypeAt(x + dx, y + dy, z + dz);
-					
-					if (blockType != null) {
-						//trying to reduce the object creation (the BlockVec)
-						blocksInFrustum.put(new BlockVec(x + dx, y + dy, z + dz), blockType);
-					}
-				}
-			}
 		}
 	}
 }
