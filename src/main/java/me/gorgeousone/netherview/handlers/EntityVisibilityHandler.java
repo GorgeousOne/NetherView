@@ -4,6 +4,7 @@ import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -61,6 +62,8 @@ public class EntityVisibilityHandler {
 	
 	private void startEntityCheckerChecker() {
 		
+		MessageUtils.printDebug("Starting entity visibility timer");
+		
 		entityMotionChecker = new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -91,10 +94,14 @@ public class EntityVisibilityHandler {
 					
 					if (lastEntities == null) {
 						entitiesInBlockCaches.put(blockCache, currentEntities);
-						return;
+						continue;
 					}
 					
-					Map<Entity, Location> movedEntities = getMovingEntities(currentEntities, lastEntityLocs);
+					if (lastEntities.isEmpty() && currentEntities.isEmpty()) {
+						continue;
+					}
+					
+					Map<Entity, Location> movingEntities = getMovingEntities(currentEntities, lastEntityLocs);
 					
 					for (ProjectionCache projection : watchedBlockCaches.get(blockCache)) {
 						for (PlayerViewSession session : portalSideViewers.get(projection)) {
@@ -105,7 +112,7 @@ public class EntityVisibilityHandler {
 							
 							hideEntitiesOutsideProjection(session, currentEntities);
 							projectNewEntitiesInsideProjection(session, currentEntities);
-							displayEntityMovements(session, movedEntities);
+							displayEntityMovements(session, movingEntities);
 						}
 					}
 					
@@ -127,7 +134,7 @@ public class EntityVisibilityHandler {
 		for (ProjectionCache projection : projections) {
 			
 			BlockCache source = projection.getSourceCache();
-			sortedSources.putIfAbsent(source, new HashSet<>());
+			sortedSources.computeIfAbsent(source, set -> new HashSet<>());
 			sortedSources.get(source).add(projection);
 		}
 		
@@ -146,7 +153,7 @@ public class EntityVisibilityHandler {
 			
 			Location newLoc = entity.getLocation();
 			Location lastLoc = lastEntityLocs.get(entity).clone();
-			//workaround for entities that that move but tp with a portal at the same time...
+			//workaround for entities that that moved but tped with a portal to another world
 			lastLoc.setWorld(newLoc.getWorld());
 			
 			if (!newLoc.equals(lastLoc)) {

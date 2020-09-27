@@ -345,26 +345,32 @@ public class BlockChangeListener implements Listener {
 	public void onBlockExplode(BlockExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			if (block.getType() == portalMaterial) {
-				removeDamagedPortals(block);
-			}
+			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		}
 		
-		for (Block block : event.blockList())
-			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
+		if (main.canCreatePortalViews(event.getBlock().getWorld())) {
+			for (Block block : event.blockList()) {
+				if (block.getType() == portalMaterial) {
+					removeDamagedPortals(block);
+				}
+			}
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onBlockExplode(EntityExplodeEvent event) {
+	public void onEntityExplode(EntityExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			if (block.getType() == portalMaterial) {
-				removeDamagedPortals(block);
-			}
+			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		}
 		
-		for (Block block : event.blockList())
-			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
+		if (main.canCreatePortalViews(event.getEntity().getWorld())) {
+			for (Block block : event.blockList()) {
+				if (block.getType() == portalMaterial) {
+					removeDamagedPortals(block);
+				}
+			}
+		}
 	}
 	
 	//water, lava, dragon eggs

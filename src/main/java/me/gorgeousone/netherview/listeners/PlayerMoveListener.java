@@ -36,6 +36,9 @@ public class PlayerMoveListener implements Listener {
 	public void onPlayerMove(PlayerMoveEvent event) {
 		
 		Player player = event.getPlayer();
+		
+		if (!main.canCreatePortalViews(player.getWorld())) { return; }
+		
 		Location from = event.getFrom();
 		Location to = event.getTo();
 		
@@ -48,7 +51,6 @@ public class PlayerMoveListener implements Listener {
 		Vector toVec = to.toVector();
 		
 		if (!fromVec.equals(toVec) &&
-		    main.canCreatePortalViews(player.getWorld()) &&
 		    player.getGameMode() != GameMode.SPECTATOR &&
 		    viewHandler.hasPortalViewEnabled(player) &&
 		    player.hasPermission(NetherViewPlugin.VIEW_PERM)) {

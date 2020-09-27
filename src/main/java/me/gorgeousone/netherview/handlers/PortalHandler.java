@@ -247,7 +247,7 @@ public class PortalHandler {
 		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
 		UUID worldID = portal.getWorld().getUID();
 		
-		worldsWithPortals.putIfAbsent(worldID, new HashSet<>());
+		worldsWithPortals.computeIfAbsent(worldID, set -> new HashSet<>());
 		worldsWithPortals.get(worldID).add(portal);
 		
 		MessageUtils.printDebug("Located portal at " + portal.toString());
@@ -310,7 +310,7 @@ public class PortalHandler {
 		Set<Portal> linkedToPortals = getPortalsLinkedTo(portal);
 		
 		MessageUtils.printDebug("Removing portal at " + portal.toString());
-		MessageUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections.");
+		MessageUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections");
 		
 		for (Portal linkedPortal : linkedToPortals) {
 			

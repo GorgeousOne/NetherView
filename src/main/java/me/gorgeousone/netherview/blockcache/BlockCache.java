@@ -11,7 +11,9 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -210,6 +212,8 @@ public class BlockCache {
 		return false;
 	}
 	
+	private final Map<Chunk, Set<Entity>> unloadedChunks = new HashMap<>();
+	
 	/**
 	 * Returns a set of all entities that are contained by this cache
 	 */
@@ -219,14 +223,35 @@ public class BlockCache {
 		
 		for (Chunk chunk : chunks) {
 			
-			for (Entity entity : chunk.getEntities()) {
+			if (!getWorld().isChunkLoaded(chunk)) {
 				
-				if (WrappedBoundingBox.of(entity).intersectsBlockCache(this)) {
-					containedEntities.add(entity);
-				}
+				unloadedChunks.computeIfAbsent(chunk, set -> addContainedEntities(chunk, new HashSet<>()));
+				containedEntities.addAll(unloadedChunks.get(chunk));
+				continue;
 			}
+			
+			addContainedEntities(chunk, containedEntities);
+			unloadedChunks.remove(chunk);
 		}
 		
 		return containedEntities;
+	}
+	
+	private Set<Entity> addContainedEntities(Chunk chunk, Set<Entity> setToAddTo) {
+		
+		boolean wasChunkLoaded = getWorld().isChunkLoaded(chunk);
+		
+		for (Entity entity : chunk.getEntities()) {
+			
+			if (WrappedBoundingBox.of(entity).intersectsBlockCache(this)) {
+				setToAddTo.add(entity);
+			}
+		}
+		
+		if (!wasChunkLoaded) {
+			getWorld().unloadChunk(chunk);
+		}
+		
+		return setToAddTo;
 	}
 }

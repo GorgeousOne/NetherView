@@ -52,8 +52,8 @@ public class TeleportListener implements Listener {
 		}
 		
 		//updates portal animation for the player if they teleport with e.g. an ender pearl
-		if (from.getWorld() == to.getWorld() && player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
-			viewHandler.displayClosestPortalTo(player, to.clone().add(0, player.getEyeHeight(), 0));
+		if (from.getWorld() == to.getWorld()) {
+			viewHandler.hidePortalProjection(player);
 			return;
 		}
 		
