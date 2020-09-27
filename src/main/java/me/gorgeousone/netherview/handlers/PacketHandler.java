@@ -167,7 +167,7 @@ public class PacketHandler {
 			BlockVec blockPos = entry.getKey();
 			BlockVec chunkPos = new BlockVec(blockPos.getX() >> 4, 0, blockPos.getZ() >> 4);
 			
-			sortedBlockCopies.putIfAbsent(chunkPos, new HashMap<>());
+			sortedBlockCopies.computeIfAbsent(chunkPos, map -> new HashMap<>());
 			sortedBlockCopies.get(chunkPos).put(blockPos, entry.getValue());
 		}
 		
@@ -186,7 +186,7 @@ public class PacketHandler {
 			BlockVec blockPos = entry.getKey();
 			BlockVec cubePos = new BlockVec(blockPos.getX() >> 4, blockPos.getY() >> 4, blockPos.getZ() >> 4);
 			
-			sortedBlockCopies.putIfAbsent(cubePos, new HashMap<>());
+			sortedBlockCopies.computeIfAbsent(cubePos, map -> new HashMap<>());
 			sortedBlockCopies.get(cubePos).put(blockPos, entry.getValue());
 		}
 		

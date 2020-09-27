@@ -97,10 +97,11 @@ public class ViewHandler {
 		return viewSessions.get(player.getUniqueId());
 	}
 	
-	public PlayerViewSession getOrCreateViewSession(Player player) {
+	public PlayerViewSession createViewSession(Player player, Portal portal) {
 		
-		viewSessions.putIfAbsent(player.getUniqueId(), new PlayerViewSession(player));
-		return viewSessions.get(player.getUniqueId());
+		PlayerViewSession session = new PlayerViewSession(player, portal);
+		viewSessions.put(player.getUniqueId(), session);
+		return session;
 	}
 	
 	/**
@@ -183,14 +184,9 @@ public class ViewHandler {
 		Vector portalDistance = closestPortal.getLocation().subtract(playerEyeLoc).toVector();
 		
 		if (portalDistance.lengthSquared() > main.getPortalDisplayRangeSquared()) {
+			
 			hidePortalProjection(player);
 			return;
-		}
-		
-		Portal lastViewedPortal = getOrCreateViewSession(player).getViewedPortal();
-		
-		if (lastViewedPortal != null && !lastViewedPortal.equals(closestPortal)) {
-			hidePortalProjection(player);
 		}
 		
 		AxisAlignedRect portalRect = closestPortal.getPortalRect();
@@ -245,11 +241,21 @@ public class ViewHandler {
 		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
 		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
 		
-		PlayerViewSession session = getOrCreateViewSession(player);
-		session.setViewedPortal(portal);
+		PlayerViewSession session = getViewSession(player);
+		
+		if (session == null) {
+			
+			session = createViewSession(player, portal);
+			
+		} else if (!portal.equals(session.getViewedPortal())) {
+			
+			hidePortalProjection(player);
+			session = createViewSession(player, portal);
+		}
+		
 		session.setViewedPortalSide(projection);
 		
-		if (!displayFrustum) {
+		if (!displayFrustum && session.getLastViewFrustum() != null) {
 			
 			session.setLastViewFrustum(null);
 			packetHandler.showEntities(player, session.getHiddenEntities());
@@ -375,7 +381,7 @@ public class ViewHandler {
 		for (PlayerViewSession session : viewSessions.values()) {
 			
 			ProjectionCache projection = session.getViewedPortalSide();
-			sortedViewers.putIfAbsent(projection, new HashSet<>());
+			sortedViewers.computeIfAbsent(projection, set -> new HashSet<>());
 			sortedViewers.get(projection).add(session);
 		}
 		

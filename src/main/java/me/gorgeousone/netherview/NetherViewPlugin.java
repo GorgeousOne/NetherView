@@ -68,6 +68,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private ViewHandler viewHandler;
 	private EntityVisibilityHandler motionHandler;
 	
+	boolean canAllWorldsCreatePortalViews = false;
 	private Set<UUID> worldsWithPortalViewing;
 	
 	private int portalProjectionDist;
@@ -114,7 +115,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		registerListeners();
 		registerCommands();
 		
-		loadBackupedPortals();
+		loadSavedPortals();
 		checkForUpdates();
 	}
 	
@@ -160,7 +161,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		portalHandler.reload();
 		motionHandler.reload();
 		
-		loadBackupedPortals();
+		loadSavedPortals();
 		checkForUpdates();
 	}
 	
@@ -228,7 +229,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	public boolean canCreatePortalViews(World world) {
-		return worldsWithPortalViewing.contains(world.getUID());
+		return canAllWorldsCreatePortalViews || worldsWithPortalViewing.contains(world.getUID());
 	}
 	
 	public BlockType getWorldBorderBlockType(World.Environment environment) {
@@ -297,7 +298,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		int portalDisplayRange = clamp(getConfig().getInt("portal-display-range"), 1, 128);
 		portalDisplayRangeSquared = (int) Math.pow(portalDisplayRange, 2);
-		portalProjectionDist = clamp(getConfig().getInt("portal-projection-view-distance"), 1, 32);
+		portalProjectionDist = clamp(getConfig().getInt("portal-view-distance"), 1, 32);
 		PortalLocator.setMaxPortalSize(clamp(getConfig().getInt("max-portal-size"), 3, 21));
 		
 		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
@@ -337,14 +338,20 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private void loadWorldsWithPortalViewing() {
 		
 		worldsWithPortalViewing = new HashSet<>();
-		
 		List<String> worldNames = getConfig().getStringList("worlds-with-portal-viewing");
+		
+		if (worldNames.size() == 1 && worldNames.get(0).equals("*")) {
+			
+			canAllWorldsCreatePortalViews = true;
+			MessageUtils.printDebug("Nether View enabled in all worlds");
+			return;
+		}
 		
 		for (String worldName : worldNames) {
 			World world = Bukkit.getWorld(worldName);
 			
 			if (world == null) {
-				getLogger().log(Level.WARNING, "World " + worldName + " could be found.");
+				getLogger().log(Level.WARNING, "World " + worldName + " could not be found.");
 			} else {
 				worldsWithPortalViewing.add(world.getUID());
 			}
@@ -381,7 +388,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return worldBorder;
 	}
 	
-	private void loadBackupedPortals() {
+	private void loadSavedPortals() {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
 		

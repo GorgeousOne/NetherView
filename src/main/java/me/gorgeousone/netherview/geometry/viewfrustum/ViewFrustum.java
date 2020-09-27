@@ -1,14 +1,12 @@
 package me.gorgeousone.netherview.geometry.viewfrustum;
 
 import me.gorgeousone.netherview.blockcache.BlockCache;
-import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.Line;
 import me.gorgeousone.netherview.geometry.Plane;
 import me.gorgeousone.netherview.wrapper.Axis;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -146,8 +144,8 @@ public class ViewFrustum {
 	                                                            AxisAlignedRect endLayer) {
 		
 		//I get it. It's long and not comprehensible, but it has to be all in 1 method for max efficiency
-		Vector startMinPoint = startLayer.getMin();
-		Vector startMaxPoint = startLayer.getMax();
+		Vector layerMinPoint = startLayer.getMin();
+		Vector layerMaxPoint = startLayer.getMax();
 		
 		Vector layerMinPointStep = endLayer.getMin().subtract(startLayer.getMin()).multiply(1d / frustumLength);
 		Vector layerMaxPointStep = endLayer.getMax().subtract(startLayer.getMax()).multiply(1d / frustumLength);
@@ -161,13 +159,13 @@ public class ViewFrustum {
 		
 		for (int i = 0; i <= frustumLength; i++) {
 			
-			minXs[i] = startMinPoint.getBlockX();
-			minYs[i] = startMinPoint.getBlockY();
-			maxXs[i] = startMaxPoint.getBlockX();
-			maxYs[i] = startMaxPoint.getBlockY();
+			minXs[i] = layerMinPoint.getBlockX();
+			minYs[i] = layerMinPoint.getBlockY();
+			maxXs[i] = layerMaxPoint.getBlockX();
+			maxYs[i] = layerMaxPoint.getBlockY();
 			
-			startMinPoint.add(layerMinPointStep);
-			startMaxPoint.add(layerMaxPointStep);
+			layerMinPoint.add(layerMinPointStep);
+			layerMaxPoint.add(layerMaxPointStep);
 		}
 		
 		//since blocks often intersect a view frustum with other vertices than the coordinates can tell these layer offsets are created
@@ -179,11 +177,12 @@ public class ViewFrustum {
 		int layerOffsetMaxY = (int) Math.signum(layerMaxPointStep.getY()) == 1 ? 1 : 0;
 		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
+		int startZ = (int) Math.round(startLayer.getMin().getZ());
 		
 		//now this is just the iteration I was talking about all the time
 		for (int i = 0; i < frustumLength; i++) {
 			
-			int layerZ = startLayer.getMin().getBlockZ() + i;
+			int layerZ = startZ + i;
 			int startX = minXs[i + layerOffsetMinX];
 			int startY = minYs[i + layerOffsetMinY];
 			int endX = maxXs[i + layerOffsetMaxX];
@@ -203,8 +202,8 @@ public class ViewFrustum {
 	                                                            AxisAlignedRect startLayer,
 	                                                            AxisAlignedRect endLayer) {
 		
-		Vector startMinPoint = startLayer.getMin();
-		Vector startMaxPoint = startLayer.getMax();
+		Vector layerMinPoint = startLayer.getMin();
+		Vector layerMaxPoint = startLayer.getMax();
 		
 		Vector layerMinPointStep = endLayer.getMin().subtract(startLayer.getMin()).multiply(1d / frustumLength);
 		Vector layerMaxPointStep = endLayer.getMax().subtract(startLayer.getMax()).multiply(1d / frustumLength);
@@ -216,13 +215,13 @@ public class ViewFrustum {
 		
 		for (int i = 0; i <= frustumLength; i++) {
 			
-			minZs[i] = startMinPoint.getBlockZ();
-			minYs[i] = startMinPoint.getBlockY();
-			maxZs[i] = startMaxPoint.getBlockZ();
-			maxYs[i] = startMaxPoint.getBlockY();
+			minZs[i] = layerMinPoint.getBlockZ();
+			minYs[i] = layerMinPoint.getBlockY();
+			maxZs[i] = layerMaxPoint.getBlockZ();
+			maxYs[i] = layerMaxPoint.getBlockY();
 			
-			startMinPoint.add(layerMinPointStep);
-			startMaxPoint.add(layerMaxPointStep);
+			layerMinPoint.add(layerMinPointStep);
+			layerMaxPoint.add(layerMaxPointStep);
 		}
 		
 		int offMinZ = (int) Math.signum(layerMinPointStep.getZ()) == -1 ? 1 : 0;
@@ -231,10 +230,11 @@ public class ViewFrustum {
 		int offMaxY = (int) Math.signum(layerMaxPointStep.getY()) == 1 ? 1 : 0;
 		
 		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
+		int startX = (int) Math.round(startLayer.getMin().getX());
 		
 		for (int i = 0; i < frustumLength; i++) {
 			
-			int layerX = startLayer.getMin().getBlockX() + i;
+			int layerX = startX + i;
 			int startZ = minZs[i + offMinZ];
 			int startY = minYs[i + offMinY];
 			int endZ = maxZs[i + offMaxZ];

@@ -20,8 +20,8 @@ import java.util.UUID;
 public class PlayerViewSession {
 	
 	private final UUID playerId;
+	private final Portal viewedPortal;
 	
-	private Portal viewedPortal;
 	private ProjectionCache viewedPortalSide;
 	private ViewFrustum lastViewFrustum;
 	
@@ -29,9 +29,11 @@ public class PlayerViewSession {
 	private final Set<Entity> hiddenEntities;
 	private final Map<Entity, Location> projectedEntities;
 	
-	public PlayerViewSession(Player player) {
+	public PlayerViewSession(Player player, Portal viewedPortal) {
 		
 		this.playerId = player.getUniqueId();
+		this.viewedPortal = viewedPortal;
+		
 		this.projectedBlocks = new HashMap<>();
 		this.hiddenEntities = new HashSet<>();
 		this.projectedEntities = new HashMap<>();
@@ -47,10 +49,6 @@ public class PlayerViewSession {
 	
 	public Portal getViewedPortal() {
 		return viewedPortal;
-	}
-	
-	public void setViewedPortal(Portal viewedPortal) {
-		this.viewedPortal = viewedPortal;
 	}
 	
 	/**

@@ -1,5 +1,5 @@
 max-portal-size: 5
-portal-projection-view-distance: 4
+portal-view-distance: 4
 portal-display-range: 32
 flip-portals-by-default: false
 hide-portal-blocks: true
