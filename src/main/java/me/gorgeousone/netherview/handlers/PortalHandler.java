@@ -142,6 +142,10 @@ public class PortalHandler {
 		Portal nearestPortal = null;
 		double minDist = -1;
 		
+		if (!hasPortals(playerLoc.getWorld())) {
+			return null;
+		}
+		
 		for (Portal portal : getPortals(playerLoc.getWorld())) {
 			
 			if (mustBeLinked && !portal.isLinked()) {

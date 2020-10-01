@@ -77,6 +77,7 @@ public class PortalLocator {
 		portalMax.add(frameExtent);
 		
 		Set<Block> frameBlocks = getPortalFrameBlocks(world, portalMin, portalMax, portalRect.getAxis());
+		
 		return new Portal(world, portalRect, innerBlocks, frameBlocks, portalMin, portalMax);
 	}
 	
@@ -178,48 +179,36 @@ public class PortalLocator {
 		
 		Set<Block> frameBlocks = new HashSet<>();
 		
-		int portalMinX = portalMin.getX();
-		int portalMinY = portalMin.getY();
-		int portalMinZ = portalMin.getZ();
-		int portalMaxX = portalMax.getX();
-		int portalMaxY = portalMax.getY();
-		int portalMaxZ = portalMax.getZ();
-		
-		for (int x = portalMinX; x < portalMaxX; x++) {
-			for (int y = portalMinY; y < portalMaxY; y++) {
-				for (int z = portalMinZ; z < portalMaxZ; z++) {
+		for (int x = portalMin.getX(); x < portalMax.getX(); x++) {
+			for (int y = portalMin.getY(); y < portalMax.getY(); y++) {
+				for (int z = portalMin.getZ(); z < portalMax.getZ(); z++) {
 					
-					//only check for obsidian frame blocks that are at the border of this "flat cuboid"
-					if (y > portalMinY && y < portalMaxY - 1 &&
-					    (portalAxis == Axis.X ? (x > portalMinX) : (z > portalMinZ)) &&
-					    (portalAxis == Axis.X ? (x < portalMaxX - 1) : (z < portalMaxZ - 1))) {
+					//only check for obsidian frame blocks that are part of the portal frame
+					if (y > portalMin.getY() && y < portalMax.getY() - 1 &&
+					    (portalAxis == Axis.X ?
+							    x > portalMin.getX() && x < portalMax.getX() - 1 :
+							    z > portalMin.getZ() && z < portalMax.getZ() - 1)) {
 						continue;
 					}
 					
 					Block portalBlock = world.getBlockAt(x, y, z);
+					Material portalBlockType = portalBlock.getType();
 					
-					if (portalBlock.getType() == Material.OBSIDIAN) {
+					if (portalBlockType.isOccluding()) {
 						frameBlocks.add(portalBlock);
-						
-					} else if ((((portalAxis == Axis.X) && ((x == portalMinX     && y == portalMinY    ) ||
-					                                        (x == portalMinX     && y == portalMaxY - 1) ||
-					                                        (x == portalMaxX - 1 && y == portalMinY    ) ||
-					                                        (x == portalMaxX - 1 && y == portalMaxY - 1))) ||
-					            ((portalAxis == Axis.Z) && ((z == portalMinZ     && y == portalMinY    ) ||
-					                                        (z == portalMinZ     && y == portalMaxY - 1) ||
-					                                        (z == portalMaxZ - 1 && y == portalMinY    ) ||
-					                                        (z == portalMaxZ - 1 && y == portalMaxY - 1)))) &&
-					           portalBlock.getType().isOccluding()) {
-						//allow corner blocks to be any occluding block
-						frameBlocks.add(portalBlock);
+						continue;
+					}
+					
+					MessageUtils.printDebug("Expected obsidian/occluding block at portal corner block "
+					                        + portalBlock.getWorld().getName() + ", "
+					                        + new BlockVec(portalBlock).toString());
+					
+					String worldType = world.getEnvironment().name().toLowerCase().replaceAll("_", " ");
+					
+					if (isPortalCorner(x, y, z, portalMin, portalMax, portalAxis)) {
+						throw new MessageException(Message.PORTAL_CORNERS_INCOMPLETE, worldType);
 						
 					} else {
-						
-						MessageUtils.printDebug("Expected obsidian/occluding block at "
-						                        + portalBlock.getWorld().getName() + ", "
-						                        + new BlockVec(portalBlock).toString());
-						
-						String worldType = world.getEnvironment().name().toLowerCase().replaceAll("_", " ");
 						throw new MessageException(Message.PORTAL_FRAME_INCOMPLETE, worldType);
 					}
 				}
@@ -227,5 +216,23 @@ public class PortalLocator {
 		}
 		
 		return frameBlocks;
+	}
+	
+	private static boolean isPortalCorner(int x,
+	                                      int y,
+	                                      int z,
+	                                      BlockVec portalMin,
+	                                      BlockVec portalMax,
+	                                      Axis portalAxis) {
+		
+		if (y != portalMin.getY() && y != portalMax.getY() - 1) {
+			return false;
+		}
+		
+		if (portalAxis == Axis.X) {
+			return (x == portalMin.getX() || x == portalMax.getX() - 1);
+		} else {
+			return (z == portalMin.getZ() || z == portalMax.getZ() - 1);
+		}
 	}
 }

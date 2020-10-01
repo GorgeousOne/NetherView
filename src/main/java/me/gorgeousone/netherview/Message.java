@@ -8,6 +8,7 @@ public enum Message {
 	SUCCESSFUL_PORTAL_LINKING("successful-portal-linking"),
 	UNEQUAL_PORTALS("unequal-portals"),
 	PORTAL_FRAME_INCOMPLETE("portal-frame-incomplete", "world-type"),
+	PORTAL_CORNERS_INCOMPLETE("portal-corners-incomplete", "world-type"),
 	PORTAL_TOO_BIG("portal-too-big", "size"),
 	PORTAL_NOT_INTACT("portal-not-intact", "world-type"),
 	WORLD_NOT_WHITE_LISTED("world-not-white-listed", "world"),

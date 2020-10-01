@@ -105,10 +105,10 @@ public class Portal {
 		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
 	}
 	
-	public boolean contains(Vector loc) {
-		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
-		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
-		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
+	public boolean contains(Block block) {
+		return block.getX() >= min.getX() && block.getX() < max.getX() &&
+		       block.getY() >= min.getY() && block.getY() < max.getY() &&
+		       block.getZ() >= min.getZ() && block.getZ() < max.getZ();
 	}
 	
 	public boolean equalsInSize(Portal other) {

@@ -1,6 +1,7 @@
 successful-portal-linking: '&7&oThe veil between the two worlds has lifted a little bit!'
 unequal-portals: '&7These two portals are not the same size.'
-portal-frame-incomplete: '&7The frame of this %world-type%-world portal is missing some obsidian blocks.'
+portal-frame-incomplete: '&7All frame blocks of this %world-type%-world portal need to be occluding blocks.'
+portal-corners-incomplete: '&7All four corners corners of this %world-type%-world portal need to be occluding blocks.'
 portal-too-big: '&7Cannot make portal views bigger than %size% blocks!'
 portal-not-intact: '&7Some portal blocks of this %world-type%-world portal seem to be broken.'
 world-not-white-listed: |-

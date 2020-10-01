@@ -203,7 +203,7 @@ public class BlockCache {
 					touchingBlockPos.getZ());
 			
 			
-			if (!BlockType.of(touchingBlock).isOccluding()) {
+			if (!touchingBlock.getType().isOccluding()) {
 				return true;
 			}
 		}
