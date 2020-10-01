@@ -211,8 +211,8 @@ public class BlockChangeListener implements Listener {
 	                                               ProjectionCache viewedCache,
 	                                               Map<BlockVec, BlockType> viewSession) {
 		
-		//it's somehow a Object array and now a WrappedBlockData[] array, don't ask me
-		Object[] blockTypes = packet.getBlockDataArrays().readSafely(0);
+		//it's somehow an Object array and not a WrappedBlockData array, don't ask me
+		Object[] blockTypes = packet.getBlockDataArrays().read(0);
 		short[] blockLocs = packet.getShortArrays().read(0);
 		BlockVec chunkLoc = new BlockVec(packet.getSectionPositions().read(0)).multiply(16);
 		int x = 0;
@@ -264,11 +264,9 @@ public class BlockChangeListener implements Listener {
 			return;
 		}
 		
-		BlockVec blockLoc = new BlockVec(block);
-		
 		for (Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
 			
-			if (portal.contains(blockLoc)) {
+			if (portal.contains(block)) {
 				
 				viewHandler.removePortal(portal);
 				portalHandler.removePortal(portal);
@@ -327,9 +325,9 @@ public class BlockChangeListener implements Listener {
 		Block block = event.getBlock();
 		Material blockType = block.getType();
 		
-		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
+		updateBlockCaches(block, BlockType.of(Material.AIR), blockType.isOccluding());
 		
-		if (blockType == Material.OBSIDIAN || blockType == portalMaterial) {
+		if (blockType == portalMaterial || blockType.isOccluding()) {
 			removeDamagedPortals(block);
 		}
 	}
@@ -348,11 +346,16 @@ public class BlockChangeListener implements Listener {
 			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		}
 		
-		if (main.canCreatePortalViews(event.getBlock().getWorld())) {
-			for (Block block : event.blockList()) {
-				if (block.getType() == portalMaterial) {
-					removeDamagedPortals(block);
-				}
+		if (!main.canCreatePortalViews(event.getBlock().getWorld())) {
+			return;
+		}
+		
+		for (Block block : event.blockList()) {
+			
+			Material material = block.getType();
+			
+			if (material == portalMaterial || material.isOccluding()) {
+				removeDamagedPortals(block);
 			}
 		}
 	}

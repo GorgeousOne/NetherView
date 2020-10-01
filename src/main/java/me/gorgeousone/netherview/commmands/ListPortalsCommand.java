@@ -57,7 +57,7 @@ public class ListPortalsCommand extends ArgCommand {
 		Set<Portal> portalSet = portalHandler.getPortals(world);
 		StringBuilder portals = new StringBuilder();
 		
-		for (Portal portal : portalHandler.getPortals(world)) {
+		for (Portal portal : portalSet) {
 			portals.append("\\n").append(ChatColor.GRAY + "- ").append(portal.toWhiteString());
 		}
 		
