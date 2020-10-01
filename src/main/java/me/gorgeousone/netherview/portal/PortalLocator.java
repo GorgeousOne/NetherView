@@ -201,9 +201,21 @@ public class PortalLocator {
 					if (portalBlock.getType() == Material.OBSIDIAN) {
 						frameBlocks.add(portalBlock);
 						
+					} else if ((((portalAxis == Axis.X) && ((x == portalMinX     && y == portalMinY    ) ||
+					                                        (x == portalMinX     && y == portalMaxY - 1) ||
+					                                        (x == portalMaxX - 1 && y == portalMinY    ) ||
+					                                        (x == portalMaxX - 1 && y == portalMaxY - 1))) ||
+					            ((portalAxis == Axis.Z) && ((z == portalMinZ     && y == portalMinY    ) ||
+					                                        (z == portalMinZ     && y == portalMaxY - 1) ||
+					                                        (z == portalMaxZ - 1 && y == portalMinY    ) ||
+					                                        (z == portalMaxZ - 1 && y == portalMaxY - 1)))) &&
+					           portalBlock.getType().isOccluding()) {
+						//allow corner blocks to be any occluding block
+						frameBlocks.add(portalBlock);
+						
 					} else {
 						
-						MessageUtils.printDebug("Expected obsidian block at "
+						MessageUtils.printDebug("Expected obsidian/occluding block at "
 						                        + portalBlock.getWorld().getName() + ", "
 						                        + new BlockVec(portalBlock).toString());
 						
