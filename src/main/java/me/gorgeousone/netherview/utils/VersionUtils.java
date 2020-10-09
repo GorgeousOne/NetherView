@@ -7,37 +7,35 @@ public final class VersionUtils {
 	private VersionUtils() {}
 	
 	public static final String VERSION_STRING = Bukkit.getServer().getClass().getName().split("\\.")[3];
-	
-	private static final int VERSION_INT_COUNT = 3;
-	private static final int[] CURRENT_VERSION_INTS = new int[VERSION_INT_COUNT];
+	private static final int[] CURRENT_VERSION_INTS = new int[3];
 	
 	static {
 		String versionStringNumbersOnly = VERSION_STRING.replaceAll("[a-zA-Z]", "");
-		System.arraycopy(getVersionAsIntArray(versionStringNumbersOnly, "_"), 0, CURRENT_VERSION_INTS, 0, VERSION_INT_COUNT);
+		System.arraycopy(getVersionAsIntArray(versionStringNumbersOnly, "_"), 0, CURRENT_VERSION_INTS, 0, 3);
 	}
 	
 	public static final boolean IS_LEGACY_SERVER = !serverIsAtOrAbove("1.13.0");
 	
-	public static boolean versionIsLowerThan(String version1, String version2) {
+	public static boolean versionIsLowerThan(String currentVersion, String requestedVersion) {
 		
-		int[] versionInts1 = getVersionAsIntArray(version1, "\\.");
-		int[] versionInts2 = getVersionAsIntArray(version2, "\\.");
+		int[] currentVersionInts = getVersionAsIntArray(currentVersion, "\\.");
+		int[] requestedVersionInts = getVersionAsIntArray(requestedVersion, "\\.");
 		
-		for (int i = 0; i < versionInts1.length; i++) {
+		for (int i = 0; i < Math.min(currentVersionInts.length, requestedVersionInts.length); i++) {
 			
-			if (versionInts1[i] < versionInts2[i]) {
+			if (currentVersionInts[i] < requestedVersionInts[i]) {
 				return true;
 			}
 		}
 		
-		return false;
+		return requestedVersionInts.length > currentVersionInts.length;
 	}
 	
-	public static boolean serverIsAtOrAbove(String fullVersionString) {
+	public static boolean serverIsAtOrAbove(String versionString) {
 		
-		int[] readVersionInts = getVersionAsIntArray(fullVersionString, "\\.");
+		int[] readVersionInts = getVersionAsIntArray(versionString, "\\.");
 		
-		for (int i = 0; i < VERSION_INT_COUNT; i++) {
+		for (int i = 0; i < readVersionInts.length; i++) {
 			
 			if (CURRENT_VERSION_INTS[i] < readVersionInts[i]) {
 				return false;
@@ -51,13 +49,13 @@ public final class VersionUtils {
 		
 		String[] split = version.split(delimiter);
 		
-		if (split.length != VERSION_INT_COUNT) {
-			throw new IllegalArgumentException("Cannot process version string \"" + version + "\".");
+		if (split.length > 3) {
+			throw new IllegalArgumentException("Cannot process awfully long version string \"" + version + "\".");
 		}
 		
-		int[] versionInts = new int[VERSION_INT_COUNT];
+		int[] versionInts = new int[split.length];
 		
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < versionInts.length; i++) {
 			versionInts[i] = Integer.parseInt(split[i]);
 		}
 		

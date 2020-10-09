@@ -227,11 +227,12 @@ public class BlockCache {
 				
 				unloadedChunks.computeIfAbsent(chunk, set -> addContainedEntities(chunk, new HashSet<>()));
 				containedEntities.addAll(unloadedChunks.get(chunk));
-				continue;
-			}
 			
-			addContainedEntities(chunk, containedEntities);
-			unloadedChunks.remove(chunk);
+			}else {
+				
+				addContainedEntities(chunk, containedEntities);
+				unloadedChunks.remove(chunk);
+			}
 		}
 		
 		return containedEntities;
@@ -240,8 +241,11 @@ public class BlockCache {
 	private Set<Entity> addContainedEntities(Chunk chunk, Set<Entity> setToAddTo) {
 		
 		boolean wasChunkLoaded = getWorld().isChunkLoaded(chunk);
+		Entity[] chunkEntities = chunk.getEntities();
 		
-		for (Entity entity : chunk.getEntities()) {
+		for (int i = 0; i < chunkEntities.length; i++) {
+			
+			Entity entity = chunkEntities[i];
 			
 			if (WrappedBoundingBox.of(entity).intersectsBlockCache(this)) {
 				setToAddTo.add(entity);
