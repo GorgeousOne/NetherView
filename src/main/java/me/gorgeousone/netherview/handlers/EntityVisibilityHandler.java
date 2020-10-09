@@ -121,6 +121,7 @@ public class EntityVisibilityHandler {
 				}
 				
 				entitiesInBlockCaches.entrySet().removeIf(entry -> !watchedBlockCaches.containsKey(entry.getKey()));
+				lastEntityLocs.entrySet().removeIf(entry -> entry.getKey().isDead());
 			}
 		};
 		

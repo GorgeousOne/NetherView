@@ -38,6 +38,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -68,8 +69,9 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private ViewHandler viewHandler;
 	private EntityVisibilityHandler motionHandler;
 	
-	boolean canAllWorldsCreatePortalViews = false;
-	private Set<UUID> worldsWithPortalViewing;
+	boolean allWorldsCanCreatePortalViews = false;
+	private Set<UUID> whiteListedWorlds;
+	private Set<UUID> blackListedWorlds;
 	
 	private int portalProjectionDist;
 	private int portalDisplayRangeSquared;
@@ -229,7 +231,9 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	public boolean canCreatePortalViews(World world) {
-		return canAllWorldsCreatePortalViews || worldsWithPortalViewing.contains(world.getUID());
+		
+		UUID worldId = world.getUID();
+		return !blackListedWorlds.contains(worldId) && (allWorldsCanCreatePortalViews || whiteListedWorlds.contains(worldId));
 	}
 	
 	public BlockType getWorldBorderBlockType(World.Environment environment) {
@@ -337,24 +341,30 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	private void loadWorldsWithPortalViewing() {
 		
-		worldsWithPortalViewing = new HashSet<>();
-		List<String> worldNames = getConfig().getStringList("worlds-with-portal-viewing");
+		whiteListedWorlds = new HashSet<>();
+		blackListedWorlds = new HashSet<>();
 		
-		if (worldNames.size() == 1 && worldNames.get(0).equals("*")) {
-			
-			canAllWorldsCreatePortalViews = true;
-			MessageUtils.printDebug("Nether View enabled in all worlds");
-			return;
+		List<String> whiteListedWorldNames = getConfig().getStringList("worlds-with-portal-viewing");
+		List<String> blackListedWorldNames = getConfig().getStringList("world-black-list");
+		
+		if (whiteListedWorldNames.contains("*")) {
+			allWorldsCanCreatePortalViews = true;
+			MessageUtils.printDebug("Nether View enabled in all worlds (except black listed ones).");
+		}else {
+			whiteListedWorldNames.forEach(worldName -> addWorld(worldName, whiteListedWorlds, "whitelist"));
 		}
 		
-		for (String worldName : worldNames) {
-			World world = Bukkit.getWorld(worldName);
-			
-			if (world == null) {
-				getLogger().log(Level.WARNING, "World " + worldName + " could not be found.");
-			} else {
-				worldsWithPortalViewing.add(world.getUID());
-			}
+		blackListedWorldNames.forEach(worldName -> addWorld(worldName, blackListedWorlds, "blacklist"));
+	}
+	
+	private void addWorld(String worldName, Collection<UUID> worldCollection, String listName) {
+		World world = Bukkit.getWorld(worldName);
+		
+		if (world == null) {
+			getLogger().log(Level.WARNING, "Could not find world '" + worldName + "' from " + listName);
+		} else {
+			worldCollection.add(world.getUID());
+			MessageUtils.printDebug("Added '" + worldName + "' to " + listName);
 		}
 	}
 	
