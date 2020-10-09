@@ -227,8 +227,8 @@ public class BlockCache {
 				
 				unloadedChunks.computeIfAbsent(chunk, set -> addContainedEntities(chunk, new HashSet<>()));
 				containedEntities.addAll(unloadedChunks.get(chunk));
-			
-			}else {
+				
+			} else {
 				
 				addContainedEntities(chunk, containedEntities);
 				unloadedChunks.remove(chunk);

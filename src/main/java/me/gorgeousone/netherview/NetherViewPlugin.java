@@ -20,6 +20,7 @@ import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
 import me.gorgeousone.netherview.portal.PortalLocator;
+import me.gorgeousone.netherview.portal.PortalSerializer;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import me.gorgeousone.netherview.utils.ConfigUtils;
@@ -55,6 +56,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	public final static String CONFIG_PERM = "netherview.config";
 	public final static String INFO_PERM = "netherview.info";
 	public final static String PORTAL_FLIP_PERM = "netherview.flipportal";
+	public final static String CUSTOM_PORTAL_PERM = "netherview.customportals";
 	
 	public final static String CHAT_PREFIX =
 			ChatColor.DARK_RED + "[" +
@@ -350,7 +352,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		if (whiteListedWorldNames.contains("*")) {
 			allWorldsCanCreatePortalViews = true;
 			MessageUtils.printDebug("Nether View enabled in all worlds (except black listed ones).");
-		}else {
+		} else {
 			whiteListedWorldNames.forEach(worldName -> addWorld(worldName, whiteListedWorlds, "whitelist"));
 		}
 		
@@ -409,7 +411,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		
 		try {
-			portalHandler.loadPortals(portalConfig);
+			new PortalSerializer(this, portalHandler).loadPortals(portalConfig);
 		} catch (Exception ignored) {}
 		
 		backupPortals();
@@ -421,7 +423,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		portalConfigFile.delete();
 		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
-		portalHandler.savePortals(portalConfig);
+		new PortalSerializer(this, portalHandler).savePortals(portalConfig);
 		
 		try {
 			portalConfig.save(portalConfigFile);

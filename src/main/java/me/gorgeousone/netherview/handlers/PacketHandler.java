@@ -45,7 +45,7 @@ import java.util.Set;
  * Handler class for creating and managing multi block change packets via ProtocolLib
  */
 public class PacketHandler {
-
+	
 	private final boolean useBlockPacket1_16_2 = VersionUtils.serverIsAtOrAbove("1.16.2");
 	private final boolean useEquipmentPacket1_16 = VersionUtils.serverIsAtOrAbove("1.16");
 	private final boolean useEquipmentPacket1_9 = VersionUtils.serverIsAtOrAbove("1.9");
@@ -71,9 +71,9 @@ public class PacketHandler {
 			throw new RuntimeException("Failed to create packets constructors", e);
 		}
 	}
-
+	
 	private void createPacketsConstructors() throws ClassNotFoundException {
-
+		
 		entityHeadRotationPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.ENTITY_HEAD_ROTATION, NmsUtils.getNmsClass("Entity"), byte.class);
 		namedEntitySpawnPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.NAMED_ENTITY_SPAWN, NmsUtils.getNmsClass("EntityHuman"));
 		spawnEntityPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"));
@@ -348,35 +348,41 @@ public class PacketHandler {
 		}
 	}
 	
-	private PacketContainer createHeadRotation(Entity entity, float yaw) throws InvocationTargetException, IllegalAccessException {
-
+	private PacketContainer createHeadRotation(Entity entity,
+	                                           float yaw) throws InvocationTargetException, IllegalAccessException {
+		
 		byte byteYaw = (byte) (int) (yaw * 265 / 360);
 		return entityHeadRotationPacket.createPacket(NmsUtils.getHandle(entity), byteYaw);
 	}
 	
-	private PacketContainer createPlayerPacket(HumanEntity player, Location entityLoc) throws InvocationTargetException, IllegalAccessException {
-
+	private PacketContainer createPlayerPacket(HumanEntity player,
+	                                           Location entityLoc) throws InvocationTargetException, IllegalAccessException {
+		
 		PacketContainer spawnPacket = namedEntitySpawnPacket.createPacket(NmsUtils.getHandle(player));
 		writeEntityPos(spawnPacket, entityLoc, true, false);
 		return spawnPacket;
 	}
 	
-	private PacketContainer createEntityPacket(Entity entity, Location entityLoc) throws InvocationTargetException, IllegalAccessException {
-
+	private PacketContainer createEntityPacket(Entity entity,
+	                                           Location entityLoc) throws InvocationTargetException, IllegalAccessException {
+		
 		PacketContainer spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity));
 		writeEntityPos(spawnPacket, entityLoc, false, false);
 		return spawnPacket;
 	}
 	
-	private PacketContainer createEntityLivingPacket(LivingEntity entity, Location entityLoc) throws InvocationTargetException, IllegalAccessException {
-
+	private PacketContainer createEntityLivingPacket(LivingEntity entity,
+	                                                 Location entityLoc) throws InvocationTargetException, IllegalAccessException {
+		
 		PacketContainer spawnPacket = spawnEntityLiving.createPacket(NmsUtils.getHandle(entity));
 		writeEntityPos(spawnPacket, entityLoc, true, true);
 		return spawnPacket;
 	}
 	
-	private PacketContainer createPaintingPacket(Painting painting, Location location, Transform transform) throws InvocationTargetException, IllegalAccessException {
-
+	private PacketContainer createPaintingPacket(Painting painting,
+	                                             Location location,
+	                                             Transform transform) throws InvocationTargetException, IllegalAccessException {
+		
 		PacketContainer spawnPacket = spawnEntityPainting.createPacket(NmsUtils.getHandle(painting));
 		
 		int halfHeight = (int) (WrappedBoundingBox.of(painting).getHeight() / 2);
@@ -468,7 +474,7 @@ public class PacketHandler {
 	}
 	
 	private PacketContainer createMetadataPacket(Entity entity) throws InvocationTargetException, IllegalAccessException {
-
+		
 		return entityMetadataPacket.createPacket(entity.getEntityId(), NmsUtils.getDataWatcher(entity), true);
 	}
 	
@@ -480,16 +486,16 @@ public class PacketHandler {
 			sendEquipment1_16(player, entity, equipmentMap);
 			
 		} else if (useEquipmentPacket1_9) {
-			sendEquipment(player, entity, equipmentMap);
+			sendEquipment1_9(player, entity, equipmentMap);
 			
 		} else {
-			sendEquipment1_8(player, entity, equipmentMap);
+			sendEquipment(player, entity, equipmentMap);
 		}
 	}
 	
-	private void sendEquipment1_8(Player player,
-	                              Entity entity,
-	                              Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+	private void sendEquipment(Player player,
+	                           Entity entity,
+	                           Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
 		
 		List<EnumWrappers.ItemSlot> itemSlots = new ArrayList<>(Arrays.asList(EnumWrappers.ItemSlot.values()));
 		
@@ -511,9 +517,9 @@ public class PacketHandler {
 		}
 	}
 	
-	private void sendEquipment(Player player,
-	                           Entity entity,
-	                           Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+	private void sendEquipment1_9(Player player,
+	                              Entity entity,
+	                              Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
 		
 		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
 			

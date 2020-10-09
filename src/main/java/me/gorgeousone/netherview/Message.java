@@ -19,7 +19,11 @@ public enum Message {
 	WORLD_INFO("world-info", "count", "world", "portals"),
 	FLIPPED_PORTAL("flipped-portal", "portal"),
 	PORTAL_VIEWING_ON("portal-viewing-on"),
-	PORTAL_VIEWING_OFF("portal-viewing-off");
+	PORTAL_VIEWING_OFF("portal-viewing-off"),
+	
+	SET_FIRST_CUBOID_POSITION("set-first-position", "position"),
+	SET_SECOND_CUBOID_POSITION("set-second-position", "position"),
+	SELECTION_SIZE_INFO("selection-size-info", "size");
 	
 	private final String configKey;
 	private String configValue;

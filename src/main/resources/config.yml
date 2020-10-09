@@ -10,7 +10,7 @@ show-entities-inside-portals: true
 warning-messages: true
 debug-messages: false
 worlds-with-portal-viewing:
-- world
-- world_nether
+    - world
+    - world_nether
 world-black-list:
-- null
+    - null

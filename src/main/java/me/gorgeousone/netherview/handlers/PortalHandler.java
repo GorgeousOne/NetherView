@@ -15,6 +15,7 @@ import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.utils.MessageException;
 import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.utils.TimeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -335,8 +336,9 @@ public class PortalHandler {
 	
 	/**
 	 * Links a portal to it's counter portal it teleports to.
+	 * @param triggerPlayer - player who triggered the portal linking. set to null if no player involved
 	 */
-	public void linkPortalTo(Portal portal, Portal counterPortal, Player player) throws MessageException {
+	public void linkPortalTo(Portal portal, Portal counterPortal, Player triggerPlayer) throws MessageException {
 		
 		if (!counterPortal.equalsInSize(portal)) {
 			
@@ -347,9 +349,9 @@ public class PortalHandler {
 			throw new MessageException(Message.UNEQUAL_PORTALS);
 		}
 		
-		if (player != null) {
+		if (triggerPlayer != null) {
 			
-			PortalLinkEvent linkEvent = new PortalLinkEvent(portal, counterPortal, player);
+			PortalLinkEvent linkEvent = new PortalLinkEvent(portal, counterPortal, triggerPlayer);
 			Bukkit.getPluginManager().callEvent(linkEvent);
 			
 			if (linkEvent.isCancelled()) {
@@ -362,152 +364,6 @@ public class PortalHandler {
 		MessageUtils.printDebug("Linked portal "
 		                        + portal.toString() + " to portal "
 		                        + counterPortal.toString());
-	}
-	
-	public void savePortals(FileConfiguration portalConfig) {
-		
-		portalConfig.set("plugin-version", main.getDescription().getVersion());
-		portalConfig.set("portal-locations", null);
-		portalConfig.set("portal-data", null);
-		
-		ConfigurationSection portalLocations = portalConfig.createSection("portal-locations");
-		ConfigurationSection portalData = portalConfig.createSection("portal-data");
-		
-		for (UUID worldID : worldsWithPortals.keySet()) {
-			
-			List<String> portalsInWorld = new ArrayList<>();
-			
-			for (Portal portal : worldsWithPortals.get(worldID)) {
-				
-				int portalHash = portal.hashCode();
-				
-				portalsInWorld.add(new BlockVec(portal.getLocation()).toString());
-				portalData.set(portalHash + ".is-flipped", portal.isViewFlipped());
-				
-				if (portal.isLinked()) {
-					portalData.set(portalHash + ".link", portal.getCounterPortal().hashCode());
-				}
-			}
-			
-			portalLocations.set(worldID.toString(), portalsInWorld);
-		}
-	}
-	
-	public void loadPortals(FileConfiguration portalConfig) throws MessageException {
-		
-		boolean portalsHaveBeenLoaded = loadPortalLocations(portalConfig);
-		
-		if (!portalsHaveBeenLoaded) {
-			return;
-		}
-		
-		if (!portalConfig.contains("plugin-version")) {
-			loadDeprecatedPortalLinks(portalConfig);
-		} else {
-			loadPortalData(portalConfig);
-		}
-	}
-	
-	private boolean loadPortalLocations(FileConfiguration portalConfig) {
-		
-		if (!portalConfig.contains("portal-locations")) {
-			return false;
-		}
-		
-		ConfigurationSection portalLocations = portalConfig.getConfigurationSection("portal-locations");
-		
-		boolean somePortalsCouldBeLoaded = false;
-		
-		for (String worldID : portalLocations.getKeys(false)) {
-			
-			World worldWithPortals = Bukkit.getWorld(UUID.fromString(worldID));
-			
-			if (worldWithPortals == null) {
-				main.getLogger().warning("Could not find world with ID: '" + worldID + "'. Portals saved for this world will not be loaded.");
-				continue;
-			}
-			
-			if (!main.canCreatePortalViews(worldWithPortals)) {
-				continue;
-			}
-			
-			boolean somePortalsWereLoaded = deserializePortals(worldWithPortals, portalLocations.getStringList(worldID));
-			
-			if (somePortalsWereLoaded) {
-				somePortalsCouldBeLoaded = true;
-			}
-		}
-		
-		return somePortalsCouldBeLoaded;
-	}
-	
-	private boolean deserializePortals(World world, List<String> portalLocs) {
-		
-		boolean somePortalsCouldBeLoaded = false;
-		
-		for (String serializedBlockVec : portalLocs) {
-			
-			try {
-				BlockVec portalLoc = BlockVec.fromString(serializedBlockVec);
-				addPortalStructure(world.getBlockAt(portalLoc.getX(), portalLoc.getY(), portalLoc.getZ()));
-				somePortalsCouldBeLoaded = true;
-				
-			} catch (IllegalArgumentException | IllegalStateException | MessageException e) {
-				main.getLogger().warning("Unable to load portal at [" + world.getName() + ", " + serializedBlockVec + "]: " + e.getMessage());
-			}
-		}
-		
-		return somePortalsCouldBeLoaded;
-	}
-	
-	private void loadPortalData(FileConfiguration portalConfig) throws MessageException {
-		
-		if (!portalConfig.contains("portal-data")) {
-			return;
-		}
-		
-		ConfigurationSection portalData = portalConfig.getConfigurationSection("portal-data");
-		
-		for (String portalHashString : portalData.getKeys(false)) {
-			
-			Portal portal = getPortalByHashCode(Integer.parseInt(portalHashString));
-			
-			if (portal == null) {
-				continue;
-			}
-			
-			portal.setViewFlipped(portalData.getBoolean(portalHashString + ".is-flipped"));
-			
-			if (portalData.contains(portalHashString + ".link")) {
-				
-				Portal counterPortal = getPortalByHashCode(portalData.getInt(portalHashString + ".link"));
-				
-				if (counterPortal == null) {
-					continue;
-				}
-				
-				linkPortalTo(portal, counterPortal, null);
-			}
-		}
-	}
-	
-	private void loadDeprecatedPortalLinks(FileConfiguration portalConfig) throws MessageException {
-		
-		if (!portalConfig.contains("linked-portals")) {
-			return;
-		}
-		
-		ConfigurationSection portalLinks = portalConfig.getConfigurationSection("linked-portals");
-		
-		for (String portalHashString : portalLinks.getKeys(false)) {
-			
-			Portal portal = getPortalByHashCode(Integer.parseInt(portalHashString));
-			Portal counterPortal = getPortalByHashCode(portalLinks.getInt(portalHashString));
-			
-			if (portal != null && counterPortal != null) {
-				linkPortalTo(portal, counterPortal, null);
-			}
-		}
 	}
 	
 	/**
@@ -544,13 +400,6 @@ public class PortalHandler {
 			}
 		};
 		
-		expirationTimer.runTaskTimerAsynchronously(main, ticksTillNextMinute(), timerPeriod);
-	}
-	
-	private long ticksTillNextMinute() {
-		
-		LocalTime now = LocalTime.now();
-		LocalTime nextMinute = now.truncatedTo(ChronoUnit.MINUTES).plusMinutes(1);
-		return now.until(nextMinute, ChronoUnit.MILLIS) / 50;
+		expirationTimer.runTaskTimerAsynchronously(main, TimeUtils.getTicksTillNextMinute(), timerPeriod);
 	}
 }
