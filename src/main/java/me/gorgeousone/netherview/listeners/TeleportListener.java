@@ -104,9 +104,6 @@ public class TeleportListener implements Listener {
 			Portal portal = portalHandler.getPortalByBlock(portalBlock);
 			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
 			
-			System.out.println(portal);
-			System.out.println(counterPortal);
-			
 			if (counterPortal.equals(portal.getCounterPortal())) {
 				return false;
 			}
