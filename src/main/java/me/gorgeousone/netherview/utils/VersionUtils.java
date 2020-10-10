@@ -16,7 +16,7 @@ public final class VersionUtils {
 	
 	public static final boolean IS_LEGACY_SERVER = !serverIsAtOrAbove("1.13.0");
 	
-	public static boolean versionIsLowerThan(String currentVersion, String requestedVersion) {
+	public static boolean isVersionLowerThan(String currentVersion, String requestedVersion) {
 		
 		int[] currentVersionInts = getVersionAsIntArray(currentVersion, "\\.");
 		int[] requestedVersionInts = getVersionAsIntArray(requestedVersion, "\\.");

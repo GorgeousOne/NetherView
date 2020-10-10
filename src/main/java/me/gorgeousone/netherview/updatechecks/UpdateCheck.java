@@ -1,90 +1,95 @@
 package me.gorgeousone.netherview.updatechecks;
 
+import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.utils.VersionUtils;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-import java.util.function.BiConsumer;
 
 public class UpdateCheck {
 	
-	private final JavaPlugin javaPlugin;
+	private final JavaPlugin plugin;
 	
 	private final String currentVersion;
 	private final int resourceId;
-	private BiConsumer<VersionResponse, String> versionResponse;
+	private final String updateInfoPasteUrl;
 	
-	public UpdateCheck(JavaPlugin javaPlugin, int resourceId) {
+	public UpdateCheck(JavaPlugin plugin, int resourceId, String updateInfoPasteUrl) {
 		
-		this.javaPlugin = Objects.requireNonNull(javaPlugin, "javaPlugin");
-		this.currentVersion = javaPlugin.getDescription().getVersion();
+		this.plugin = plugin;
+		this.currentVersion = plugin.getDescription().getVersion();
 		this.resourceId = resourceId;
+		this.updateInfoPasteUrl = updateInfoPasteUrl;
 	}
 	
-	public UpdateCheck handleResponse(BiConsumer<VersionResponse, String> versionResponse) {
-		this.versionResponse = versionResponse;
-		return this;
-	}
-	
-	public void check() {
+	public void run() {
 		
-		Objects.requireNonNull(versionResponse, "versionResponse");
-		
-		Bukkit.getScheduler().runTaskAsynchronously(javaPlugin, () -> {
+		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 			
 			try {
-				InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + resourceId).openStream();
-				Scanner scanner = new Scanner(inputStream);
+				List<UpdateInfo> newUpdates = readNewUpdates(4);
 				
-				if (!scanner.hasNext()) {
+				if (newUpdates.isEmpty()) {
+					plugin.getLogger().info("Plugin is up to date :)");
 					return;
 				}
 				
-				String fetchedVersion = scanner.next();
-				VersionResponse response = compareVersionStrings(fetchedVersion);
+				if (newUpdates.size() > 1) {
+					MessageUtils.sendStaffInfo("New updates for Nether View are available:");
+				}else {
+					MessageUtils.sendStaffInfo("A new version of Nether View is available:");
+				}
 				
-				Bukkit.getScheduler().runTask(javaPlugin, () -> versionResponse.accept(
-						response, response == VersionResponse.FOUND_NEW ? fetchedVersion : currentVersion));
+				for (int i = 0; i < newUpdates.size(); ++i) {
+					
+					if (i > 2) {
+						ComponentBuilder message = new ComponentBuilder((newUpdates.size() - 3) + " more...").color(ChatColor.LIGHT_PURPLE);
+						message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/nether-view." + resourceId + "/updates"));
+						message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("read about all updates").create()));
+						MessageUtils.sendStaffInfo(message.create());
+						break;
+					}
+					
+					MessageUtils.sendStaffInfo(newUpdates.get(i).getChatMessage());
+				}
+				
+				ComponentBuilder builder = new ComponentBuilder("download").color(ChatColor.YELLOW).underlined(true);
+				builder.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/nether-view." + resourceId));
+				builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("visit download page").color(ChatColor.YELLOW).create()));
+				MessageUtils.sendStaffInfo(builder.create());
 				
 			} catch (IOException exception) {
-				versionResponse.accept(VersionResponse.UNAVAILABLE, null);
+				plugin.getLogger().info("Unable to check for updates...");
 			}
 		});
 	}
 	
-	private VersionResponse compareVersionStrings(String fetchedVersion) {
+	private List<UpdateInfo> readNewUpdates(int maxCount) throws IOException {
 		
-		if (fetchedVersion.equals(currentVersion)) {
-			return VersionResponse.LATEST;
-		}
+		InputStream inputStream = new URL(updateInfoPasteUrl).openStream();
+		Scanner scanner = new Scanner(inputStream);
+		List<UpdateInfo> updates = new ArrayList<>();
 		
-		String[] currentDigits = currentVersion.split("\\.");
-		String[] fetchedDigits = fetchedVersion.split("\\.");
-		
-		int minDigitCount = Math.min(currentDigits.length, fetchedDigits.length);
-		
-		try {
+		while (scanner.hasNext()) {
 			
-			for (int i = 0; i < minDigitCount; i++) {
-				
-				int currentDigit = Integer.parseInt(currentDigits[i]);
-				int fetchedDigit = Integer.parseInt(fetchedDigits[i]);
-				
-				if (fetchedDigit > currentDigit) {
-					return VersionResponse.FOUND_NEW;
-				} else if (fetchedDigit < currentDigit) {
-					return VersionResponse.LATEST;
-				}
+			UpdateInfo updateInfo = new UpdateInfo(scanner.nextLine(), "Nether View", resourceId);
+			
+			if (updates.size() < maxCount && VersionUtils.isVersionLowerThan(currentVersion, updateInfo.getVersion())) {
+				updates.add(updateInfo);
+			}else {
+				break;
 			}
-			
-		} catch (NumberFormatException e) {
-			return VersionResponse.LATEST;
 		}
-		
-		return VersionResponse.FOUND_NEW;
+		return updates;
 	}
 }

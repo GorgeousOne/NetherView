@@ -1,6 +1,6 @@
-![NetherView](art/meltpoint-banner2.png)
+![Nether View](art/meltpoint-banner2.png)
 
-# NetherView
+# Nether View
 A plugin that makes it possible to see the nether through nether portals.  
 This was inspired by SethBling's [Magic Nether Portal](https://www.youtube.com/watch?v=xewQL6CkMWI).
 
@@ -10,7 +10,7 @@ This was inspired by SethBling's [Magic Nether Portal](https://www.youtube.com/w
 The latest releases can be downloaded here: [spigotmc.org](https://www.spigotmc.org/resources/nether-view.78885/)
 
 ### Compiling
-NetherView uses Maven 3 to manage dependencies.
+Nether View uses Maven 3 to manage dependencies.
 
 Required libraries:
 - Bukkit
