@@ -21,7 +21,6 @@ import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.TeleportListener;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
-import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import me.gorgeousone.netherview.utils.ConfigUtils;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
@@ -31,7 +30,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,6 +47,7 @@ import java.util.logging.Level;
 public final class NetherViewPlugin extends JavaPlugin {
 	
 	private static final int resourceId = 78885;
+	private static final String updateInfoUrl = "https://pastebin.com/raw/piNNmtcP";
 	
 	public final static String VIEW_PERM = "netherview.viewportals";
 	public final static String LINK_PERM = "netherview.linkportals";
@@ -127,9 +126,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		if (protocolLib == null || !(protocolLib instanceof ProtocolLib)) {
 			
+			MessageUtils.sendStaffInfo("Nether View disabled itself because of missing dependency ProtocolLib.");
 			getLogger().severe("====================================================");
 			getLogger().severe("Error: You must have ProtocolLib installed to use");
-			getLogger().severe("NetherView! Please download ProtocolLib and then");
+			getLogger().severe("Nether View! Please download ProtocolLib and then");
 			getLogger().severe("restart your server:");
 			getLogger().severe("https://www.spigotmc.org/resources/protocollib.1997/");
 			getLogger().severe("====================================================");
@@ -138,8 +138,9 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		String libVersion = protocolLib.getDescription().getVersion().split("-")[0];
 		
-		if (VersionUtils.serverIsAtOrAbove("1.16.2") && VersionUtils.versionIsLowerThan(libVersion, "4.6.0")) {
+		if (VersionUtils.serverIsAtOrAbove("1.16.2") && VersionUtils.isVersionLowerThan(libVersion, "4.6.0")) {
 			
+			MessageUtils.sendStaffInfo("Nether View disabled itself because ProtocolLib 4.6.0 or higher is required for servers running 1.16.2 and up.");
 			getLogger().severe("============================================================");
 			getLogger().severe("Error: For Minecraft 1.16.2 and up Nether View requires at");
 			getLogger().severe("least ProtocolLib 4.6.0. This version might be still be a");
@@ -316,7 +317,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));
 		
 		loadWorldBorderBlockTypes();
-		loadWorldsWithPortalViewing();
+		loadWorldSettings();
 	}
 	
 	private void loadLangConfigData() {
@@ -339,7 +340,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		}
 	}
 	
-	private void loadWorldsWithPortalViewing() {
+	private void loadWorldSettings() {
 		
 		whiteListedWorlds = new HashSet<>();
 		blackListedWorlds = new HashSet<>();
@@ -439,25 +440,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	private void checkForUpdates() {
-		
-		new UpdateCheck(this, resourceId).handleResponse((versionResponse, newVersion) -> {
-			
-			if (versionResponse == VersionResponse.FOUND_NEW) {
-				
-				for (Player player : Bukkit.getOnlinePlayers()) {
-					
-					if (player.isOp()) {
-						player.sendMessage("A new version of NetherView is available: " + ChatColor.LIGHT_PURPLE + newVersion);
-					}
-				}
-				
-				Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "A new version of NetherView is available: " + newVersion);
-				
-			} else if (versionResponse == VersionResponse.UNAVAILABLE) {
-				
-				getLogger().info("Unable to check for new versions of NetherView...");
-			}
-		}).check();
+		new UpdateCheck(this, resourceId, updateInfoUrl).run();
 	}
 	
 	private int clamp(int value, int min, int max) {

@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview.utils;
 
 import me.gorgeousone.netherview.Message;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -29,6 +30,28 @@ public final class MessageUtils {
 		if (warningMessagesEnabled) {
 			sender.sendMessage(message.getMessage(placeholderValues));
 		}
+	}
+	
+	public static void sendStaffInfo(String message) {
+		
+		Bukkit.getOnlinePlayers().forEach(player -> {
+			if (player.isOp()) {
+				player.sendMessage(message);
+			}
+		});
+		
+		Bukkit.getConsoleSender().sendMessage(message);
+	}
+	
+	public static void sendStaffInfo(BaseComponent[] message) {
+		
+		Bukkit.getOnlinePlayers().forEach(player -> {
+			if (player.isOp()) {
+				player.spigot().sendMessage(message);
+			}
+		});
+		
+		Bukkit.getConsoleSender().spigot().sendMessage(message);
 	}
 	
 	public static void printDebug(String message) {
