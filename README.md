@@ -1,4 +1,5 @@
-![NetherView](https://i.imgur.com/2AKWT7H.png)
+![NetherView](art/meltpoint-banner2.png)
+
 # NetherView
 A plugin that makes it possible to see the nether through nether portals.  
 This was inspired by SethBling's [Magic Nether Portal](https://www.youtube.com/watch?v=xewQL6CkMWI).
@@ -19,5 +20,5 @@ Required libraries:
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-###bStats
+### bStats
 [![bStats Graph Data](https://bstats.org/signatures/bukkit/NetherView.svg)](https://bstats.org/plugin/bukkit/NetherView/7571)
