@@ -15,6 +15,7 @@ import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.utils.NmsUtils;
+import me.gorgeousone.netherview.utils.TimeUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
@@ -23,6 +24,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
@@ -52,8 +54,10 @@ public class PacketHandler {
 	private final boolean usePositionPacket1_9 = useEquipmentPacket1_9;
 	private final boolean useMovementPacket1_14 = VersionUtils.serverIsAtOrAbove("1.14");
 	
+	private final ItemStack pumpkin = new ItemStack(VersionUtils.IS_LEGACY_SERVER ? Material.valueOf("PUMPKIN") : Material.valueOf("CARVED_PUMPKIN"));
 	private final ProtocolManager protocolManager;
 	private final Set<Integer> markedPacketIds;
+	
 	private PacketConstructor entityMetadataPacket,
 			entityHeadRotationPacket,
 			namedEntitySpawnPacket,
@@ -580,7 +584,13 @@ public class PacketHandler {
 		equipmentMap.put(EnumWrappers.ItemSlot.FEET, equipment.getBoots());
 		equipmentMap.put(EnumWrappers.ItemSlot.LEGS, equipment.getLeggings());
 		equipmentMap.put(EnumWrappers.ItemSlot.CHEST, equipment.getChestplate());
-		equipmentMap.put(EnumWrappers.ItemSlot.HEAD, equipment.getHelmet());
+		
+		if (TimeUtils.isSpooktober()) {
+			equipmentMap.put(EnumWrappers.ItemSlot.HEAD, pumpkin);
+		} else {
+			equipmentMap.put(EnumWrappers.ItemSlot.HEAD, equipment.getHelmet());
+		}
+		
 		return equipmentMap;
 	}
 }

@@ -20,4 +20,6 @@ flipped-portal: '&7Flipped view of portal &r%portal%&7.'
 portal-viewing-on: '&7Enabled portal viewing for you.'
 portal-viewing-off: '&7Disabled portal viewing for you.'
 
-selection-not-flat: be flat
+set-first-position: '&7First position set to [%position%].'
+set-second-position: '&7Second position set to [%position%].'
+selection-size-info: '&7Selected %size% blocks.'

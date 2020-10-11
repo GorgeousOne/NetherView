@@ -310,7 +310,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		addVersionSpecificDefaults();
 		saveConfig();
 		
-		int portalDisplayRange = clamp(getConfig().getInt("portal-display-range"), 1, 128);
+		int portalDisplayRange = clamp(getConfig().getInt("portal-display-range"), 2, 128);
 		portalDisplayRangeSquared = (int) Math.pow(portalDisplayRange, 2);
 		portalProjectionDist = clamp(getConfig().getInt("portal-view-distance"), 1, 32);
 		PortalLocator.setMaxPortalSize(clamp(getConfig().getInt("max-portal-size"), 3, 21));

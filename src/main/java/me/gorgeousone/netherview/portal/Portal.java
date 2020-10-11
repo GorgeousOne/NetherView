@@ -37,6 +37,7 @@ public class Portal {
 	private Map.Entry<BlockCache, BlockCache> blockCaches;
 	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
 	
+	private boolean isCustom;
 	private boolean isViewFlipped;
 	
 	public Portal(World world,
@@ -209,7 +210,15 @@ public class Portal {
 	}
 	
 	public void flipView() {
-		isViewFlipped = !isViewFlipped;
+		 isViewFlipped = !isViewFlipped;
+	}
+	
+	public boolean isCustom() {
+		return isCustom;
+	}
+	
+	public void setCustom(boolean custom) {
+		isCustom = custom;
 	}
 	
 	@Override

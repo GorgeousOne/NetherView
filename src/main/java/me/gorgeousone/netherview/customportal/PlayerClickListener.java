@@ -1,7 +1,9 @@
 package me.gorgeousone.netherview.customportal;
 
+import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
