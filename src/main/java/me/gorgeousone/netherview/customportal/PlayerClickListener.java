@@ -52,6 +52,7 @@ public class PlayerClickListener implements Listener {
 			}
 			
 			selection.setPos1(clickedPos);
+			player.sendMessage("pos 1");
 //                       MessageUtils.sendInfo(player, Message.SET_FIRST_CUBOID_POSITION, clickedPos.toString());
 		
 		} else {
@@ -61,6 +62,7 @@ public class PlayerClickListener implements Listener {
 			}
 			
 			selection.setPos2(clickedPos);
+			player.sendMessage("pos 2");
 //                       MessageUtils.sendInfo(player, Message.SET_SECOND_CUBOID_POSITION, clickedPos.toString());
 		}
 

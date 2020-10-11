@@ -25,7 +25,7 @@ public class Portal {
 	private final AxisAlignedRect portalRect;
 	
 	private final Set<Block> portalBlocks;
-	private final Set<Block> frameBlocks;
+	private final PortalType portalType;
 	
 	//bounds containing the whole portal structure
 	private final BlockVec min;
@@ -42,15 +42,23 @@ public class Portal {
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
 	              Set<Block> portalBlocks,
-	              Set<Block> frameBlocks,
 	              BlockVec min,
 	              BlockVec max) {
+		this(world, portalRect, portalBlocks, min, max, PortalType.NETHER_PORTAL);
+	}
+	
+	public Portal(World world,
+	              AxisAlignedRect portalRect,
+	              Set<Block> portalBlocks,
+	              BlockVec min,
+	              BlockVec max,
+	              PortalType portalType) {
 		
 		this.world = world;
 		this.portalRect = portalRect;
 		
 		this.portalBlocks = portalBlocks;
-		this.frameBlocks = frameBlocks;
+		this.portalType = portalType;
 		
 		this.min = min;
 		this.max = max;
@@ -62,6 +70,10 @@ public class Portal {
 	
 	public Location getLocation() {
 		return portalRect.getMin().toLocation(world);
+	}
+	
+	public PortalType getType() {
+		return portalType;
 	}
 	
 	public BlockVec getMin() {
@@ -89,10 +101,6 @@ public class Portal {
 	
 	public Set<Block> getPortalBlocks() {
 		return new HashSet<>(portalBlocks);
-	}
-	
-	public Set<Block> getFrameBlocks() {
-		return frameBlocks;
 	}
 	
 	/**

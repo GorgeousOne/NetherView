@@ -20,18 +20,14 @@ public class AxisAlignedRect {
 		this.min = min.clone();
 		this.max = max.clone();
 		
-		if (height() < 0) {
-			throw new IllegalArgumentException("Rectangle maximum y must be greater than minimum y");
-		}
-		
 		if (axis == Axis.X) {
 			plane = new Plane(min, new Vector(0, 0, 1));
 		} else {
 			plane = new Plane(min, new Vector(1, 0, 0));
 		}
 		
-		if (width() < 0) {
-			throw new IllegalArgumentException("Rectangle maximum must be greater than minimum");
+		if (height() < 0 || width() < 0) {
+			throw new IllegalArgumentException("Rectangle maximum coordinates must be greater than minimum coordinates");
 		}
 	}
 	

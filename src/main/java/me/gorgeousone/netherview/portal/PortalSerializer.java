@@ -44,6 +44,10 @@ public class PortalSerializer {
 			
 			for (Portal portal : portalsInWorld) {
 				
+				if (portal.getType() == PortalType.CUSTOM) {
+					continue;
+				}
+				
 				int portalHash = portal.hashCode();
 				
 				portalStrings.add(new BlockVec(portal.getLocation()).toString());

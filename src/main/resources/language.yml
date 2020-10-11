@@ -19,3 +19,5 @@ world-info: '%count% &7portal(s) listed for world &r%world%&7: %portals%'
 flipped-portal: '&7Flipped view of portal &r%portal%&7.'
 portal-viewing-on: '&7Enabled portal viewing for you.'
 portal-viewing-off: '&7Disabled portal viewing for you.'
+
+selection-not-flat: be flat

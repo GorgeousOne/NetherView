@@ -10,7 +10,6 @@ import me.gorgeousone.netherview.blockcache.TransformFactory;
 import me.gorgeousone.netherview.event.PortalLinkEvent;
 import me.gorgeousone.netherview.event.PortalUnlinkEvent;
 import me.gorgeousone.netherview.event.UnlinkReason;
-import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.utils.MessageException;
@@ -21,19 +20,13 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -164,6 +157,53 @@ public class PortalHandler {
 		return nearestPortal;
 	}
 	
+	public void addPortal(Portal portal) {
+		
+		UUID worldID = portal.getWorld().getUID();
+		worldsWithPortals.computeIfAbsent(worldID, set -> new HashSet<>());
+		worldsWithPortals.get(worldID).add(portal);
+		MessageUtils.printDebug("Located portal at " + portal.toString());
+	}
+	
+	/**
+	 * Locates and registers a new portal.
+	 *
+	 * @param portalBlock one block of the structure required to detect the rest of it
+	 */
+	public Portal addPortalStructure(Block portalBlock) throws MessageException {
+		
+		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
+		addPortal(portal);
+		return portal;
+	}
+	
+	/**
+	 * Removes all references to a registered portal
+	 */
+	public void removePortal(Portal portal) {
+		
+		Set<Portal> linkedToPortals = getPortalsLinkedTo(portal);
+		
+		MessageUtils.printDebug("Removing portal at " + portal.toString());
+		MessageUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections");
+		
+		for (Portal linkedPortal : linkedToPortals) {
+			
+			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(linkedPortal, portal, UnlinkReason.LINKED_PORTAL_DESTROYED));
+			linkedPortal.removeLink();
+		}
+		
+		loadedPortals.remove(portal);
+		
+		if (portal.isLinked()) {
+			
+			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(), UnlinkReason.PORTAL_DESTROYED));
+			portal.removeLink();
+		}
+		
+		getPortals(portal.getWorld()).remove(portal);
+	}
+	
 	public boolean portalDoesNotExist(Portal portal) {
 		
 		if (portal == null) {
@@ -242,24 +282,6 @@ public class PortalHandler {
 		return linkedToProjections;
 	}
 	
-	/**
-	 * Locates and registers a new portal.
-	 *
-	 * @param portalBlock one block of the structure required to detect the rest of it
-	 */
-	public Portal addPortalStructure(Block portalBlock) throws MessageException {
-		
-		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
-		UUID worldID = portal.getWorld().getUID();
-		
-		worldsWithPortals.computeIfAbsent(worldID, set -> new HashSet<>());
-		worldsWithPortals.get(worldID).add(portal);
-		
-		MessageUtils.printDebug("Located portal at " + portal.toString());
-		return portal;
-	}
-	
-	
 	private void loadBlockCachesOf(Portal portal) {
 		
 		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(
@@ -308,34 +330,8 @@ public class PortalHandler {
 	}
 	
 	/**
-	 * Removes all references to a registered portal
-	 */
-	public void removePortal(Portal portal) {
-		
-		Set<Portal> linkedToPortals = getPortalsLinkedTo(portal);
-		
-		MessageUtils.printDebug("Removing portal at " + portal.toString());
-		MessageUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections");
-		
-		for (Portal linkedPortal : linkedToPortals) {
-			
-			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(linkedPortal, portal, UnlinkReason.LINKED_PORTAL_DESTROYED));
-			linkedPortal.removeLink();
-		}
-		
-		loadedPortals.remove(portal);
-		
-		if (portal.isLinked()) {
-			
-			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(), UnlinkReason.PORTAL_DESTROYED));
-			portal.removeLink();
-		}
-		
-		getPortals(portal.getWorld()).remove(portal);
-	}
-	
-	/**
 	 * Links a portal to it's counter portal it teleports to.
+	 *
 	 * @param triggerPlayer - player who triggered the portal linking. set to null if no player involved
 	 */
 	public void linkPortalTo(Portal portal, Portal counterPortal, Player triggerPlayer) throws MessageException {

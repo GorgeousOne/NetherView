@@ -58,7 +58,7 @@ public class PortalLocator {
 		//this only happens when some data read from the portal config is wrong
 		//that's why it is not a gray message
 		if (portalBlock.getType() != PORTAL_MATERIAL) {
-			throw new IllegalStateException("No portal block found at " + new BlockVec(portalBlock).toString());
+			throw new IllegalStateException("No portal found at " + new BlockVec(portalBlock).toString());
 		}
 		
 		World world = portalBlock.getWorld();
@@ -76,9 +76,8 @@ public class PortalLocator {
 		portalMin.subtract(frameExtent);
 		portalMax.add(frameExtent);
 		
-		Set<Block> frameBlocks = getPortalFrameBlocks(world, portalMin, portalMax, portalRect.getAxis());
-		
-		return new Portal(world, portalRect, innerBlocks, frameBlocks, portalMin, portalMax);
+		checkFrameBlockOcclusion(world, portalMin, portalMax, portalRect.getAxis());
+		return new Portal(world, portalRect, innerBlocks, portalMin, portalMax);
 	}
 	
 	/**
@@ -172,12 +171,10 @@ public class PortalLocator {
 	/**
 	 * Returns a set of blocks where obsidian needs to be placed for a portal frame according to the given portal bounds.
 	 */
-	private static Set<Block> getPortalFrameBlocks(World world,
-	                                               BlockVec portalMin,
-	                                               BlockVec portalMax,
-	                                               Axis portalAxis) throws MessageException {
-		
-		Set<Block> frameBlocks = new HashSet<>();
+	private static void checkFrameBlockOcclusion(World world,
+	                                                   BlockVec portalMin,
+	                                                   BlockVec portalMax,
+	                                                   Axis portalAxis) throws MessageException {
 		
 		for (int x = portalMin.getX(); x < portalMax.getX(); x++) {
 			for (int y = portalMin.getY(); y < portalMax.getY(); y++) {
@@ -195,7 +192,6 @@ public class PortalLocator {
 					Material portalBlockType = portalBlock.getType();
 					
 					if (portalBlockType.isOccluding()) {
-						frameBlocks.add(portalBlock);
 						continue;
 					}
 					
@@ -214,8 +210,6 @@ public class PortalLocator {
 				}
 			}
 		}
-		
-		return frameBlocks;
 	}
 	
 	private static boolean isPortalCorner(int x,

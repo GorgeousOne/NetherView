@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview.customportal;
 
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.Cuboid;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -47,5 +48,9 @@ public class PlayerCuboidSelection {
 	
 	public boolean bothPositionsAreSet() {
 		return pos1 != null && pos2 != null;
+	}
+	
+	public Cuboid getCuboid() {
+		return new Cuboid(pos1, pos2);
 	}
 }

@@ -23,7 +23,8 @@ public enum Message {
 	
 	SET_FIRST_CUBOID_POSITION("set-first-position", "position"),
 	SET_SECOND_CUBOID_POSITION("set-second-position", "position"),
-	SELECTION_SIZE_INFO("selection-size-info", "size");
+	SELECTION_SIZE_INFO("selection-size-info", "size"),
+	SELECTION_NOT_FLAT("selection-not-flat");
 	
 	private final String configKey;
 	private String configValue;

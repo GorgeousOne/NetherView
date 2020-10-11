@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
+import me.gorgeousone.netherview.commmands.CreatePortalCommand;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
@@ -11,6 +12,8 @@ import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
 import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
+import me.gorgeousone.netherview.customportal.PlayerClickListener;
+import me.gorgeousone.netherview.customportal.PlayerSelectionHandler;
 import me.gorgeousone.netherview.handlers.EntityVisibilityHandler;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -70,6 +73,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
 	private EntityVisibilityHandler motionHandler;
+	private PlayerSelectionHandler selectionHandler;
 	
 	boolean allWorldsCanCreatePortalViews = false;
 	private Set<UUID> whiteListedWorlds;
@@ -114,8 +118,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		portalHandler = new PortalHandler(this, portalMaterial);
 		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
 		motionHandler = new EntityVisibilityHandler(this, viewHandler, packetHandler);
+		selectionHandler = new PlayerSelectionHandler();
 		
-		//do not register listeners or commands before creating handlers because the handler references are passed there
 		registerListeners();
 		registerCommands();
 		
@@ -280,6 +284,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new TogglePortalViewCommand(viewHandler));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
+		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler));
+		
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
@@ -293,6 +299,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
 		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
+		
+		manager.registerEvents(new PlayerClickListener(selectionHandler), this);
 	}
 	
 	private void loadConfigData() {
