@@ -47,6 +47,7 @@ import java.util.logging.Level;
 public final class NetherViewPlugin extends JavaPlugin {
 	
 	private static final int resourceId = 78885;
+	private static final String resourceName = "nether-view";
 	private static final String updateInfoUrl = "https://pastebin.com/raw/piNNmtcP";
 	
 	public final static String VIEW_PERM = "netherview.viewportals";
@@ -440,7 +441,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	private void checkForUpdates() {
-		new UpdateCheck(this, resourceId, updateInfoUrl).run();
+		new UpdateCheck(this, resourceId, resourceName, updateInfoUrl).run();
 	}
 	
 	private int clamp(int value, int min, int max) {

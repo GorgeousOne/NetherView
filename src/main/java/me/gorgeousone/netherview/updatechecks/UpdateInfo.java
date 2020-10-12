@@ -22,7 +22,7 @@ public class UpdateInfo {
 		description = split[1];
 		updateId = split[2];
 		
-		this.resourceName = resourceName.toLowerCase().replace(' ', '-');
+		this.resourceName = resourceName;
 		this.resourceId = resourceId;
 	}
 	

@@ -22,13 +22,15 @@ public class UpdateCheck {
 	
 	private final String currentVersion;
 	private final int resourceId;
+	private final String resourceName;
 	private final String updateInfoPasteUrl;
 	
-	public UpdateCheck(JavaPlugin plugin, int resourceId, String updateInfoPasteUrl) {
+	public UpdateCheck(JavaPlugin plugin, int resourceId, String resourceName, String updateInfoPasteUrl) {
 		
 		this.plugin = plugin;
 		this.currentVersion = plugin.getDescription().getVersion();
 		this.resourceId = resourceId;
+		this.resourceName = resourceName;
 		this.updateInfoPasteUrl = updateInfoPasteUrl;
 	}
 	
@@ -54,7 +56,7 @@ public class UpdateCheck {
 					
 					if (i > 2) {
 						ComponentBuilder message = new ComponentBuilder((newUpdates.size() - 3) + " more...").color(ChatColor.LIGHT_PURPLE);
-						message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/nether-view." + resourceId + "/updates"));
+						message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/" + resourceName + "." + resourceId + "/updates"));
 						message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("read about all updates").create()));
 						MessageUtils.sendStaffInfo(message.create());
 						break;
@@ -64,7 +66,7 @@ public class UpdateCheck {
 				}
 				
 				ComponentBuilder builder = new ComponentBuilder("download").color(ChatColor.YELLOW).underlined(true);
-				builder.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/nether-view." + resourceId));
+				builder.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/" + resourceName + "." + resourceId));
 				builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("visit download page").color(ChatColor.YELLOW).create()));
 				MessageUtils.sendStaffInfo(builder.create());
 				
@@ -82,7 +84,7 @@ public class UpdateCheck {
 		
 		while (scanner.hasNext()) {
 			
-			UpdateInfo updateInfo = new UpdateInfo(scanner.nextLine(), "Nether View", resourceId);
+			UpdateInfo updateInfo = new UpdateInfo(scanner.nextLine(), "nether-view", resourceId);
 			
 			if (updates.size() < maxCount && VersionUtils.isVersionLowerThan(currentVersion, updateInfo.getVersion())) {
 				updates.add(updateInfo);

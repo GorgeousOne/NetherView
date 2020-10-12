@@ -12,6 +12,7 @@ import org.bukkit.material.Mushroom;
 import org.bukkit.material.Rails;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -48,11 +49,11 @@ public class LegacyBlockType extends BlockType {
 			
 			String[] fullData = serialized.split(":");
 			
-			material = Material.valueOf(fullData[0].toUpperCase());
+			material = Material.valueOf(fullData[0].toUpperCase(Locale.ENGLISH));
 			data = Byte.parseByte(fullData[1]);
 			
 		} else {
-			material = Material.valueOf(serialized.toUpperCase());
+			material = Material.valueOf(serialized.toUpperCase(Locale.ENGLISH));
 		}
 		
 		materialData = new MaterialData(material, data);
