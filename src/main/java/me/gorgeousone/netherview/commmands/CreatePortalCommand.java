@@ -13,6 +13,9 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.utils.MessageException;
 import me.gorgeousone.netherview.utils.MessageUtils;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -54,6 +57,9 @@ public class CreatePortalCommand extends ArgCommand {
 			Portal portal = PortalCreator.createPortal(player.getWorld(), selection.getCuboid());
 			portalHandler.addPortal(portal);
 			player.sendMessage("created portal " + selection.getPos1() + " " + selection.getPos2());
+			
+			ComponentBuilder builder = new ComponentBuilder("created " + portal.hashCode()).event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "nv link " + portal.hashCode()));
+			player.spigot().sendMessage(builder.create());
 			
 		}catch (MessageException e) {
 			MessageUtils.sendInfo(player, e.getPlayerMessage(), e.getPlaceholderValues());

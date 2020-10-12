@@ -24,7 +24,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
@@ -299,13 +298,14 @@ public class PacketHandler {
 	public void showEntities(Player player, Set<Entity> visibleEntities) {
 		
 		for (Entity entity : visibleEntities) {
-			showEntity(player, entity, new Transform());
+			showEntity(player, entity, new Transform(), false);
 		}
 	}
 	
 	public void showEntity(Player player,
 	                       Entity entity,
-	                       Transform transform) {
+	                       Transform transform,
+	                       boolean isProjection) {
 		
 		if (entity == null || entity.isDead()) {
 			return;
@@ -329,7 +329,7 @@ public class PacketHandler {
 					
 					sendPacket(player, createPlayerPacket((HumanEntity) entity, entityLoc));
 					sendPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
-					showEquipment(player, (LivingEntity) entity);
+					showEquipment(player, (LivingEntity) entity, isProjection);
 					break;
 				
 				default:
@@ -338,7 +338,7 @@ public class PacketHandler {
 						
 						sendPacket(player, createEntityLivingPacket((LivingEntity) entity, entityLoc));
 						sendPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
-						showEquipment(player, (LivingEntity) entity);
+						showEquipment(player, (LivingEntity) entity, isProjection);
 						
 					} else {
 						sendPacket(player, createEntityPacket(entity, entityLoc));
@@ -482,9 +482,9 @@ public class PacketHandler {
 		return entityMetadataPacket.createPacket(entity.getEntityId(), NmsUtils.getDataWatcher(entity), true);
 	}
 	
-	private void showEquipment(Player player, LivingEntity entity) {
+	private void showEquipment(Player player, LivingEntity entity, boolean isProjection) {
 		
-		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = getEquipmentList(entity);
+		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = getEquipmentList(entity, isProjection);
 		
 		if (useEquipmentPacket1_16) {
 			sendEquipment1_16(player, entity, equipmentMap);
@@ -568,7 +568,7 @@ public class PacketHandler {
 		sendPacket(player, equipmentPacket);
 	}
 	
-	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity) {
+	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity, boolean isProjection) {
 		
 		EntityEquipment equipment = entity.getEquipment();
 		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = new HashMap<>();
@@ -585,7 +585,7 @@ public class PacketHandler {
 		equipmentMap.put(EnumWrappers.ItemSlot.LEGS, equipment.getLeggings());
 		equipmentMap.put(EnumWrappers.ItemSlot.CHEST, equipment.getChestplate());
 		
-		if (TimeUtils.isSpooktober()) {
+		if (isProjection && TimeUtils.isSpooktober()) {
 			equipmentMap.put(EnumWrappers.ItemSlot.HEAD, pumpkin);
 		} else {
 			equipmentMap.put(EnumWrappers.ItemSlot.HEAD, equipment.getHelmet());

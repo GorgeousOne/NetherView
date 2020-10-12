@@ -12,6 +12,7 @@ import me.gorgeousone.netherview.event.PortalUnlinkEvent;
 import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
+import me.gorgeousone.netherview.portal.PortalType;
 import me.gorgeousone.netherview.utils.MessageException;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.utils.TimeUtils;
@@ -20,6 +21,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -112,12 +114,12 @@ public class PortalHandler {
 	 * Returns the first portal matching the passed hashcode. Returns null if none was found.
 	 * (Portal hash codes are based on the location of the portal block with the lowest coordinates)
 	 */
-	public Portal getPortalByHashCode(int portalHashCode) {
+	public Portal getPortalByHash(int portalHash) {
 		
 		for (UUID worldID : worldsWithPortals.keySet()) {
 			for (Portal portal : worldsWithPortals.get(worldID)) {
 				
-				if (portal.hashCode() == portalHashCode) {
+				if (portal.hashCode() == portalHash) {
 					return portal;
 				}
 			}
@@ -208,6 +210,10 @@ public class PortalHandler {
 		
 		if (portal == null) {
 			return true;
+		}
+		
+		if (portal.getType() == PortalType.CUSTOM) {
+			return false;
 		}
 		
 		if (portal.getPortalBlocks().iterator().next().getType() != portalMaterial) {
@@ -334,7 +340,7 @@ public class PortalHandler {
 	 *
 	 * @param triggerPlayer - player who triggered the portal linking. set to null if no player involved
 	 */
-	public void linkPortalTo(Portal portal, Portal counterPortal, Player triggerPlayer) throws MessageException {
+	public void linkPortalTo(Portal portal, Portal counterPortal, CommandSender triggerPlayer) throws MessageException {
 		
 		if (!counterPortal.equalsInSize(portal)) {
 			

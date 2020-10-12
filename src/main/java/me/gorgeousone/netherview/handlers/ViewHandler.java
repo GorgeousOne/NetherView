@@ -132,7 +132,7 @@ public class ViewHandler {
 	public void projectEntity(Player player, Entity entity, Transform transform) {
 		
 		getViewSession(player).getProjectedEntities().put(entity, entity.getLocation());
-		packetHandler.showEntity(player, entity, transform);
+		packetHandler.showEntity(player, entity, transform, true);
 	}
 	
 	public void destroyProjectedEntity(Player player, Entity entity) {
@@ -144,7 +144,7 @@ public class ViewHandler {
 	public void showEntity(Player player, Entity entity) {
 		
 		getViewSession(player).getHiddenEntities().remove(entity);
-		packetHandler.showEntity(player, entity, new Transform());
+		packetHandler.showEntity(player, entity, new Transform(), false);
 	}
 	
 	public void hideEntity(Player player, Entity entity) {

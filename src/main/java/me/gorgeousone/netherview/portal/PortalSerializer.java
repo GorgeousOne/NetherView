@@ -115,7 +115,7 @@ public class PortalSerializer {
 		
 		for (String portalHashString : portalData.getKeys(false)) {
 			
-			Portal portal = portalHandler.getPortalByHashCode(Integer.parseInt(portalHashString));
+			Portal portal = portalHandler.getPortalByHash(Integer.parseInt(portalHashString));
 			
 			if (portal == null) {
 				continue;
@@ -128,7 +128,7 @@ public class PortalSerializer {
 			}
 			
 			int linkedPortalHash = portalData.getInt(portalHashString + ".link");
-			Portal counterPortal = portalHandler.getPortalByHashCode(linkedPortalHash);
+			Portal counterPortal = portalHandler.getPortalByHash(linkedPortalHash);
 			
 			if (counterPortal != null) {
 				portalHandler.linkPortalTo(portal, counterPortal, null);

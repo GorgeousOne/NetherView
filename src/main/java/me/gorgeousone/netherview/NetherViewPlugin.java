@@ -6,6 +6,7 @@ import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
 import me.gorgeousone.netherview.commmands.CreatePortalCommand;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
+import me.gorgeousone.netherview.commmands.LinkPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
@@ -284,8 +285,9 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new TogglePortalViewCommand(viewHandler));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
+
 		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler));
-		
+		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, portalHandler));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);

@@ -24,7 +24,11 @@ public enum Message {
 	SET_FIRST_CUBOID_POSITION("set-first-position", "position"),
 	SET_SECOND_CUBOID_POSITION("set-second-position", "position"),
 	SELECTION_SIZE_INFO("selection-size-info", "size"),
-	SELECTION_NOT_FLAT("selection-not-flat");
+	SELECTION_TOO_SMALL("selection-too-small"),
+	SELECTION_NOT_FLAT("selection-not-flat"),
+	NO_PORTAL_FOUND_WITH_NAME("no-portal-found-with-name", "portal"),
+	PORTALS_LINKED("portals-linked", "portal1", "portal2"),
+	;
 	
 	private final String configKey;
 	private String configValue;
