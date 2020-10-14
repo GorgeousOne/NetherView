@@ -5,6 +5,7 @@ import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
 import me.gorgeousone.netherview.commmands.CreatePortalCommand;
+import me.gorgeousone.netherview.commmands.DeletePortalCommand;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
 import me.gorgeousone.netherview.commmands.LinkPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
@@ -23,13 +24,14 @@ import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockChangeListener;
 import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
-import me.gorgeousone.netherview.listeners.TeleportListener;
+import me.gorgeousone.netherview.listeners.PlayerTeleportListener;
+import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.portal.PortalSerializer;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import me.gorgeousone.netherview.utils.ConfigUtils;
-import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
@@ -79,8 +81,13 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private CustomPortalHandler customPortalHandler;
 	
 	boolean allWorldsCanCreatePortalViews = false;
-	private Set<UUID> whiteListedWorlds;
-	private Set<UUID> blackListedWorlds;
+	private Set<UUID> portalViewWhiteList;
+	private Set<UUID> portalViewBlackList;
+	
+	boolean allWorldsCanCreateCustomPortals = false;
+	private Set<UUID> customPortalWhiteList;
+	private Set<UUID> customPortalBlackList;
+	
 	
 	private int portalProjectionDist;
 	private int portalDisplayRangeSquared;
@@ -243,7 +250,13 @@ public final class NetherViewPlugin extends JavaPlugin {
 	public boolean canCreatePortalViews(World world) {
 		
 		UUID worldId = world.getUID();
-		return !blackListedWorlds.contains(worldId) && (allWorldsCanCreatePortalViews || whiteListedWorlds.contains(worldId));
+		return !portalViewBlackList.contains(worldId) && (allWorldsCanCreateCustomPortals || portalViewWhiteList.contains(worldId));
+	}
+	
+	public boolean canCreateCustomPortals(World world) {
+		
+		UUID worldId = world.getUID();
+		return !customPortalBlackList.contains(worldId) && (allWorldsCanCreateCustomPortals || customPortalWhiteList.contains(worldId));
 	}
 	
 	public BlockType getWorldBorderBlockType(World.Environment environment) {
@@ -290,7 +303,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
 		
 		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler, customPortalHandler));
-		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, portalHandler));
+		netherViewCommand.addChild(new DeletePortalCommand(netherViewCommand, portalHandler, customPortalHandler));
+		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, portalHandler, customPortalHandler));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
@@ -300,8 +314,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private void registerListeners() {
 		
 		PluginManager manager = Bukkit.getPluginManager();
-		manager.registerEvents(new TeleportListener(this, portalHandler, viewHandler), this);
-		manager.registerEvents(new PlayerMoveListener(this, viewHandler, portalMaterial), this);
+		manager.registerEvents(new PlayerTeleportListener(this, portalHandler, viewHandler), this);
+		manager.registerEvents(new PlayerMoveListener(this, viewHandler, customPortalHandler, portalMaterial), this);
 		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 		
@@ -356,20 +370,20 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	private void loadWorldsWithPortalViewing() {
 		
-		whiteListedWorlds = new HashSet<>();
-		blackListedWorlds = new HashSet<>();
+		portalViewWhiteList = new HashSet<>();
+		portalViewBlackList = new HashSet<>();
 		
 		List<String> whiteListedWorldNames = getConfig().getStringList("worlds-with-portal-viewing");
 		List<String> blackListedWorldNames = getConfig().getStringList("world-black-list");
 		
 		if (whiteListedWorldNames.contains("*")) {
-			allWorldsCanCreatePortalViews = true;
+			allWorldsCanCreateCustomPortals = true;
 			MessageUtils.printDebug("Nether View enabled in all worlds (except black listed ones).");
 		} else {
-			whiteListedWorldNames.forEach(worldName -> addWorld(worldName, whiteListedWorlds, "whitelist"));
+			whiteListedWorldNames.forEach(worldName -> addWorld(worldName, portalViewWhiteList, "whitelist"));
 		}
 		
-		blackListedWorldNames.forEach(worldName -> addWorld(worldName, blackListedWorlds, "blacklist"));
+		blackListedWorldNames.forEach(worldName -> addWorld(worldName, portalViewBlackList, "blacklist"));
 	}
 	
 	private void addWorld(String worldName, Collection<UUID> worldCollection, String listName) {

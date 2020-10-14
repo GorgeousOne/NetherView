@@ -5,7 +5,7 @@ import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.portal.ProjectionEntity;
-import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.message.MessageUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

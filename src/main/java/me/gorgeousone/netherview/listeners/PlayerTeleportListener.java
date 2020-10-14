@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
-import me.gorgeousone.netherview.Message;
+import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.event.PortalUnlinkEvent;
 import me.gorgeousone.netherview.event.UnlinkReason;
@@ -9,8 +9,8 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
-import me.gorgeousone.netherview.utils.MessageException;
-import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.message.MessageException;
+import me.gorgeousone.netherview.message.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -24,15 +24,15 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 /**
  * Takes care of registering and linking nether portals when players use them.
  */
-public class TeleportListener implements Listener {
+public class PlayerTeleportListener implements Listener {
 	
 	private final NetherViewPlugin main;
 	private final PortalHandler portalHandler;
 	private final ViewHandler viewHandler;
 	
-	public TeleportListener(NetherViewPlugin main,
-	                        PortalHandler portalHandler,
-	                        ViewHandler viewHandler) {
+	public PlayerTeleportListener(NetherViewPlugin main,
+	                              PortalHandler portalHandler,
+	                              ViewHandler viewHandler) {
 		
 		this.main = main;
 		this.portalHandler = portalHandler;

@@ -1,6 +1,6 @@
-package me.gorgeousone.netherview.utils;
+package me.gorgeousone.netherview.message;
 
-import me.gorgeousone.netherview.Message;
+import me.gorgeousone.netherview.message.Message;
 
 import java.util.Arrays;
 

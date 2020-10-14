@@ -1,6 +1,5 @@
-package me.gorgeousone.netherview.utils;
+package me.gorgeousone.netherview.message;
 
-import me.gorgeousone.netherview.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

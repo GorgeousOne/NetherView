@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.commmands;
 
-import me.gorgeousone.netherview.Message;
+import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;
 import me.gorgeousone.netherview.cmdframework.argument.ArgValue;
@@ -13,8 +13,8 @@ import me.gorgeousone.netherview.customportal.PlayerCuboidSelection;
 import me.gorgeousone.netherview.customportal.PlayerSelectionHandler;
 import me.gorgeousone.netherview.customportal.PortalCreator;
 import me.gorgeousone.netherview.handlers.PortalHandler;
-import me.gorgeousone.netherview.utils.MessageException;
-import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.message.MessageException;
+import me.gorgeousone.netherview.message.MessageUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -22,7 +22,7 @@ import java.util.Locale;
 
 public class CreatePortalCommand extends ArgCommand {
 	
-	private final static String namePlaceHolder = "auto_inc";
+	private final static String genericNamePlaceHolder = "auto_inc";
 	
 	private final PlayerSelectionHandler selectionHandler;
 	private final PortalHandler portalHandler;
@@ -34,7 +34,7 @@ public class CreatePortalCommand extends ArgCommand {
 	                           CustomPortalHandler customPortalHandler) {
 		
 		super("createportal", NetherViewPlugin.CUSTOM_PORTAL_PERM, true, parent);
-		addArg(new Argument("name", ArgType.STRING).setDefaultTo(namePlaceHolder));
+		addArg(new Argument("portal name", ArgType.STRING).setDefaultTo(genericNamePlaceHolder));
 		
 		this.selectionHandler = selectionHandler;
 		this.portalHandler = portalHandler;
@@ -62,7 +62,6 @@ public class CreatePortalCommand extends ArgCommand {
 		
 		try {
 			portal = PortalCreator.createPortal(player.getWorld(), selection.getCuboid());
-			player.sendMessage("created portal " + portal.getInner().getMin() + " " + portal.getInner().getMax());
 			
 		} catch (MessageException e) {
 			MessageUtils.sendInfo(player, e.getPlayerMessage(), e.getPlaceholderValues());
@@ -74,17 +73,16 @@ public class CreatePortalCommand extends ArgCommand {
 			return;
 		}
 		
-		String portalName = arguments[0].getString().toLowerCase(Locale.ENGLISH).replace(' ', '-');
+		String portalName = arguments[0].getString().toLowerCase(Locale.ENGLISH);
 		
-		if (portalName.equals(namePlaceHolder)) {
+		if (portalName.equals(genericNamePlaceHolder)) {
 			portalName = customPortalHandler.createGenericPortalName();
 			
 		} else if (!customPortalHandler.isValidName(portalName)) {
-			player.sendMessage("doesnt match regex");
+			MessageUtils.sendInfo(player, Message.PORTAL_NAME_NOT_VALID);
 			return;
 		
 		}else if (!customPortalHandler.isUniqueName(portalName)) {
-			
 			MessageUtils.sendInfo(player, Message.PORTAL_NAME_NOT_UNIQUE, portalName);
 			return;
 		}
@@ -92,6 +90,6 @@ public class CreatePortalCommand extends ArgCommand {
 		portal.setName(portalName);
 		portalHandler.addPortal(portal);
 		customPortalHandler.addPortal(portal);
-		MessageUtils.sendInfo(player, Message.PORTAL_CREATED, portalName, portal.width() + "x" + portal.height());
+		MessageUtils.sendInfo(player, Message.CREATED_PORTAL, portalName, portal.width() + "x" + portal.height());
 	}
 }

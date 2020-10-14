@@ -12,8 +12,16 @@ public class CustomPortalHandler {
 		this.customPortals = new HashMap<>();
 	}
 	
+	public CustomPortal getPortal(String portalName) {
+		return customPortals.get(portalName);
+	}
+	
 	public void addPortal(CustomPortal portal) {
 		customPortals.put(portal.getName(), portal);
+	}
+	
+	public void removePortal(CustomPortal portal) {
+		customPortals.remove(portal);
 	}
 	
 	public boolean isValidName(String portalName) {
@@ -22,10 +30,6 @@ public class CustomPortalHandler {
 	
 	public boolean isUniqueName(String portalName) {
 		return !customPortals.containsKey(portalName);
-	}
-	
-	public CustomPortal getPortal(String portalName) {
-		return customPortals.get(portalName);
 	}
 	
 	public String createGenericPortalName() {

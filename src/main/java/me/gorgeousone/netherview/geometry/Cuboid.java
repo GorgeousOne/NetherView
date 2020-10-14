@@ -71,27 +71,23 @@ public class Cuboid {
 	}
 	
 	public boolean intersectsX(Cuboid otherBox) {
-		return containsX(otherBox.min.getX()) || containsX(otherBox.max.getX()) || otherBox.min.getX() < min.getX() && otherBox.max.getX() > max.getX();
+		return containsX(otherBox.min.getX()) || containsX(otherBox.max.getX() - 1) || otherBox.min.getX() < min.getX() && otherBox.max.getX() > max.getX();
 	}
 	
 	public boolean intersectsY(Cuboid otherBox) {
-		return containsY(otherBox.min.getY()) || containsY(otherBox.max.getY()) || otherBox.min.getY() < min.getY() && otherBox.max.getY() > max.getY();
+		return containsY(otherBox.min.getY()) || containsY(otherBox.max.getY() - 1) || otherBox.min.getY() < min.getY() && otherBox.max.getY() > max.getY();
 	}
 	
 	public boolean intersectsZ(Cuboid otherBox) {
-		return containsZ(otherBox.min.getZ()) || containsZ(otherBox.max.getZ()) || otherBox.min.getZ() < min.getZ() && otherBox.max.getZ() > max.getZ();
-	}
-	
-	public boolean contains(double x, double y, double z) {
-		return containsX(x) && containsY(y) && containsZ(z);
+		return containsZ(otherBox.min.getZ()) || containsZ(otherBox.max.getZ() - 1) || otherBox.min.getZ() < min.getZ() && otherBox.max.getZ() > max.getZ();
 	}
 	
 	public boolean containsX(double x) {
-		return x >= min.getX() && x <= max.getX();
+		return x >= min.getX() && x < max.getX();
 	}
 	
 	public boolean containsY(double y) {
-		return y >= min.getY() && y <= max.getY();
+		return y >= min.getY() && y < max.getY();
 	}
 	
 	public boolean containsZ(double z) {

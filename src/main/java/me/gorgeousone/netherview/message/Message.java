@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview;
+package me.gorgeousone.netherview.message;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -27,10 +27,11 @@ public enum Message {
 	SELECTION_NOT_FLAT("selection-not-flat"),
 	NO_PORTAL_FOUND_WITH_NAME("no-portal-found-with-name", "name"),
 	PORTALS_INTERSECT("portals-intersect"),
+	PORTAL_NAME_NOT_VALID("portal-name-not-valid"),
 	PORTAL_NAME_NOT_UNIQUE("portal-name-not-unique", "name"),
-	PORTAL_CREATED("portal-created", "name", "size"),
-	PORTALS_LINKED("portals-linked", "portal1", "portal2")
-	;
+	CREATED_PORTAL("created-portal", "name", "size"),
+	REMOVED_PORTAL("deleted-portal", "name"),
+	LINKED_PORTALS("linked-portal", "from-portal", "to-portal");
 	
 	private final String configKey;
 	private String configValue;

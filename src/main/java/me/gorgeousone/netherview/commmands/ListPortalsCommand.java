@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.commmands;
 
-import me.gorgeousone.netherview.Message;
+import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;
 import me.gorgeousone.netherview.cmdframework.argument.ArgValue;
@@ -9,7 +9,7 @@ import me.gorgeousone.netherview.cmdframework.command.ArgCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.message.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;

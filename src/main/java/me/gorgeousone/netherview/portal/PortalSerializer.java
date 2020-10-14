@@ -4,7 +4,7 @@ import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
-import me.gorgeousone.netherview.utils.MessageException;
+import me.gorgeousone.netherview.message.MessageException;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;

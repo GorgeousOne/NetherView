@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.Message;
+import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
@@ -13,8 +13,8 @@ import me.gorgeousone.netherview.event.PortalUnlinkEvent;
 import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
-import me.gorgeousone.netherview.utils.MessageException;
-import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.message.MessageException;
+import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.utils.TimeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -317,9 +317,9 @@ public class PortalHandler {
 		}
 		
 		Portal counterPortal = portal.getCounterPortal();
-		boolean linkTransformIsFlipped = portal.isViewFlipped() ^ main.portalsAreFlippedByDefault();
-		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, linkTransformIsFlipped);
+		boolean linkTransformIsFlipped = portal.isViewFlipped() ^ (main.portalsAreFlippedByDefault() && !(portal instanceof CustomPortal));
 		
+		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, linkTransformIsFlipped);
 		portal.setTpTransform(linkTransform.clone().invert());
 		
 		if (!counterPortal.blockCachesAreLoaded()) {
