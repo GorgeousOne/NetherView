@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -34,18 +35,17 @@ import java.util.UUID;
  */
 public class ViewHandler {
 	
-	private final NetherViewPlugin main;
+	private final ConfigSettings configSettings;
 	private final PortalHandler portalHandler;
 	private final PacketHandler packetHandler;
 	
 	private final Map<UUID, Boolean> portalViewEnabled;
 	private final Map<UUID, PlayerViewSession> viewSessions;
 	
-	public ViewHandler(NetherViewPlugin main,
-	                   PortalHandler portalHandler,
+	public ViewHandler(ConfigSettings configSettings, PortalHandler portalHandler,
 	                   PacketHandler packetHandler) {
 		
-		this.main = main;
+		this.configSettings = configSettings;
 		this.portalHandler = portalHandler;
 		this.packetHandler = packetHandler;
 		
@@ -184,7 +184,7 @@ public class ViewHandler {
 		
 		Vector portalDistance = closestPortal.getLocation().subtract(playerEyeLoc).toVector();
 		
-		if (portalDistance.lengthSquared() > main.getPortalDisplayRangeSquared()) {
+		if (portalDistance.lengthSquared() > configSettings.getPortalDisplayRangeSquared()) {
 			
 			hidePortalProjection(player);
 			return;
@@ -194,11 +194,11 @@ public class ViewHandler {
 		
 		//display the portal totally normal if the player is not standing next to or in the portal
 		if (getDistanceToPortal(playerEyeLoc, portalRect) > 0.5) {
-			displayPortalTo(player, playerEyeLoc, closestPortal, true, main.hidePortalBlocksEnabled());
+			displayPortalTo(player, playerEyeLoc, closestPortal, true, configSettings.hidePortalBlocksEnabled());
 			
 			//keep portal blocks hidden (if ever hidden before) if the player is standing next to the portal to avoid light flickering when moving around the portal
 		} else if (!portalRect.contains(playerEyeLoc.toVector())) {
-			displayPortalTo(player, playerEyeLoc, closestPortal, false, main.hidePortalBlocksEnabled());
+			displayPortalTo(player, playerEyeLoc, closestPortal, false, configSettings.hidePortalBlocksEnabled());
 			
 			//if the player is standing inside the portal projecting should be dropped
 		} else {

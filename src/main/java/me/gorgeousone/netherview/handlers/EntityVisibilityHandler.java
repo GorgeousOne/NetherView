@@ -1,14 +1,15 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
-import me.gorgeousone.netherview.portal.ProjectionEntity;
 import me.gorgeousone.netherview.message.MessageUtils;
+import me.gorgeousone.netherview.portal.ProjectionEntity;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Collection;
@@ -24,22 +25,28 @@ import java.util.Set;
  */
 public class EntityVisibilityHandler {
 	
-	private final NetherViewPlugin main;
+	private final JavaPlugin plugin;
+	private final ConfigSettings configSettings;
+	
 	private final ViewHandler viewHandler;
 	private final PacketHandler packetHandler;
 	
 	private BukkitRunnable entityMotionChecker;
 	private final Map<Entity, ProjectionEntity> projectionEntities;
 	
-	public EntityVisibilityHandler(NetherViewPlugin main, ViewHandler viewHandler, PacketHandler packetHandler) {
+	public EntityVisibilityHandler(JavaPlugin plugin,
+	                               ConfigSettings configSettings,
+	                               ViewHandler viewHandler,
+	                               PacketHandler packetHandler) {
 		
-		this.main = main;
+		this.plugin = plugin;
+		this.configSettings = configSettings;
 		this.viewHandler = viewHandler;
 		this.packetHandler = packetHandler;
 		
 		projectionEntities = new HashMap<>();
 		
-		if (main.isEntityHidingEnabled()) {
+		if (configSettings.isEntityHidingEnabled()) {
 			startEntityCheckerChecker();
 		}
 	}
@@ -48,7 +55,7 @@ public class EntityVisibilityHandler {
 		
 		disable();
 		
-		if (main.isEntityHidingEnabled()) {
+		if (configSettings.isEntityHidingEnabled()) {
 			startEntityCheckerChecker();
 		}
 	}
@@ -70,7 +77,7 @@ public class EntityVisibilityHandler {
 				Map<ProjectionCache, Set<PlayerViewSession>> portalSideViewers = viewHandler.getSessionsSortedByPortalSides();
 				handleRealEntitiesVisibility(portalSideViewers);
 				
-				if (!main.isEntityViewingEnabled()) {
+				if (!configSettings.isEntityViewingEnabled()) {
 					return;
 				}
 				
@@ -82,7 +89,7 @@ public class EntityVisibilityHandler {
 			}
 		};
 		
-		entityMotionChecker.runTaskTimer(main, 0, 1);
+		entityMotionChecker.runTaskTimer(plugin, 0, 1);
 	}
 	
 	private void handleRealEntitiesVisibility(Map<ProjectionCache, Set<PlayerViewSession>> portalSideViewers) {

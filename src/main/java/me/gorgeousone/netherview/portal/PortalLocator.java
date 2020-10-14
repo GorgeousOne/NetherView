@@ -1,12 +1,12 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.Cuboid;
-import me.gorgeousone.netherview.utils.FacingUtils;
+import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.message.MessageException;
 import me.gorgeousone.netherview.message.MessageUtils;
+import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.wrapper.Axis;
 import org.bukkit.Location;
 import org.bukkit.Material;

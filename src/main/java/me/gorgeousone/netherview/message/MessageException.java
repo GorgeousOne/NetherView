@@ -1,7 +1,5 @@
 package me.gorgeousone.netherview.message;
 
-import me.gorgeousone.netherview.message.Message;
-
 import java.util.Arrays;
 
 public class MessageException extends Exception {

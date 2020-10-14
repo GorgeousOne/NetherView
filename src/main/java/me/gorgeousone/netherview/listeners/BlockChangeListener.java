@@ -12,6 +12,7 @@ import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
@@ -47,6 +48,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.StructureGrowEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -57,17 +59,19 @@ import java.util.Map;
  */
 public class BlockChangeListener implements Listener {
 	
-	private final NetherViewPlugin main;
+	private final JavaPlugin plugin;
+	private final ConfigSettings configSettings;
 	private final PortalHandler portalHandler;
 	private final ViewHandler viewHandler;
 	private final PacketHandler packetHandler;
 	private final Material portalMaterial;
 	
-	public BlockChangeListener(NetherViewPlugin main,
-	                           PortalHandler portalHandler,
+	public BlockChangeListener(NetherViewPlugin plugin,
+	                           ConfigSettings configSettings, PortalHandler portalHandler,
 	                           ViewHandler viewHandler, PacketHandler packetHandler, Material portalMaterial) {
 		
-		this.main = main;
+		this.plugin = plugin;
+		this.configSettings = configSettings;
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;
 		this.packetHandler = packetHandler;
@@ -85,7 +89,7 @@ public class BlockChangeListener implements Listener {
 	 */
 	private void addBlockDigInterception(ProtocolManager protocolManager) {
 		
-		protocolManager.addPacketListener(new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Client.BLOCK_DIG) {
+		protocolManager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.BLOCK_DIG) {
 			@Override
 			public void onPacketReceiving(PacketEvent event) {
 				
@@ -122,7 +126,7 @@ public class BlockChangeListener implements Listener {
 	private void addBlockUpdateInterception(ProtocolManager protocolManager) {
 		
 		protocolManager.addPacketListener(
-				new PacketAdapter(main, ListenerPriority.NORMAL, PacketType.Play.Server.BLOCK_CHANGE) {
+				new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Server.BLOCK_CHANGE) {
 					
 					@Override
 					public void onPacketSending(PacketEvent event) {
@@ -151,7 +155,7 @@ public class BlockChangeListener implements Listener {
 	private void addMultiBlockUpdateInterception(ProtocolManager protocolManager) {
 		
 		protocolManager.addPacketListener(
-				new PacketAdapter(main, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+				new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
 					
 					@Override
 					public void onPacketSending(PacketEvent event) {
@@ -347,7 +351,7 @@ public class BlockChangeListener implements Listener {
 			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		}
 		
-		if (!main.canCreatePortalViews(event.getBlock().getWorld())) {
+		if (!configSettings.canCreatePortalViews(event.getBlock().getWorld())) {
 			return;
 		}
 		
@@ -368,7 +372,7 @@ public class BlockChangeListener implements Listener {
 			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		}
 		
-		if (main.canCreatePortalViews(event.getEntity().getWorld())) {
+		if (configSettings.canCreatePortalViews(event.getEntity().getWorld())) {
 			for (Block block : event.blockList()) {
 				if (block.getType() == portalMaterial) {
 					removeDamagedPortals(block);

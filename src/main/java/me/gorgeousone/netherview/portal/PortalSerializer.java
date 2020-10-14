@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,17 +18,21 @@ import java.util.UUID;
 
 public class PortalSerializer {
 	
-	private final NetherViewPlugin main;
+	private final JavaPlugin plugin;
+	private final ConfigSettings configSettings;
 	private final PortalHandler portalHandler;
 	
-	public PortalSerializer(NetherViewPlugin main, PortalHandler portalHandler) {
+	public PortalSerializer(JavaPlugin plugin,
+	                        ConfigSettings configSettings,
+	                        PortalHandler portalHandler) {
+		this.configSettings = configSettings;
 		this.portalHandler = portalHandler;
-		this.main = main;
+		this.plugin = plugin;
 	}
 	
 	public void savePortals(FileConfiguration portalConfig, FileConfiguration customPortalConfig) {
 		
-		portalConfig.set("plugin-version", main.getDescription().getVersion());
+		portalConfig.set("plugin-version", plugin.getDescription().getVersion());
 		portalConfig.set("portal-locations", null);
 		portalConfig.set("portal-data", null);
 		
@@ -65,11 +70,11 @@ public class PortalSerializer {
 	
 	public void loadPortals(FileConfiguration portalConfig) throws MessageException {
 		
-		loadPortalLocations(main, portalConfig);
+		loadPortalLocations(plugin, portalConfig);
 		loadPortalData(portalConfig);
 	}
 	
-	private void loadPortalLocations(NetherViewPlugin main, FileConfiguration portalConfig) {
+	private void loadPortalLocations(JavaPlugin main, FileConfiguration portalConfig) {
 		
 		if (!portalConfig.contains("portal-locations")) {
 			return;
@@ -82,11 +87,11 @@ public class PortalSerializer {
 			World worldWithPortals = Bukkit.getWorld(UUID.fromString(worldID));
 			
 			if (worldWithPortals == null) {
-				main.getLogger().warning("Could not find world with ID: '" + worldID + "'. Portals saved for this world will not be loaded.");
+				plugin.getLogger().warning("Could not find world with ID: '" + worldID + "'. Portals saved for this world will not be loaded.");
 				continue;
 			}
 			
-			if (main.canCreatePortalViews(worldWithPortals)) {
+			if (configSettings.canCreatePortalViews(worldWithPortals)) {
 				deserializePortals(worldWithPortals, portalLocations.getStringList(worldID));
 			}
 		}

@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
-import me.gorgeousone.netherview.message.Message;
-import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -11,10 +10,11 @@ import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.event.PortalLinkEvent;
 import me.gorgeousone.netherview.event.PortalUnlinkEvent;
 import me.gorgeousone.netherview.event.UnlinkReason;
-import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.portal.PortalLocator;
+import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.message.MessageException;
 import me.gorgeousone.netherview.message.MessageUtils;
+import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.utils.TimeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -22,6 +22,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
@@ -37,16 +38,20 @@ import java.util.UUID;
  */
 public class PortalHandler {
 	
-	private final NetherViewPlugin main;
+	private final JavaPlugin plugin;
+	private final ConfigSettings configSettings;
 	private final Material portalMaterial;
 	
 	private final Map<UUID, Set<Portal>> worldsWithPortals;
 	private final Map<Portal, Long> loadedPortals;
 	private BukkitRunnable expirationTimer;
 	
-	public PortalHandler(NetherViewPlugin main, Material portalMaterial) {
+	public PortalHandler(JavaPlugin main,
+	                     ConfigSettings configSettings,
+	                     Material portalMaterial) {
 		
-		this.main = main;
+		this.plugin = main;
+		this.configSettings = configSettings;
 		this.portalMaterial = portalMaterial;
 		
 		worldsWithPortals = new HashMap<>();
@@ -288,7 +293,7 @@ public class PortalHandler {
 		
 		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
 			
-			boolean isLinkedProjectionBack = isBlockCacheFront ^ linkedPortal.isViewFlipped() ^ main.portalsAreFlippedByDefault();
+			boolean isLinkedProjectionBack = isBlockCacheFront ^ linkedPortal.isViewFlipped() ^ configSettings.portalsAreFlippedByDefault();
 			
 			if (linkedPortal.projectionsAreLoaded()) {
 				linkedToProjections.add(isLinkedProjectionBack ? linkedPortal.getBackProjection() : linkedPortal.getFrontProjection());
@@ -302,8 +307,8 @@ public class PortalHandler {
 		
 		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(
 				portal,
-				main.getPortalProjectionDist(),
-				main.getWorldBorderBlockType(portal.getWorld().getEnvironment())));
+				configSettings.getPortalProjectionDist(),
+				configSettings.getWorldBorderBlockType(portal.getWorld().getEnvironment())));
 		
 		addPortalToExpirationTimer(portal);
 		
@@ -317,7 +322,7 @@ public class PortalHandler {
 		}
 		
 		Portal counterPortal = portal.getCounterPortal();
-		boolean linkTransformIsFlipped = portal.isViewFlipped() ^ (main.portalsAreFlippedByDefault() && !(portal instanceof CustomPortal));
+		boolean linkTransformIsFlipped = portal.isViewFlipped() ^ (configSettings.portalsAreFlippedByDefault() && !(portal instanceof CustomPortal));
 		
 		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, linkTransformIsFlipped);
 		portal.setTpTransform(linkTransform.clone().invert());
@@ -412,6 +417,6 @@ public class PortalHandler {
 			}
 		};
 		
-		expirationTimer.runTaskTimerAsynchronously(main, TimeUtils.getTicksTillNextMinute(), timerPeriod);
+		expirationTimer.runTaskTimerAsynchronously(plugin, TimeUtils.getTicksTillNextMinute(), timerPeriod);
 	}
 }

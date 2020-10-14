@@ -26,18 +26,17 @@ import me.gorgeousone.netherview.listeners.PlayerMoveListener;
 import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.PlayerTeleportListener;
 import me.gorgeousone.netherview.message.Message;
+import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.portal.PortalSerializer;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.updatechecks.VersionResponse;
 import me.gorgeousone.netherview.utils.ConfigUtils;
-import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -46,13 +45,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.logging.Level;
 
 public final class NetherViewPlugin extends JavaPlugin {
 	
@@ -71,6 +63,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 			ChatColor.DARK_RED + "]" +
 			ChatColor.LIGHT_PURPLE;
 	
+	private ConfigSettings configSettings;
 	private Material portalMaterial;
 	
 	private PacketHandler packetHandler;
@@ -80,28 +73,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private PlayerSelectionHandler selectionHandler;
 	private CustomPortalHandler customPortalHandler;
 	
-	boolean allWorldsCanCreatePortalViews = false;
-	private Set<UUID> portalViewWhiteList;
-	private Set<UUID> portalViewBlackList;
-	
-	boolean allWorldsCanCreateCustomPortals = false;
-	private Set<UUID> customPortalWhiteList;
-	private Set<UUID> customPortalBlackList;
-	
-	
-	private int portalProjectionDist;
-	private int portalDisplayRangeSquared;
-	
-	private boolean portalsAreFlippedByDefault;
-	private boolean hidePortalBlocks;
-	private boolean cancelTeleportWhenLinking;
-	private boolean instantTeleportEnabled;
-	private boolean warningMessagesEnabled;
-	private boolean debugMessagesEnabled;
-	private boolean entityHidingEnabled;
-	private boolean entityViewingEnabled;
-	
-	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
 	
 	private Plugin protocolLib = null;
 	
@@ -121,13 +92,14 @@ public final class NetherViewPlugin extends JavaPlugin {
 		BlockType.configureVersion(VersionUtils.IS_LEGACY_SERVER);
 		PortalLocator.configureVersion(portalMaterial);
 		
-		loadConfigData();
+		configSettings = new ConfigSettings(this, getConfig());
+		loadConfigSettings();
 		loadLangConfigData();
 		
 		packetHandler = new PacketHandler();
-		portalHandler = new PortalHandler(this, portalMaterial);
-		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
-		entityHandler = new EntityVisibilityHandler(this, viewHandler, packetHandler);
+		portalHandler = new PortalHandler(this, configSettings, portalMaterial);
+		viewHandler = new ViewHandler(configSettings, portalHandler, packetHandler);
+		entityHandler = new EntityVisibilityHandler(this, configSettings, viewHandler, packetHandler);
 		selectionHandler = new PlayerSelectionHandler();
 		customPortalHandler = new CustomPortalHandler();
 		
@@ -173,7 +145,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	public void reload() {
 		
 		backupPortals();
-		loadConfigData();
+		loadConfigSettings();
 		loadLangConfigData();
 		
 		viewHandler.reload();
@@ -205,71 +177,13 @@ public final class NetherViewPlugin extends JavaPlugin {
 		return viewHandler;
 	}
 	
-	/**
-	 * Returns the approximate "radius" for the projections of the portals. The final side size of a projection will change
-	 * depending to the size of the portal.
-	 */
-	public int getPortalProjectionDist() {
-		return portalProjectionDist;
-	}
-	
-	/**
-	 * Returns the squared radius in which the view of a portal will be displayed to players.
-	 */
-	public int getPortalDisplayRangeSquared() {
-		return portalDisplayRangeSquared;
-	}
-	
-	/**
-	 * Returns true if hiding the purple portal blocks when seeing a portal view is enabled in the config.
-	 */
-	public boolean hidePortalBlocksEnabled() {
-		return hidePortalBlocks;
-	}
-	
-	public boolean cancelTeleportWhenLinkingPortalsEnabled() {
-		return cancelTeleportWhenLinking;
-	}
-	
-	public boolean isInstantTeleportEnabled() {
-		return instantTeleportEnabled;
-	}
-	
-	public boolean isEntityHidingEnabled() {
-		return entityHidingEnabled;
-	}
-	
-	public boolean isEntityViewingEnabled() {
-		return entityViewingEnabled;
-	}
-	
-	public boolean portalsAreFlippedByDefault() {
-		return portalsAreFlippedByDefault;
-	}
-	
-	public boolean canCreatePortalViews(World world) {
-		
-		UUID worldId = world.getUID();
-		return !portalViewBlackList.contains(worldId) && (allWorldsCanCreateCustomPortals || portalViewWhiteList.contains(worldId));
-	}
-	
-	public boolean canCreateCustomPortals(World world) {
-		
-		UUID worldId = world.getUID();
-		return !customPortalBlackList.contains(worldId) && (allWorldsCanCreateCustomPortals || customPortalWhiteList.contains(worldId));
-	}
-	
-	public BlockType getWorldBorderBlockType(World.Environment environment) {
-		return worldBorderBlockTypes.get(environment);
-	}
-	
 	public boolean setWarningMessagesEnabled(boolean state) {
 		
-		if (warningMessagesEnabled != state) {
+		if (configSettings.areWarningMessagesEnabled() != state) {
 			
-			warningMessagesEnabled = state;
-			MessageUtils.setWarningMessagesEnabled(warningMessagesEnabled);
-			getConfig().set("warning-messages", warningMessagesEnabled);
+			configSettings.setWarningMessagesEnabled(state);
+			MessageUtils.setWarningMessagesEnabled(state);
+			getConfig().set("warning-messages", state);
 			saveConfig();
 			return true;
 		}
@@ -279,11 +193,11 @@ public final class NetherViewPlugin extends JavaPlugin {
 	
 	public boolean setDebugMessagesEnabled(boolean state) {
 		
-		if (debugMessagesEnabled != state) {
+		if (configSettings.areDebugMessagesEnabled() != state) {
 			
-			debugMessagesEnabled = state;
-			MessageUtils.setDebugMessagesEnabled(debugMessagesEnabled);
-			getConfig().set("debug-messages", debugMessagesEnabled);
+			configSettings.setDebugMessagesEnabled(state);
+			MessageUtils.setDebugMessagesEnabled(state);
+			getConfig().set("debug-messages", state);
 			saveConfig();
 			return true;
 		}
@@ -295,12 +209,12 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		ParentCommand netherViewCommand = new ParentCommand("netherview", null, false, "just tab");
 		netherViewCommand.addChild(new ReloadCommand(netherViewCommand, this));
-		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, this, portalHandler));
-		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, this, portalHandler));
+		netherViewCommand.addChild(new ListPortalsCommand(netherViewCommand, configSettings, portalHandler));
+		netherViewCommand.addChild(new PortalInfoCommand(netherViewCommand, configSettings, portalHandler));
 		netherViewCommand.addChild(new ToggleDebugCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new TogglePortalViewCommand(viewHandler));
-		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
+		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, configSettings, portalHandler, viewHandler));
 		
 		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new DeletePortalCommand(netherViewCommand, portalHandler, customPortalHandler));
@@ -314,117 +228,32 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private void registerListeners() {
 		
 		PluginManager manager = Bukkit.getPluginManager();
-		manager.registerEvents(new PlayerTeleportListener(this, portalHandler, viewHandler), this);
-		manager.registerEvents(new PlayerMoveListener(this, viewHandler, customPortalHandler, portalMaterial), this);
-		manager.registerEvents(new BlockChangeListener(this, portalHandler, viewHandler, packetHandler, portalMaterial), this);
+		manager.registerEvents(new PlayerTeleportListener(configSettings, portalHandler, viewHandler), this);
+		manager.registerEvents(new PlayerMoveListener(this, configSettings, viewHandler, customPortalHandler, portalMaterial), this);
+		manager.registerEvents(new BlockChangeListener(this, configSettings, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 		
 		manager.registerEvents(new PlayerClickListener(selectionHandler), this);
 	}
 	
-	private void loadConfigData() {
+	private void loadConfigSettings() {
 		
 		reloadConfig();
+		configSettings.addVersionSpecificDefaults(getConfig());
 		getConfig().options().copyDefaults(true);
-		addVersionSpecificDefaults();
 		saveConfig();
 		
-		int portalDisplayRange = clamp(getConfig().getInt("portal-display-range"), 2, 128);
-		portalDisplayRangeSquared = (int) Math.pow(portalDisplayRange, 2);
-		portalProjectionDist = clamp(getConfig().getInt("portal-view-distance"), 1, 32);
-		PortalLocator.setMaxPortalSize(clamp(getConfig().getInt("max-portal-size"), 3, 21));
+		configSettings.loadGeneralSettings(getConfig());
+		PortalLocator.setMaxPortalSize(configSettings.getMaxPortalSize());
+		MessageUtils.setWarningMessagesEnabled(configSettings.areWarningMessagesEnabled());
+		MessageUtils.setDebugMessagesEnabled(configSettings.areDebugMessagesEnabled());
 		
-		hidePortalBlocks = getConfig().getBoolean("hide-portal-blocks");
-		cancelTeleportWhenLinking = getConfig().getBoolean("cancel-teleport-when-linking-portals");
-		instantTeleportEnabled = getConfig().getBoolean("instant-teleport");
-		entityHidingEnabled = getConfig().getBoolean("hide-entities-behind-portals");
-		entityViewingEnabled = getConfig().getBoolean("show-entities-inside-portals");
-		portalsAreFlippedByDefault = getConfig().getBoolean("flip-portals-by-default");
-		
-		setWarningMessagesEnabled(getConfig().getBoolean("warning-messages"));
-		setDebugMessagesEnabled(getConfig().getBoolean("debug-messages"));
-		
-		loadWorldBorderBlockTypes();
-		loadWorldsWithPortalViewing();
+		configSettings.loadNetherPortalSettings(getConfig());
+		configSettings.loadCustomPortalSettings(getConfig());
 	}
 	
 	private void loadLangConfigData() {
 		Message.loadLangConfigValues(ConfigUtils.loadConfig("language", this));
-	}
-	
-	private void addVersionSpecificDefaults() {
-		
-		if (VersionUtils.serverIsAtOrAbove("1.13.0")) {
-			
-			getConfig().addDefault("overworld-border", "white_terracotta");
-			getConfig().addDefault("nether-border", "red_concrete");
-			getConfig().addDefault("end-border", "black_concrete");
-			
-		} else {
-			
-			getConfig().addDefault("overworld-border", "stained_clay");
-			getConfig().addDefault("nether-border", "stained_clay:14");
-			getConfig().addDefault("end-border", "wool:15");
-		}
-	}
-	
-	private void loadWorldsWithPortalViewing() {
-		
-		portalViewWhiteList = new HashSet<>();
-		portalViewBlackList = new HashSet<>();
-		
-		List<String> whiteListedWorldNames = getConfig().getStringList("worlds-with-portal-viewing");
-		List<String> blackListedWorldNames = getConfig().getStringList("world-black-list");
-		
-		if (whiteListedWorldNames.contains("*")) {
-			allWorldsCanCreateCustomPortals = true;
-			MessageUtils.printDebug("Nether View enabled in all worlds (except black listed ones).");
-		} else {
-			whiteListedWorldNames.forEach(worldName -> addWorld(worldName, portalViewWhiteList, "whitelist"));
-		}
-		
-		blackListedWorldNames.forEach(worldName -> addWorld(worldName, portalViewBlackList, "blacklist"));
-	}
-	
-	private void addWorld(String worldName, Collection<UUID> worldCollection, String listName) {
-		World world = Bukkit.getWorld(worldName);
-		
-		if (world == null) {
-			getLogger().log(Level.WARNING, "Could not find world '" + worldName + "' from " + listName);
-		} else {
-			worldCollection.add(world.getUID());
-			MessageUtils.printDebug("Added '" + worldName + "' to " + listName);
-		}
-	}
-	
-	private void loadWorldBorderBlockTypes() {
-		
-		worldBorderBlockTypes = new HashMap<>();
-		worldBorderBlockTypes.put(World.Environment.NORMAL, deserializeWorldBorderBlockType("overworld-border"));
-		worldBorderBlockTypes.put(World.Environment.NETHER, deserializeWorldBorderBlockType("nether-border"));
-		worldBorderBlockTypes.put(World.Environment.THE_END, deserializeWorldBorderBlockType("end-border"));
-	}
-	
-	private BlockType deserializeWorldBorderBlockType(String configPath) {
-		
-		String configValue = getConfig().getString(configPath);
-		String defaultValue = getConfig().getDefaults().getString(configPath);
-		BlockType worldBorder;
-		
-		try {
-			worldBorder = BlockType.of(configValue);
-			
-		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "'" + configValue + "' could not be interpreted as a block type. Using '" + defaultValue + "' instead.");
-			return BlockType.of(defaultValue);
-		}
-		
-		if (!worldBorder.isOccluding()) {
-			getLogger().log(Level.WARNING, "'" + configValue + "' is not an occluding block. Using '" + defaultValue + "' instead.");
-			return BlockType.of(defaultValue);
-		}
-		
-		return worldBorder;
 	}
 	
 	private void loadSavedPortals() {
@@ -438,7 +267,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		
 		try {
-			new PortalSerializer(this, portalHandler).loadPortals(portalConfig);
+			new PortalSerializer(this, configSettings, portalHandler).loadPortals(portalConfig);
 		} catch (Exception ignored) {}
 		
 		backupPortals();
@@ -455,7 +284,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		YamlConfiguration customPortalConfig = YamlConfiguration.loadConfiguration(customPortalConfigFile);
 		
-		new PortalSerializer(this, portalHandler).savePortals(portalConfig, customPortalConfig);
+		new PortalSerializer(this, configSettings, portalHandler).savePortals(portalConfig, customPortalConfig);
 		
 		try {
 			portalConfig.save(portalConfigFile);
@@ -494,9 +323,5 @@ public final class NetherViewPlugin extends JavaPlugin {
 				getLogger().info("Unable to check for new versions of NetherView...");
 			}
 		}).check();
-	}
-	
-	private int clamp(int value, int min, int max) {
-		return Math.max(min, Math.min(value, max));
 	}
 }

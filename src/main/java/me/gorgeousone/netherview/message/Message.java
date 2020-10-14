@@ -6,7 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 public enum Message {
 	
 	SUCCESSFUL_PORTAL_LINKING("successful-portal-linking"),
-	UNEQUAL_PORTALS("unequal-portals"),
+	UNEQUAL_PORTALS("unequal-portal-sizes"),
 	PORTAL_FRAME_INCOMPLETE("portal-frame-incomplete", "world-type"),
 	PORTAL_CORNERS_INCOMPLETE("portal-corners-incomplete", "world-type"),
 	PORTAL_TOO_BIG("portal-too-big", "size"),

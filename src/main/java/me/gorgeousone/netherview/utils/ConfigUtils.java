@@ -5,7 +5,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public final class ConfigUtils {
@@ -15,12 +14,10 @@ public final class ConfigUtils {
 	public static YamlConfiguration loadConfig(String configName, JavaPlugin plugin) {
 		
 		File configFile = new File(plugin.getDataFolder() + File.separator + configName + ".yml");
-		YamlConfiguration defConfig = loadDefaultConfig(configName, plugin);
+		YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(plugin.getResource(configName + ".yml")));
 		
 		if (!configFile.exists()) {
-			try {
-				defConfig.save(configFile);
-			} catch (IOException ignored) {}
+			plugin.saveResource(configName + ".yml", true);
 		}
 		
 		YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
@@ -35,10 +32,10 @@ public final class ConfigUtils {
 		
 		return config;
 	}
-	
-	public static YamlConfiguration loadDefaultConfig(String configName, JavaPlugin plugin) {
-		
-		InputStream defConfigStream = plugin.getResource(configName + ".yml");
-		return YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
-	}
+
+//	public static YamlConfiguration loadDefaultConfig(String configName, JavaPlugin plugin) {
+//
+//		InputStream defConfigStream = plugin.getResource(configName + ".yml");
+//		return YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream));
+//	}
 }

@@ -1,31 +1,32 @@
 package me.gorgeousone.netherview.commmands;
 
-import me.gorgeousone.netherview.message.Message;
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.command.BasicCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.message.MessageUtils;
+import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class FlipPortalCommand extends BasicCommand {
 	
-	private final NetherViewPlugin main;
+	private final ConfigSettings configSettings;
 	private final PortalHandler portalHandler;
 	private final ViewHandler viewHandler;
 	
 	public FlipPortalCommand(ParentCommand parent,
-	                         NetherViewPlugin main,
+	                         ConfigSettings configSettings,
 	                         PortalHandler portalHandler,
 	                         ViewHandler viewHandler) {
 		
 		super("flipportal", NetherViewPlugin.PORTAL_FLIP_PERM, true, parent);
 		
-		this.main = main;
+		this.configSettings = configSettings;
 		this.portalHandler = portalHandler;
 		this.viewHandler = viewHandler;
 	}
@@ -36,7 +37,7 @@ public class FlipPortalCommand extends BasicCommand {
 		Player player = (Player) sender;
 		World world = player.getWorld();
 		
-		if (!main.canCreatePortalViews(world)) {
+		if (!configSettings.canCreatePortalViews(world)) {
 			MessageUtils.sendInfo(player, Message.WORLD_NOT_WHITE_LISTED, player.getWorld().getName());
 			return;
 		}

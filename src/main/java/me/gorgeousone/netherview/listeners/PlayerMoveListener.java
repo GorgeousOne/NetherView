@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.listeners;
 
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.customportal.CustomPortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
@@ -13,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -22,17 +24,19 @@ import org.bukkit.util.Vector;
  */
 public class PlayerMoveListener implements Listener {
 	
-	private final NetherViewPlugin main;
+	private final JavaPlugin plugin;
+	private final ConfigSettings configSettings;
 	private final ViewHandler viewHandler;
 	private final CustomPortalHandler customPortalHandler;
 	private final Material portalMaterial;
 	
-	public PlayerMoveListener(NetherViewPlugin main,
-	                          ViewHandler viewHandler,
+	public PlayerMoveListener(NetherViewPlugin plugin,
+	                          ConfigSettings configSettings, ViewHandler viewHandler,
 	                          CustomPortalHandler customPortalHandler,
 	                          Material portalMaterial) {
 		
-		this.main = main;
+		this.plugin = plugin;
+		this.configSettings = configSettings;
 		this.viewHandler = viewHandler;
 		this.customPortalHandler = customPortalHandler;
 		this.portalMaterial = portalMaterial;
@@ -47,18 +51,18 @@ public class PlayerMoveListener implements Listener {
 		
 		boolean enteredNewBlock = playerEnteredNewBlock(from, to);
 		
-		if (main.canCreatePortalViews(player.getWorld())) {
+		if (configSettings.canCreatePortalViews(player.getWorld())) {
 			
 			//sets player temporarily invulnerable so the game will instantly teleport them on entering a portal
-			if (main.isInstantTeleportEnabled() && enteredNewBlock && mortalEnteredPortal(player, from, to)) {
-				InvulnerabilityUtils.setTemporarilyInvulnerable(player, main, 2);
+			if (configSettings.isInstantTeleportEnabled() && enteredNewBlock && mortalEnteredPortal(player, from, to)) {
+				InvulnerabilityUtils.setTemporarilyInvulnerable(player, plugin, 2);
 			}
 			
 			Vector fromVec = from.toVector();
 			Vector toVec = to.toVector();
 			
 			if (!fromVec.equals(toVec) &&
-			    
+			
 			    player.getGameMode() != GameMode.SPECTATOR &&
 			    viewHandler.hasPortalViewEnabled(player) &&
 			    player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
@@ -102,7 +106,7 @@ public class PlayerMoveListener implements Listener {
 			public void run() {
 				viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
 			}
-		}.runTaskLater(main, 2);
+		}.runTaskLater(plugin, 2);
 	}
 	
 	@EventHandler
