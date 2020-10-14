@@ -4,69 +4,102 @@ import org.bukkit.block.Block;
 
 public class Cuboid {
 	
-	private final BlockVec minimum;
-	private final BlockVec maximum;
+	private final BlockVec min;
+	private final BlockVec max;
 	
 	public Cuboid(BlockVec pos1, BlockVec pos2) {
 		
-		this.minimum = BlockVec.getMinimum(pos1, pos2);
-		this.maximum = BlockVec.getMaximum(pos1, pos2);
+		this.min = BlockVec.getMinimum(pos1, pos2);
+		this.max = BlockVec.getMaximum(pos1, pos2);
 	}
 	
 	public BlockVec getMin() {
-		return minimum.clone();
+		return min.clone();
 	}
 	
 	public BlockVec getMax() {
-		return maximum.clone();
+		return max.clone();
 	}
 	
 	public int getWidthX() {
-		return maximum.getX() - minimum.getX();
+		return max.getX() - min.getX();
 	}
 	
 	public int getHeight() {
-		return maximum.getY() - minimum.getY();
+		return max.getY() - min.getY();
 	}
 	
 	public int getWidthZ() {
-		return maximum.getZ() - minimum.getZ();
+		return max.getZ() - min.getZ();
 	}
 	
 	public boolean contains(BlockVec vec) {
-		return vec.getX() >= minimum.getX() && vec.getX() < maximum.getX() &&
-		       vec.getY() >= minimum.getY() && vec.getY() < maximum.getY() &&
-		       vec.getZ() >= minimum.getZ() && vec.getZ() < maximum.getZ();
+		return vec.getX() >= min.getX() && vec.getX() < max.getX() &&
+		       vec.getY() >= min.getY() && vec.getY() < max.getY() &&
+		       vec.getZ() >= min.getZ() && vec.getZ() < max.getZ();
 	}
 	
 	public boolean contains(Block block) {
-		return block.getX() >= minimum.getX() && block.getX() < maximum.getX() &&
-		       block.getY() >= minimum.getY() && block.getY() < maximum.getY() &&
-		       block.getZ() >= minimum.getZ() && block.getZ() < maximum.getZ();
+		return block.getX() >= min.getX() && block.getX() < max.getX() &&
+		       block.getY() >= min.getY() && block.getY() < max.getY() &&
+		       block.getZ() >= min.getZ() && block.getZ() < max.getZ();
 	}
 	
 	public Cuboid translateMin(int dx, int dy, int dz) {
-		minimum.add(dx, dy, dz);
+		min.add(dx, dy, dz);
 		return this;
 	}
 	
 	public Cuboid translateMin(BlockVec vec) {
-		minimum.add(vec);
+		min.add(vec);
 		return this;
 	}
 	
 	public Cuboid translateMax(int dx, int dy, int dz) {
-		maximum.add(dx, dy, dz);
+		max.add(dx, dy, dz);
 		return this;
 	}
 	
 	public Cuboid translateMax(BlockVec vec) {
-		maximum.add(vec);
+		max.add(vec);
 		return this;
+	}
+	
+	public boolean intersects(Cuboid otherBox) {
+		return intersectsX(otherBox) && intersectsY(otherBox) && intersectsZ(otherBox) ||
+		       otherBox.intersectsX(this) && otherBox.intersectsY(this) && otherBox.intersectsZ(this);
+	}
+	
+	public boolean intersectsX(Cuboid otherBox) {
+		return containsX(otherBox.min.getX()) || containsX(otherBox.max.getX()) || otherBox.min.getX() < min.getX() && otherBox.max.getX() > max.getX();
+	}
+	
+	public boolean intersectsY(Cuboid otherBox) {
+		return containsY(otherBox.min.getY()) || containsY(otherBox.max.getY()) || otherBox.min.getY() < min.getY() && otherBox.max.getY() > max.getY();
+	}
+	
+	public boolean intersectsZ(Cuboid otherBox) {
+		return containsZ(otherBox.min.getZ()) || containsZ(otherBox.max.getZ()) || otherBox.min.getZ() < min.getZ() && otherBox.max.getZ() > max.getZ();
+	}
+	
+	public boolean contains(double x, double y, double z) {
+		return containsX(x) && containsY(y) && containsZ(z);
+	}
+	
+	public boolean containsX(double x) {
+		return x >= min.getX() && x <= max.getX();
+	}
+	
+	public boolean containsY(double y) {
+		return y >= min.getY() && y <= max.getY();
+	}
+	
+	public boolean containsZ(double z) {
+		return z >= min.getZ() && z <= max.getZ();
 	}
 	
 	@Override
 	public Cuboid clone() {
-		return new Cuboid(minimum, maximum);
+		return new Cuboid(min, max);
 	}
 }

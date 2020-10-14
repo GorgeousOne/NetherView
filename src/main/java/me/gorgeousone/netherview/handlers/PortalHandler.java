@@ -7,12 +7,12 @@ import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.blockcache.TransformFactory;
+import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.event.PortalLinkEvent;
 import me.gorgeousone.netherview.event.PortalUnlinkEvent;
 import me.gorgeousone.netherview.event.UnlinkReason;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.PortalLocator;
-import me.gorgeousone.netherview.portal.PortalType;
 import me.gorgeousone.netherview.utils.MessageException;
 import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.utils.TimeUtils;
@@ -22,7 +22,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
@@ -212,13 +211,24 @@ public class PortalHandler {
 			return true;
 		}
 		
-		if (portal.getType() == PortalType.CUSTOM) {
+		if (portal instanceof CustomPortal) {
 			return false;
 		}
 		
 		if (portal.getPortalBlocks().iterator().next().getType() != portalMaterial) {
 			removePortal(portal);
 			return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean portalIntersectsOtherPortals(Portal portal) {
+		
+		for (Portal otherPortal : getPortals(portal.getWorld())) {
+			if (otherPortal.getInner().intersects(portal.getInner())) {
+				return true;
+			}
 		}
 		
 		return false;

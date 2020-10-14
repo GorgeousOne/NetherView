@@ -158,8 +158,16 @@ public class BlockVec {
 		return Objects.hash(x, y, z);
 	}
 	
+	public static String toSimpleString(Location loc) {
+		return "[" + loc.getWorld().getName() + ", " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "]";
+	}
+	
 	@Override
 	public String toString() {
+		return "[" + x + ", " + y + ", " + z + "]";
+	}
+	
+	public String serialize() {
 		return "x=" + x + ",y=" + y + ",z=" + z;
 	}
 	

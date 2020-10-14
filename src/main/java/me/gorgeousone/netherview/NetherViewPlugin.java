@@ -13,6 +13,7 @@ import me.gorgeousone.netherview.commmands.ReloadCommand;
 import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
 import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
+import me.gorgeousone.netherview.customportal.CustomPortalHandler;
 import me.gorgeousone.netherview.customportal.PlayerClickListener;
 import me.gorgeousone.netherview.customportal.PlayerSelectionHandler;
 import me.gorgeousone.netherview.handlers.EntityVisibilityHandler;
@@ -73,8 +74,9 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private PacketHandler packetHandler;
 	private PortalHandler portalHandler;
 	private ViewHandler viewHandler;
-	private EntityVisibilityHandler motionHandler;
+	private EntityVisibilityHandler entityHandler;
 	private PlayerSelectionHandler selectionHandler;
+	private CustomPortalHandler customPortalHandler;
 	
 	boolean allWorldsCanCreatePortalViews = false;
 	private Set<UUID> whiteListedWorlds;
@@ -118,8 +120,9 @@ public final class NetherViewPlugin extends JavaPlugin {
 		packetHandler = new PacketHandler();
 		portalHandler = new PortalHandler(this, portalMaterial);
 		viewHandler = new ViewHandler(this, portalHandler, packetHandler);
-		motionHandler = new EntityVisibilityHandler(this, viewHandler, packetHandler);
+		entityHandler = new EntityVisibilityHandler(this, viewHandler, packetHandler);
 		selectionHandler = new PlayerSelectionHandler();
+		customPortalHandler = new CustomPortalHandler();
 		
 		registerListeners();
 		registerCommands();
@@ -168,7 +171,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		viewHandler.reload();
 		portalHandler.reload();
-		motionHandler.reload();
+		entityHandler.reload();
 		
 		loadSavedPortals();
 		checkForUpdates();
@@ -184,7 +187,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		backupPortals();
 		viewHandler.reload();
 		portalHandler.disable();
-		motionHandler.disable();
+		entityHandler.disable();
 	}
 	
 	public PortalHandler getPortalHandler() {
@@ -285,8 +288,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new ToggleWarningsCommand(netherViewCommand, this));
 		netherViewCommand.addChild(new TogglePortalViewCommand(viewHandler));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, this, portalHandler, viewHandler));
-
-		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler));
+		
+		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, portalHandler));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
@@ -430,13 +433,20 @@ public final class NetherViewPlugin extends JavaPlugin {
 	public void backupPortals() {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
+		File customPortalConfigFile = new File(getDataFolder() + File.separator + "custom-portals.yml");
+		
 		portalConfigFile.delete();
+		customPortalConfigFile.delete();
 		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
-		new PortalSerializer(this, portalHandler).savePortals(portalConfig);
+		YamlConfiguration customPortalConfig = YamlConfiguration.loadConfiguration(customPortalConfigFile);
+		
+		new PortalSerializer(this, portalHandler).savePortals(portalConfig, customPortalConfig);
 		
 		try {
 			portalConfig.save(portalConfigFile);
+			customPortalConfig.save(customPortalConfigFile);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

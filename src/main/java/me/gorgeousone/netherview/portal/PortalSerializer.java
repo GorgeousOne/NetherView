@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview.portal;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.utils.MessageException;
@@ -24,7 +25,7 @@ public class PortalSerializer {
 		this.main = main;
 	}
 	
-	public void savePortals(FileConfiguration portalConfig) {
+	public void savePortals(FileConfiguration portalConfig, FileConfiguration customPortalConfig) {
 		
 		portalConfig.set("plugin-version", main.getDescription().getVersion());
 		portalConfig.set("portal-locations", null);
@@ -44,13 +45,13 @@ public class PortalSerializer {
 			
 			for (Portal portal : portalsInWorld) {
 				
-				if (portal.getType() == PortalType.CUSTOM) {
+				if (portal instanceof CustomPortal) {
 					continue;
 				}
 				
 				int portalHash = portal.hashCode();
 				
-				portalStrings.add(new BlockVec(portal.getLocation()).toString());
+				portalStrings.add(new BlockVec(portal.getLocation()).serialize());
 				portalData.set(portalHash + ".is-flipped", portal.isViewFlipped());
 				
 				if (portal.isLinked()) {
@@ -100,7 +101,7 @@ public class PortalSerializer {
 				portalHandler.addPortalStructure(world.getBlockAt(portalLoc.getX(), portalLoc.getY(), portalLoc.getZ()));
 				
 			} catch (IllegalArgumentException | IllegalStateException | MessageException e) {
-				throw new IllegalArgumentException("Unable to load portal at [" + world.getName() + ", " + serializedBlockVec + "]: " + e.getMessage());
+				throw new IllegalArgumentException("Unable to load portal at [" + world.getName() + "," + serializedBlockVec + "]: " + e.getMessage());
 			}
 		}
 	}

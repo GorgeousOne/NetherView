@@ -14,7 +14,7 @@ public class ProjectionEntity {
 	private Location lastLoc;
 	
 	public ProjectionEntity(Entity entity) {
-	
+		
 		this.entity = entity;
 		//chances to match an existing id are like 10,000/2,000,000,000 which is 0,0005%. hope that's enough
 		this.fakeId = RANDOM.nextInt();

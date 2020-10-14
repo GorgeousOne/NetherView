@@ -29,7 +29,7 @@ public class LinkPortalCommand extends ArgCommand {
 	
 	@Override
 	protected void onCommand(CommandSender sender, ArgValue[] arguments) {
-	
+		
 		String portalName1 = arguments[0].getString();
 		String portalName2 = arguments[1].getString();
 		
@@ -50,7 +50,7 @@ public class LinkPortalCommand extends ArgCommand {
 			portalHandler.linkPortalTo(portal1, portal2, sender);
 			MessageUtils.sendInfo(sender, Message.PORTALS_LINKED, portalName1, portalName2);
 			
-		}catch (MessageException e) {
+		} catch (MessageException e) {
 			MessageUtils.sendInfo(sender, e.getPlayerMessage(), e.getPlaceholderValues());
 		}
 	}

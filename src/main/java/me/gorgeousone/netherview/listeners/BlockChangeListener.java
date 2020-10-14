@@ -16,13 +16,13 @@ import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
+import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PlayerViewSession;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.portal.PortalType;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Material;
@@ -267,7 +267,7 @@ public class BlockChangeListener implements Listener {
 		
 		for (Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
 			
-			if (portal.getType() == PortalType.NETHER_PORTAL && portal.getFrame().contains(block)) {
+			if (!(portal instanceof CustomPortal) && portal.getFrame().contains(block)) {
 				
 				viewHandler.removePortal(portal);
 				portalHandler.removePortal(portal);

@@ -302,7 +302,7 @@ public class PacketHandler {
 	
 	public void hideProjectedEntity(Player player, ProjectionEntity entity) {
 		
-		int[] entityIds = new int[] {entity.getFakeId()};
+		int[] entityIds = new int[]{entity.getFakeId()};
 		
 		PacketContainer destroyPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
 		destroyPacket.getIntegerArrays().write(0, entityIds);
@@ -394,7 +394,8 @@ public class PacketHandler {
 	}
 	
 	private PacketContainer createPlayerPacket(HumanEntity player,
-	                                           Location entityLoc, int entityId) throws InvocationTargetException, IllegalAccessException {
+	                                           Location entityLoc,
+	                                           int entityId) throws InvocationTargetException, IllegalAccessException {
 		
 		PacketContainer spawnPacket = namedEntitySpawnPacket.createPacket(NmsUtils.getHandle(player));
 		spawnPacket.getIntegers().write(0, entityId);
@@ -403,7 +404,8 @@ public class PacketHandler {
 	}
 	
 	private PacketContainer createEntityPacket(Entity entity,
-	                                           Location entityLoc, int entityId) throws InvocationTargetException, IllegalAccessException {
+	                                           Location entityLoc,
+	                                           int entityId) throws InvocationTargetException, IllegalAccessException {
 		
 		PacketContainer spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity));
 		spawnPacket.getIntegers().write(0, entityId);
@@ -412,7 +414,8 @@ public class PacketHandler {
 	}
 	
 	private PacketContainer createEntityLivingPacket(LivingEntity entity,
-	                                                 Location entityLoc, int entityId) throws InvocationTargetException, IllegalAccessException {
+	                                                 Location entityLoc,
+	                                                 int entityId) throws InvocationTargetException, IllegalAccessException {
 		
 		PacketContainer spawnPacket = spawnEntityLiving.createPacket(NmsUtils.getHandle(entity));
 		spawnPacket.getIntegers().write(0, entityId);

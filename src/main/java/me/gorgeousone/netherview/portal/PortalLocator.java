@@ -77,7 +77,7 @@ public class PortalLocator {
 		Cuboid frameShape = new Cuboid(portalMin.subtract(frameExtent), portalMax.add(frameExtent));
 		checkFrameBlocksOcclusion(world, frameShape, portalRect.getAxis());
 		
-		return new Portal(world, portalRect, innerBlocks, frameShape, innerShape);
+		return new Portal(world, portalRect, frameShape, innerShape, innerBlocks);
 	}
 	
 	/**
@@ -169,7 +169,7 @@ public class PortalLocator {
 		return portalBlocks;
 	}
 	
-	private static void checkInnerBlocksConsistency(Set<Block> portalBlocks) throws MessageException{
+	private static void checkInnerBlocksConsistency(Set<Block> portalBlocks) throws MessageException {
 		
 		for (Block portalBlock : portalBlocks) {
 			

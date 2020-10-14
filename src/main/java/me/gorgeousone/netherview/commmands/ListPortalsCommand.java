@@ -58,7 +58,7 @@ public class ListPortalsCommand extends ArgCommand {
 		StringBuilder portals = new StringBuilder();
 		
 		for (Portal portal : portalSet) {
-			portals.append("\\n").append(ChatColor.GRAY + "- ").append(portal.toWhiteString());
+			portals.append("\\n").append(ChatColor.GRAY + "- ").append(ChatColor.RESET).append(portal.toString());
 		}
 		
 		MessageUtils.sendInfo(sender, Message.WORLD_INFO, String.valueOf(portalSet.size()), worldName, portals.toString());

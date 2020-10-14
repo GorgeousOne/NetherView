@@ -7,7 +7,6 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.Cuboid;
 import me.gorgeousone.netherview.wrapper.Axis;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -26,7 +25,6 @@ public class Portal {
 	private final AxisAlignedRect portalRect;
 	
 	private final Set<Block> portalBlocks;
-	private final PortalType portalType;
 	
 	private Portal counterPortal;
 	private Transform tpTransform;
@@ -37,32 +35,19 @@ public class Portal {
 	private final Cuboid frameShape;
 	private final Cuboid innerShape;
 	
-	private boolean isCustom;
 	private boolean isViewFlipped;
 	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
-	              Set<Block> portalBlocks,
-	              Cuboid frameShape,
-	              Cuboid innerShape) {
-		this(world, portalRect, portalBlocks, frameShape, innerShape, PortalType.NETHER_PORTAL);
-	}
-	
-	public Portal(World world,
-	              AxisAlignedRect portalRect,
-	              Set<Block> portalBlocks,
 	              Cuboid frameShape,
 	              Cuboid innerShape,
-	              PortalType portalType) {
+	              Set<Block> portalBlocks) {
 		
 		this.world = world;
-		this.portalRect = portalRect;
-		
+		this.portalRect = portalRect.clone();
+		this.frameShape = frameShape.clone();
+		this.innerShape = innerShape.clone();
 		this.portalBlocks = portalBlocks;
-		this.portalType = portalType;
-		
-		this.frameShape = frameShape;
-		this.innerShape = innerShape;
 	}
 	
 	public World getWorld() {
@@ -71,10 +56,6 @@ public class Portal {
 	
 	public Location getLocation() {
 		return portalRect.getMin().toLocation(world);
-	}
-	
-	public PortalType getType() {
-		return portalType;
 	}
 	
 	public BlockVec getMaxBlockAtFloor() {
@@ -90,6 +71,14 @@ public class Portal {
 	
 	public Cuboid getInner() {
 		return innerShape;
+	}
+	
+	public int width() {
+		return getAxis() == Axis.X ? frameShape.getWidthX() : frameShape.getWidthZ();
+	}
+	
+	public int height() {
+		return frameShape.getHeight();
 	}
 	
 	public AxisAlignedRect getPortalRect() {
@@ -195,24 +184,12 @@ public class Portal {
 	}
 	
 	public void flipView() {
-		 isViewFlipped = !isViewFlipped;
-	}
-	
-	public boolean isCustom() {
-		return isCustom;
-	}
-	
-	public void setCustom(boolean custom) {
-		isCustom = custom;
+		isViewFlipped = !isViewFlipped;
 	}
 	
 	@Override
 	public String toString() {
-		return '[' + world.getName() + "," + new BlockVec(getLocation()).toString() + ']';
-	}
-	
-	public String toWhiteString() {
-		return ChatColor.RESET + toString();
+		return BlockVec.toSimpleString(getLocation());
 	}
 	
 	@Override

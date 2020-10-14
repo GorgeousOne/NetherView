@@ -37,7 +37,9 @@ public class PlayerMoveListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!main.canCreatePortalViews(player.getWorld())) { return; }
+		if (!main.canCreatePortalViews(player.getWorld())) {
+			return;
+		}
 		
 		Location from = event.getFrom();
 		Location to = event.getTo();
