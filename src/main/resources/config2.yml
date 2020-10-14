@@ -1,0 +1,25 @@
+portal-display-range: 32
+portal-projection-distance: 4
+max-portal-size: 5
+
+hide-entities-behind-portals: true
+show-entities-inside-portals: true
+warning-messages: true
+debug-messages: false
+
+nether-portal-viewing:
+    flip-portals-by-default: false
+    hide-portal-blocks: true
+    cancel-teleport-when-linking-portals: true
+    instant-teleport: true
+    whitelisted-worlds:
+        - world
+        - world_nether
+    blacklisted-worlds:
+        - null
+
+custom-portal-viewing:
+    whitelisted-worlds:
+        - "*"
+    blacklisted-worlds:
+        - null
