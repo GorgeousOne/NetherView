@@ -5,6 +5,7 @@ import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.Cuboid;
 import me.gorgeousone.netherview.wrapper.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -27,15 +28,14 @@ public class Portal {
 	private final Set<Block> portalBlocks;
 	private final PortalType portalType;
 	
-	//bounds containing the whole portal structure
-	private final BlockVec min;
-	private final BlockVec max;
-	
 	private Portal counterPortal;
 	private Transform tpTransform;
 	
 	private Map.Entry<BlockCache, BlockCache> blockCaches;
 	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
+	
+	private final Cuboid frameShape;
+	private final Cuboid innerShape;
 	
 	private boolean isCustom;
 	private boolean isViewFlipped;
@@ -43,16 +43,16 @@ public class Portal {
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
 	              Set<Block> portalBlocks,
-	              BlockVec min,
-	              BlockVec max) {
-		this(world, portalRect, portalBlocks, min, max, PortalType.NETHER_PORTAL);
+	              Cuboid frameShape,
+	              Cuboid innerShape) {
+		this(world, portalRect, portalBlocks, frameShape, innerShape, PortalType.NETHER_PORTAL);
 	}
 	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
 	              Set<Block> portalBlocks,
-	              BlockVec min,
-	              BlockVec max,
+	              Cuboid frameShape,
+	              Cuboid innerShape,
 	              PortalType portalType) {
 		
 		this.world = world;
@@ -61,8 +61,8 @@ public class Portal {
 		this.portalBlocks = portalBlocks;
 		this.portalType = portalType;
 		
-		this.min = min;
-		this.max = max;
+		this.frameShape = frameShape;
+		this.innerShape = innerShape;
 	}
 	
 	public World getWorld() {
@@ -77,19 +77,19 @@ public class Portal {
 		return portalType;
 	}
 	
-	public BlockVec getMin() {
-		return min.clone();
-	}
-	
-	public BlockVec getMax() {
-		return max.clone();
-	}
-	
 	public BlockVec getMaxBlockAtFloor() {
 		
-		BlockVec maxBlock = max.clone().add(-1, 0, -1);
-		maxBlock.setY(min.getY());
+		BlockVec maxBlock = frameShape.getMax().clone().add(-1, 0, -1);
+		maxBlock.setY(frameShape.getMin().getY());
 		return maxBlock;
+	}
+	
+	public Cuboid getFrame() {
+		return frameShape;
+	}
+	
+	public Cuboid getInner() {
+		return innerShape;
 	}
 	
 	public AxisAlignedRect getPortalRect() {
@@ -102,21 +102,6 @@ public class Portal {
 	
 	public Set<Block> getPortalBlocks() {
 		return new HashSet<>(portalBlocks);
-	}
-	
-	/**
-	 * Returns true if the given BlockVec is inside portal structure including the frame.
-	 */
-	public boolean contains(BlockVec loc) {
-		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
-		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
-		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
-	}
-	
-	public boolean contains(Block block) {
-		return block.getX() >= min.getX() && block.getX() < max.getX() &&
-		       block.getY() >= min.getY() && block.getY() < max.getY() &&
-		       block.getZ() >= min.getZ() && block.getZ() < max.getZ();
 	}
 	
 	public boolean equalsInSize(Portal other) {

@@ -19,13 +19,13 @@ public class TransformFactory {
 		Transform linkTransform = new Transform();
 		Axis counterPortalAxis = counterPortal.getAxis();
 		
-		BlockVec portalLoc1 = portal.getMin();
+		BlockVec portalLoc1 = portal.getFrame().getMin();
 		BlockVec portalLoc2;
 		
 		if (portal.getAxis() == counterPortalAxis) {
 			
 			if (isPortalFlipped) {
-				portalLoc2 = counterPortal.getMin();
+				portalLoc2 = counterPortal.getFrame().getMin();
 				
 			} else {
 				portalLoc2 = counterPortal.getMaxBlockAtFloor();
@@ -40,7 +40,7 @@ public class TransformFactory {
 				linkTransform.setRotY90DegLeft();
 			}
 			
-			portalLoc2 = isPortalFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getMin();
+			portalLoc2 = isPortalFlipped ? counterPortal.getMaxBlockAtFloor() : counterPortal.getFrame().getMin();
 		}
 		
 		linkTransform.setRotCenter(portalLoc2);

@@ -54,7 +54,9 @@ public class EntityVisibilityHandler {
 	}
 	
 	public void disable() {
+		
 		entityMotionChecker.cancel();
+		projectionEntities.clear();
 	}
 	
 	private void startEntityCheckerChecker() {
@@ -74,6 +76,8 @@ public class EntityVisibilityHandler {
 				
 				Map<BlockCache, Set<ProjectionCache>> watchedBlockCaches = getProjectionsSortedByBlockCaches(portalSideViewers.keySet());
 				handleProjectionEntitiesVisibility(portalSideViewers, watchedBlockCaches);
+				
+				projectionEntities.entrySet().removeIf(entry -> entry.getKey().isDead());
 				projectionEntities.values().forEach(ProjectionEntity::updateLastLoc);
 			}
 		};

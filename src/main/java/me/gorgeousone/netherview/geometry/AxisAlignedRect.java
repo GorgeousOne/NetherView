@@ -22,8 +22,16 @@ public class AxisAlignedRect {
 		
 		if (axis == Axis.X) {
 			plane = new Plane(min, new Vector(0, 0, 1));
+			
+			if (min.getZ() != max.getZ()) {
+				throw new IllegalArgumentException("Z coordinates of x aligned portal must be equal");
+			}
 		} else {
 			plane = new Plane(min, new Vector(1, 0, 0));
+			
+			if (min.getX() != max.getX()) {
+				throw new IllegalArgumentException("Z coordinates of x aligned portal must be equal");
+			}
 		}
 		
 		if (height() < 0 || width() < 0) {

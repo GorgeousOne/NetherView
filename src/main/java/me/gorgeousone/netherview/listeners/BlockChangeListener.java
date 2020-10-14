@@ -22,6 +22,7 @@ import me.gorgeousone.netherview.handlers.PlayerViewSession;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.portal.PortalType;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Material;
@@ -240,14 +241,14 @@ public class BlockChangeListener implements Listener {
 	                                        ProjectionCache viewedCache,
 	                                        Map<BlockVec, BlockType> viewSession) {
 		
-		return (viewedPortal.contains(blockPos) || viewedCache.contains(blockPos)) ? viewSession.get(blockPos) : null;
+		return (viewedPortal.getFrame().contains(blockPos) || viewedCache.contains(blockPos)) ? viewSession.get(blockPos) : null;
 	}
 	
 	private BlockType getProjectedBlockType(Player player, BlockVec blockPos) {
 		
 		PlayerViewSession session = viewHandler.getViewSession(player);
 		
-		if (session.getViewedPortal().contains(blockPos) ||
+		if (session.getViewedPortal().getFrame().contains(blockPos) ||
 		    session.getViewedPortalSide().contains(blockPos)) {
 			
 			return viewHandler.getViewSession(player).getProjectedBlocks().get(blockPos);
@@ -266,7 +267,7 @@ public class BlockChangeListener implements Listener {
 		
 		for (Portal portal : new HashSet<>(portalHandler.getPortals(blockWorld))) {
 			
-			if (portal.contains(block)) {
+			if (portal.getType() == PortalType.NETHER_PORTAL && portal.getFrame().contains(block)) {
 				
 				viewHandler.removePortal(portal);
 				portalHandler.removePortal(portal);

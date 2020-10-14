@@ -51,6 +51,6 @@ public class PlayerCuboidSelection {
 	}
 	
 	public Cuboid getCuboid() {
-		return new Cuboid(pos1, pos2);
+		return new Cuboid(pos1, pos2).translateMax(1, 1, 1);
 	}
 }

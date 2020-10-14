@@ -3,6 +3,7 @@ package me.gorgeousone.netherview.portal;
 import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.Cuboid;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.utils.MessageException;
 import me.gorgeousone.netherview.utils.MessageUtils;
@@ -66,18 +67,17 @@ public class PortalLocator {
 		
 		BlockVec portalMin = new BlockVec(portalRect.getMin());
 		BlockVec portalMax = new BlockVec(portalRect.getMax());
-		portalMax.add(new BlockVec(portalRect.getPlane().getNormal()));
+		portalMax.add(new BlockVec(portalRect.getAxis().getNormal()));
 		
-		Set<Block> innerBlocks = getInnerPortalBlocks(world, portalMin, portalMax);
+		Cuboid innerShape = new Cuboid(portalMin, portalMax);
+		Set<Block> innerBlocks = getInnerPortalBlocks(world, innerShape);
+		checkInnerBlocksConsistency(innerBlocks);
 		
-		BlockVec frameExtent = new BlockVec(portalRect.getCrossNormal());
-		frameExtent.setY(1);
+		BlockVec frameExtent = new BlockVec(portalRect.getCrossNormal()).setY(1);
+		Cuboid frameShape = new Cuboid(portalMin.subtract(frameExtent), portalMax.add(frameExtent));
+		checkFrameBlocksOcclusion(world, frameShape, portalRect.getAxis());
 		
-		portalMin.subtract(frameExtent);
-		portalMax.add(frameExtent);
-		
-		checkFrameBlockOcclusion(world, portalMin, portalMax, portalRect.getAxis());
-		return new Portal(world, portalRect, innerBlocks, portalMin, portalMax);
+		return new Portal(world, portalRect, innerBlocks, frameShape, innerShape);
 	}
 	
 	/**
@@ -141,9 +141,10 @@ public class PortalLocator {
 	 * Returns a set of blocks of all portal blocks of a portal according to the passed rectangle.
 	 */
 	private static Set<Block> getInnerPortalBlocks(World world,
-	                                               BlockVec portalMin,
-	                                               BlockVec portalMax) throws MessageException {
+	                                               Cuboid portalInner) throws MessageException {
 		
+		BlockVec portalMin = portalInner.getMin();
+		BlockVec portalMax = portalInner.getMax();
 		Set<Block> portalBlocks = new HashSet<>();
 		
 		for (int x = portalMin.getX(); x < portalMax.getX(); x++) {
@@ -168,13 +169,28 @@ public class PortalLocator {
 		return portalBlocks;
 	}
 	
+	private static void checkInnerBlocksConsistency(Set<Block> portalBlocks) throws MessageException{
+		
+		for (Block portalBlock : portalBlocks) {
+			
+			if (portalBlock.getType() != PORTAL_MATERIAL) {
+				
+				MessageUtils.printDebug("Expected portal block at " + new BlockVec(portalBlock).toString());
+				String worldType = portalBlock.getWorld().getEnvironment().name().toLowerCase().replaceAll("_", " ");
+				throw new MessageException(Message.PORTAL_NOT_INTACT, worldType);
+			}
+		}
+	}
+	
 	/**
 	 * Returns a set of blocks where obsidian needs to be placed for a portal frame according to the given portal bounds.
 	 */
-	private static void checkFrameBlockOcclusion(World world,
-	                                                   BlockVec portalMin,
-	                                                   BlockVec portalMax,
-	                                                   Axis portalAxis) throws MessageException {
+	private static void checkFrameBlocksOcclusion(World world,
+	                                              Cuboid portalFrame,
+	                                              Axis portalAxis) throws MessageException {
+		
+		BlockVec portalMin = portalFrame.getMin();
+		BlockVec portalMax = portalFrame.getMax();
 		
 		for (int x = portalMin.getX(); x < portalMax.getX(); x++) {
 			for (int y = portalMin.getY(); y < portalMax.getY(); y++) {

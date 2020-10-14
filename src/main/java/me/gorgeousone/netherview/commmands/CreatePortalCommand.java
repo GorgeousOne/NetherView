@@ -16,6 +16,7 @@ import me.gorgeousone.netherview.utils.MessageUtils;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -55,6 +56,9 @@ public class CreatePortalCommand extends ArgCommand {
 		
 		try {
 			Portal portal = PortalCreator.createPortal(player.getWorld(), selection.getCuboid());
+//			portal.getFrame().getMin().toVector().toLocation(portal.getWorld()).getBlock().setType(Material.GLOWSTONE);
+//			portal.getFrame().getMax().add(-1, -1, -1).toVector().toLocation(portal.getWorld()).getBlock().setType(Material.GLOWSTONE);
+			
 			portalHandler.addPortal(portal);
 			player.sendMessage("created portal " + selection.getPos1() + " " + selection.getPos2());
 			

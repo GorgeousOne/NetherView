@@ -56,24 +56,27 @@ public class BlockVec {
 		return x;
 	}
 	
-	public void setX(int x) {
+	public BlockVec setX(int x) {
 		this.x = x;
+		return this;
 	}
 	
 	public int getZ() {
 		return z;
 	}
 	
-	public void setZ(int z) {
+	public BlockVec setZ(int z) {
 		this.z = z;
+		return this;
 	}
 	
 	public int getY() {
 		return y;
 	}
 	
-	public void setY(int y) {
+	public BlockVec setY(int y) {
 		this.y = y;
+		return this;
 	}
 	
 	public BlockVec add(BlockVec other) {
