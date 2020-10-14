@@ -9,6 +9,7 @@ import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
 import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.portal.ProjectionEntity;
 import me.gorgeousone.netherview.wrapper.Axis;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
@@ -124,27 +125,27 @@ public class ViewHandler {
 		
 		packetHandler.removeFakeBlocks(player, session.getProjectedBlocks());
 		packetHandler.showEntities(player, session.getHiddenEntities());
-		packetHandler.hideEntities(player, session.getProjectedEntities().keySet());
+		packetHandler.hideProjectedEntities(player, session.getProjectedEntities());
 		
 		unregisterPortalProjection(player);
 	}
 	
-	public void projectEntity(Player player, Entity entity, Transform transform) {
+	public void projectEntity(Player player, ProjectionEntity projectionEntity, Transform transform) {
 		
-		getViewSession(player).getProjectedEntities().put(entity, entity.getLocation());
-		packetHandler.showEntity(player, entity, transform, true);
+		getViewSession(player).getProjectedEntities().add(projectionEntity);
+		packetHandler.showEntity(player, projectionEntity.getEntity(), projectionEntity.getFakeId(), transform, true);
 	}
 	
-	public void destroyProjectedEntity(Player player, Entity entity) {
+	public void destroyProjectedEntity(Player player, ProjectionEntity entity) {
 		
 		getViewSession(player).getProjectedEntities().remove(entity);
-		packetHandler.hideEntities(player, Collections.singleton(entity));
+		packetHandler.hideProjectedEntity(player, entity);
 	}
 	
 	public void showEntity(Player player, Entity entity) {
 		
 		getViewSession(player).getHiddenEntities().remove(entity);
-		packetHandler.showEntity(player, entity, new Transform(), false);
+		packetHandler.showEntity(player, entity, entity.getEntityId(), new Transform(), false);
 	}
 	
 	public void hideEntity(Player player, Entity entity) {
@@ -259,7 +260,7 @@ public class ViewHandler {
 			
 			session.setLastViewFrustum(null);
 			packetHandler.showEntities(player, session.getHiddenEntities());
-			packetHandler.hideEntities(player, session.getProjectedEntities().keySet());
+			packetHandler.hideProjectedEntities(player, session.getProjectedEntities());
 			session.getHiddenEntities().clear();
 			session.getProjectedEntities().clear();
 			

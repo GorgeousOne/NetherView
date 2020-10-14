@@ -21,8 +21,8 @@ public class LinkPortalCommand extends ArgCommand {
 	                         PortalHandler portalHandler) {
 		
 		super("link", NetherViewPlugin.CUSTOM_PORTAL_PERM, false, parent);
-		addArg(new Argument("portal1", ArgType.INTEGER));
-		addArg(new Argument("portal2", ArgType.INTEGER));
+		addArg(new Argument("from portal", ArgType.INTEGER));
+		addArg(new Argument("to portal", ArgType.INTEGER));
 		
 		this.portalHandler = portalHandler;
 	}
