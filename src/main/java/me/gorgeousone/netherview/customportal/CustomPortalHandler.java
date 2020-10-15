@@ -3,6 +3,7 @@ package me.gorgeousone.netherview.customportal;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class CustomPortalHandler {
 	
@@ -44,5 +45,9 @@ public class CustomPortalHandler {
 		}
 		
 		return "there is no way you created over 10,000 custom portals";
+	}
+	
+	public Set<String> getPortalNames() {
+		return customPortals.keySet();
 	}
 }

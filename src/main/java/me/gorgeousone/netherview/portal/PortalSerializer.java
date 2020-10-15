@@ -30,7 +30,7 @@ public class PortalSerializer {
 		this.plugin = plugin;
 	}
 	
-	public void savePortals(FileConfiguration portalConfig, FileConfiguration customPortalConfig) {
+	public void savePortals(FileConfiguration portalConfig) {
 		
 		portalConfig.set("plugin-version", plugin.getDescription().getVersion());
 		portalConfig.set("portal-locations", null);
@@ -68,13 +68,13 @@ public class PortalSerializer {
 		}
 	}
 	
-	public void loadPortals(FileConfiguration portalConfig) throws MessageException {
+	public void loadPortals(FileConfiguration portalConfig) {
 		
-		loadPortalLocations(plugin, portalConfig);
+		loadPortalLocations(portalConfig);
 		loadPortalData(portalConfig);
 	}
 	
-	private void loadPortalLocations(JavaPlugin main, FileConfiguration portalConfig) {
+	private void loadPortalLocations(FileConfiguration portalConfig) {
 		
 		if (!portalConfig.contains("portal-locations")) {
 			return;
@@ -111,7 +111,7 @@ public class PortalSerializer {
 		}
 	}
 	
-	private void loadPortalData(FileConfiguration portalConfig) throws MessageException {
+	private void loadPortalData(FileConfiguration portalConfig) {
 		
 		if (!portalConfig.contains("portal-data")) {
 			return;
@@ -137,7 +137,12 @@ public class PortalSerializer {
 			Portal counterPortal = portalHandler.getPortalByHash(linkedPortalHash);
 			
 			if (counterPortal != null) {
-				portalHandler.linkPortalTo(portal, counterPortal, null);
+				
+				try {
+					portalHandler.linkPortalTo(portal, counterPortal, null);
+				}catch (MessageException e) {
+					plugin.getLogger().warning("Could not link portal '" + portal.toString() + "' to portal '" + counterPortal.toString() + "': " + e.getMessage());
+				}
 			}
 		}
 	}

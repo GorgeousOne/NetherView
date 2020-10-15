@@ -9,12 +9,12 @@ import me.gorgeousone.netherview.wrapper.Axis;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-public class PortalCreator {
+public class CustomPortalCreator {
 	
-	public static CustomPortal createPortal(World world, Cuboid frameShape) throws MessageException {
+	public static CustomPortal createPortal(World world, Cuboid portalFrame) throws MessageException {
 		
-		int widthX = frameShape.getWidthX();
-		int widthZ = frameShape.getWidthZ();
+		int widthX = portalFrame.getWidthX();
+		int widthZ = portalFrame.getWidthZ();
 		
 		if (widthX > 1 && widthZ > 1) {
 			throw new MessageException(Message.SELECTION_NOT_FLAT);
@@ -23,12 +23,12 @@ public class PortalCreator {
 		Axis axis = widthX == 1 ? Axis.Z : Axis.X;
 		BlockVec frameExtent = new BlockVec(axis.getCrossNormal()).setY(1);
 		
-		Cuboid innerShape = frameShape.clone()
+		Cuboid portalInner = portalFrame.clone()
 				.translateMin(frameExtent)
 				.translateMax(frameExtent.multiply(-1));
 		
-		Vector rectMin = innerShape.getMin().toVector();
-		Vector rectMax = innerShape.getMax().toVector().subtract(axis.getNormal());
+		Vector rectMin = portalInner.getMin().toVector();
+		Vector rectMax = portalInner.getMax().toVector().subtract(axis.getNormal());
 		AxisAlignedRect portalRect;
 		
 		try {
@@ -45,6 +45,6 @@ public class PortalCreator {
 			throw new MessageException(Message.PORTAL_TOO_BIG, "20");
 		}
 		
-		return new CustomPortal(world, portalRect, frameShape, innerShape);
+		return new CustomPortal(world, portalRect, portalFrame, portalInner);
 	}
 }

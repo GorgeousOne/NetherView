@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.commmands;
+package me.gorgeousone.netherview.customportal.commands;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;
@@ -10,7 +10,7 @@ import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.customportal.CustomPortalHandler;
 import me.gorgeousone.netherview.customportal.PlayerCuboidSelection;
 import me.gorgeousone.netherview.customportal.PlayerSelectionHandler;
-import me.gorgeousone.netherview.customportal.PortalCreator;
+import me.gorgeousone.netherview.customportal.CustomPortalCreator;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.message.MessageException;
@@ -61,7 +61,7 @@ public class CreatePortalCommand extends ArgCommand {
 		CustomPortal portal;
 		
 		try {
-			portal = PortalCreator.createPortal(player.getWorld(), selection.getCuboid());
+			portal = CustomPortalCreator.createPortal(player.getWorld(), selection.getCuboid());
 			
 		} catch (MessageException e) {
 			MessageUtils.sendInfo(player, e.getPlayerMessage(), e.getPlaceholderValues());

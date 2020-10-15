@@ -25,4 +25,14 @@ public class CustomPortal extends Portal {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+	@Override
+	public void setLinkedTo(Portal counterPortal) {
+		
+		if (counterPortal instanceof CustomPortal) {
+			super.setLinkedTo(counterPortal);
+		}else {
+			throw new IllegalArgumentException("Cannot link custom portal to not custom portal");
+		}
+	}
 }

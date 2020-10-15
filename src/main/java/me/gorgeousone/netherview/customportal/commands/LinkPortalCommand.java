@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.commmands;
+package me.gorgeousone.netherview.customportal.commands;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;
@@ -13,6 +13,9 @@ import me.gorgeousone.netherview.message.MessageException;
 import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.command.CommandSender;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class LinkPortalCommand extends ArgCommand {
 	
@@ -57,5 +60,12 @@ public class LinkPortalCommand extends ArgCommand {
 		} catch (MessageException e) {
 			MessageUtils.sendInfo(sender, e.getPlayerMessage(), e.getPlaceholderValues());
 		}
+	}
+	
+	@Override
+	public List<String> getTabList(CommandSender sender, String[] arguments) {
+		return customPortalHandler.getPortalNames().stream().
+				filter(name -> name.startsWith(arguments[arguments.length-1])).
+				collect(Collectors.toList());
 	}
 }

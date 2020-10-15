@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.commmands;
+package me.gorgeousone.netherview.customportal.commands;
 
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;

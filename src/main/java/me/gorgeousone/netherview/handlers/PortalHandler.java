@@ -168,7 +168,7 @@ public class PortalHandler {
 		UUID worldID = portal.getWorld().getUID();
 		worldsWithPortals.computeIfAbsent(worldID, set -> new HashSet<>());
 		worldsWithPortals.get(worldID).add(portal);
-		MessageUtils.printDebug("Located portal at " + portal.toString());
+		MessageUtils.printDebug("Added" + (portal instanceof CustomPortal ? " custom " : " ") + "portal at " + portal.toString());
 	}
 	
 	/**
@@ -378,7 +378,7 @@ public class PortalHandler {
 		
 		portal.setLinkedTo(counterPortal);
 		
-		MessageUtils.printDebug("Linked portal "
+		MessageUtils.printDebug("Linked" + (portal instanceof CustomPortal ? " custom " : " ") + "portal "
 		                        + portal.toString() + " to portal "
 		                        + counterPortal.toString());
 	}

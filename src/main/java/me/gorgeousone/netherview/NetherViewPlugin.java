@@ -4,10 +4,11 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
-import me.gorgeousone.netherview.commmands.CreatePortalCommand;
-import me.gorgeousone.netherview.commmands.DeletePortalCommand;
+import me.gorgeousone.netherview.customportal.CustomPortalSerializer;
+import me.gorgeousone.netherview.customportal.commands.CreatePortalCommand;
+import me.gorgeousone.netherview.customportal.commands.DeletePortalCommand;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
-import me.gorgeousone.netherview.commmands.LinkPortalCommand;
+import me.gorgeousone.netherview.customportal.commands.LinkPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
@@ -259,18 +260,21 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private void loadSavedPortals() {
 		
 		File portalConfigFile = new File(getDataFolder() + File.separator + "portals.yml");
+		File customPortalConfigFile = new File(getDataFolder() + File.separator + "custom-portals.yml");
 		
 		if (!portalConfigFile.exists()) {
 			return;
 		}
 		
+		if (!customPortalConfigFile.exists()) {
+			return;
+		}
+		
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
+		YamlConfiguration customPortalConfig = YamlConfiguration.loadConfiguration(customPortalConfigFile);
 		
-		try {
-			new PortalSerializer(this, configSettings, portalHandler).loadPortals(portalConfig);
-		} catch (Exception ignored) {}
-		
-		backupPortals();
+		new PortalSerializer(this, configSettings, portalHandler).loadPortals(portalConfig);
+		new CustomPortalSerializer(this, configSettings, portalHandler, customPortalHandler).loadPortals(customPortalConfig);
 	}
 	
 	public void backupPortals() {
@@ -284,7 +288,8 @@ public final class NetherViewPlugin extends JavaPlugin {
 		YamlConfiguration portalConfig = YamlConfiguration.loadConfiguration(portalConfigFile);
 		YamlConfiguration customPortalConfig = YamlConfiguration.loadConfiguration(customPortalConfigFile);
 		
-		new PortalSerializer(this, configSettings, portalHandler).savePortals(portalConfig, customPortalConfig);
+		new PortalSerializer(this, configSettings, portalHandler).savePortals(portalConfig);
+		new CustomPortalSerializer(this, configSettings, portalHandler, customPortalHandler).savePortals(customPortalConfig);
 		
 		try {
 			portalConfig.save(portalConfigFile);
