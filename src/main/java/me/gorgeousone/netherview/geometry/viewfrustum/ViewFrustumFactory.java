@@ -106,7 +106,7 @@ public final class ViewFrustumFactory {
 	//side effects are blocks slightly sticking out at the sides when standing further away
 	private static void addTolerance(Vector rectMin, Vector rectMax, AxisAlignedRect portalRect, double tolerance) {
 		
-		Vector toleranceVec = portalRect.getCrossNormal();
+		Vector toleranceVec = portalRect.getAxis().getCrossNormal();
 		toleranceVec.setY(1);
 		toleranceVec.multiply(tolerance);
 		

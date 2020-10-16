@@ -65,13 +65,14 @@ public class CustomPortalSerializer {
 				CustomPortal customPortal = (CustomPortal) portal;
 				String portalName = customPortal.getName();
 				Cuboid portalFrame = customPortal.getFrame();
+				ConfigurationSection portalData = worldSection.createSection(portalName);
 				
-				worldSection.set(portalName + ".min", portalFrame.getMin().serialize());
-				worldSection.set(portalName + ".max", portalFrame.getMax().serialize());
-				worldSection.set(portalName + ".isFlipped", portal.isViewFlipped());
+				portalData.set("min", portalFrame.getMin().serialize());
+				portalData.set("max", portalFrame.getMax().serialize());
+				portalData.set("isFlipped", portal.isViewFlipped());
 				
 				if (customPortal.isLinked()) {
-					worldSection.set(portalName + ".link", ((CustomPortal) customPortal.getCounterPortal()).getName());
+					portalData.set("link", ((CustomPortal) customPortal.getCounterPortal()).getName());
 				}
 			}
 		}
@@ -98,37 +99,41 @@ public class CustomPortalSerializer {
 			ConfigurationSection worldSection = portalsSection.getConfigurationSection(worldId);
 			
 			for (String portalName : worldSection.getKeys(false)) {
-				
-				ConfigurationSection portalData = worldSection.getConfigurationSection(portalName);
-				
-				try {
-					
-					BlockVec portalMin = BlockVec.fromString(portalData.getString("min"));
-					BlockVec portalMax = BlockVec.fromString(portalData.getString("max"));
-					
-					Cuboid portalFrame = new Cuboid(portalMin, portalMax);
-					CustomPortal portal = CustomPortalCreator.createPortal(world, portalFrame);
-					
-					portal.setName(portalName);
-					portal.setViewFlipped(portalData.getBoolean("is-flipped"));
-					
-					if (portalData.contains("link")) {
-						portalLinks.put(portalName, portalData.getString("link"));
-					}
-					
-					customPortalHandler.addPortal(portal);
-					
-					if (configSettings.canCreateCustomPortals(world)) {
-						portalHandler.addPortal(portal);
-					}
-					
-				} catch (IllegalArgumentException | IllegalStateException | MessageException e) {
-					throw new IllegalArgumentException("Unable to load portal at [" + world.getName() + "," + portalName + "]: " + e.getMessage());
-				}
+				deserializeCustomPortal(world, portalName, worldSection.getConfigurationSection(portalName), portalLinks);
 			}
 		}
 		
 		linkCustomPortals(portalLinks);
+	}
+	
+	private void deserializeCustomPortal(World world,
+	                                     String portalName,
+	                                     ConfigurationSection portalData,
+	                                     Map<String, String> portalLinks) {
+		
+		try {
+			BlockVec portalMin = BlockVec.fromString(portalData.getString("min"));
+			BlockVec portalMax = BlockVec.fromString(portalData.getString("max"));
+			
+			Cuboid portalFrame = new Cuboid(portalMin, portalMax);
+			CustomPortal portal = CustomPortalCreator.createPortal(world, portalFrame);
+			
+			portal.setName(portalName);
+			portal.setViewFlipped(portalData.getBoolean("is-flipped"));
+			
+			customPortalHandler.addPortal(portal);
+			
+			if (configSettings.canCreateCustomPortals(world)) {
+				portalHandler.addPortal(portal);
+			}
+			
+			if (portalData.contains("link")) {
+				portalLinks.put(portalName, portalData.getString("link"));
+			}
+			
+		} catch (IllegalArgumentException | IllegalStateException | MessageException e) {
+			plugin.getLogger().warning("Unable to load custom portal at [" + world.getName() + "," + portalName + "]: " + e.getMessage());
+		}
 	}
 	
 	private void linkCustomPortals(Map<String, String> portalLinks) {
@@ -142,15 +147,15 @@ public class CustomPortalSerializer {
 			CustomPortal toPortal = customPortalHandler.getPortal(entry.getValue());
 			
 			if (toPortal == null) {
-				plugin.getLogger().warning("Could not find portal with name'" + toName + "' for linking with portal '" + fromName + "'.");
+				plugin.getLogger().warning("Could not find custom portal with name'" + toName + "' for linking with portal '" + fromName + "'.");
 				continue;
 			}
 			
 			try {
 				portalHandler.linkPortalTo(fromPortal, toPortal, null);
 				
-			}catch (MessageException e) {
-				plugin.getLogger().warning("Unable to link portal '" + fromName + "' to portal '" + toName + "': " + e.getMessage());
+			} catch (MessageException e) {
+				plugin.getLogger().warning("Unable to link custom portal '" + fromName + "' to portal '" + toName + "': " + e.getMessage());
 			}
 		}
 	}

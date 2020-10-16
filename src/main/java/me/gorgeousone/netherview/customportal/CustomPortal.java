@@ -31,7 +31,7 @@ public class CustomPortal extends Portal {
 		
 		if (counterPortal instanceof CustomPortal) {
 			super.setLinkedTo(counterPortal);
-		}else {
+		} else {
 			throw new IllegalArgumentException("Cannot link custom portal to not custom portal");
 		}
 	}

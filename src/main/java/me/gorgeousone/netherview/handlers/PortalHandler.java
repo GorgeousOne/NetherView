@@ -42,7 +42,8 @@ public class PortalHandler {
 	private final ConfigSettings configSettings;
 	private final Material portalMaterial;
 	
-	private final Map<UUID, Set<Portal>> worldsWithPortals;
+	private final Map<UUID, Set<Portal>> portalInWorlds;
+	
 	private final Map<Portal, Long> loadedPortals;
 	private BukkitRunnable expirationTimer;
 	
@@ -54,7 +55,7 @@ public class PortalHandler {
 		this.configSettings = configSettings;
 		this.portalMaterial = portalMaterial;
 		
-		worldsWithPortals = new HashMap<>();
+		portalInWorlds = new HashMap<>();
 		loadedPortals = new HashMap<>();
 		
 		startCacheExpirationTimer();
@@ -68,13 +69,13 @@ public class PortalHandler {
 	
 	public void disable() {
 		
-		worldsWithPortals.clear();
+		portalInWorlds.clear();
 		loadedPortals.clear();
 		expirationTimer.cancel();
 	}
 	
 	public Set<Portal> getPortals(World world) {
-		return worldsWithPortals.getOrDefault(world.getUID(), new HashSet<>());
+		return portalInWorlds.getOrDefault(world.getUID(), new HashSet<>());
 	}
 	
 	public Set<Portal> getLoadedPortals() {
@@ -82,7 +83,7 @@ public class PortalHandler {
 	}
 	
 	public boolean hasPortals(World world) {
-		return worldsWithPortals.containsKey(world.getUID());
+		return portalInWorlds.containsKey(world.getUID());
 	}
 	
 	/**
@@ -92,7 +93,7 @@ public class PortalHandler {
 		
 		int portalCount = 0;
 		
-		for (Map.Entry<UUID, Set<Portal>> entry : worldsWithPortals.entrySet()) {
+		for (Map.Entry<UUID, Set<Portal>> entry : portalInWorlds.entrySet()) {
 			portalCount += entry.getValue().size();
 		}
 		
@@ -111,7 +112,9 @@ public class PortalHandler {
 			}
 		}
 		
-		return addPortalStructure(portalBlock);
+		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
+		addPortal(portal);
+		return portal;
 	}
 	
 	/**
@@ -120,8 +123,8 @@ public class PortalHandler {
 	 */
 	public Portal getPortalByHash(int portalHash) {
 		
-		for (UUID worldID : worldsWithPortals.keySet()) {
-			for (Portal portal : worldsWithPortals.get(worldID)) {
+		for (UUID worldID : portalInWorlds.keySet()) {
+			for (Portal portal : portalInWorlds.get(worldID)) {
 				
 				if (portal.hashCode() == portalHash) {
 					return portal;
@@ -165,22 +168,22 @@ public class PortalHandler {
 	
 	public void addPortal(Portal portal) {
 		
+		World world = portal.getWorld();
 		UUID worldID = portal.getWorld().getUID();
-		worldsWithPortals.computeIfAbsent(worldID, set -> new HashSet<>());
-		worldsWithPortals.get(worldID).add(portal);
-		MessageUtils.printDebug("Added" + (portal instanceof CustomPortal ? " custom " : " ") + "portal at " + portal.toString());
-	}
-	
-	/**
-	 * Locates and registers a new portal.
-	 *
-	 * @param portalBlock one block of the structure required to detect the rest of it
-	 */
-	public Portal addPortalStructure(Block portalBlock) throws MessageException {
 		
-		Portal portal = PortalLocator.locatePortalStructure(portalBlock);
-		addPortal(portal);
-		return portal;
+		if (portal instanceof CustomPortal) {
+			
+			if (!configSettings.canCreateCustomPortals(world)) {
+				throw new IllegalArgumentException("Custom portals are not enabled in world '" + world.getName() + "'. Cannot add custom portal.");
+			}
+			
+		} else if (!configSettings.canCreatePortalViews(world)) {
+			throw new IllegalArgumentException("Portal viewing is not enabled in world '" + world.getName() + "'. Cannot add portal.");
+		}
+		
+		portalInWorlds.computeIfAbsent(worldID, set -> new HashSet<>());
+		portalInWorlds.get(worldID).add(portal);
+		MessageUtils.printDebug("Added" + (portal instanceof CustomPortal ? " custom " : " ") + "portal at " + portal.toString());
 	}
 	
 	/**
@@ -246,8 +249,8 @@ public class PortalHandler {
 		
 		Set<Portal> linkedToPortals = new HashSet<>();
 		
-		for (UUID worldId : worldsWithPortals.keySet()) {
-			for (Portal secondPortal : worldsWithPortals.get(worldId)) {
+		for (UUID worldId : portalInWorlds.keySet()) {
+			for (Portal secondPortal : portalInWorlds.get(worldId)) {
 				
 				if (secondPortal.equals(portal)) {
 					continue;

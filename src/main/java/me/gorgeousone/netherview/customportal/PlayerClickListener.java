@@ -1,7 +1,11 @@
 package me.gorgeousone.netherview.customportal;
 
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.message.Message;
+import me.gorgeousone.netherview.message.MessageUtils;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,13 +18,20 @@ import org.bukkit.inventory.ItemStack;
 public class PlayerClickListener implements Listener {
 	
 	private final PlayerSelectionHandler selectionHandler;
+	private final ConfigSettings configSettings;
 	
-	public PlayerClickListener(PlayerSelectionHandler selectionHandler) {
+	public PlayerClickListener(PlayerSelectionHandler selectionHandler,
+	                           ConfigSettings configSettings) {
 		this.selectionHandler = selectionHandler;
+		this.configSettings = configSettings;
 	}
 	
 	@EventHandler
 	public void onPlayerClick(PlayerInteractEvent event) {
+		
+		if (!configSettings.canCreateCustomPortals(event.getPlayer().getWorld())) {
+			return;
+		}
 		
 		Action action = event.getAction();
 		
@@ -30,13 +41,12 @@ public class PlayerClickListener implements Listener {
 		
 		Player player = event.getPlayer();
 		
-		if (!player.hasPermission(NetherViewPlugin.CUSTOM_PORTAL_PERM)) {
+		if (player.getGameMode() != GameMode.CREATIVE || !player.hasPermission(NetherViewPlugin.CUSTOM_PORTAL_PERM)) {
 			return;
 		}
 		
 		ItemStack itemInHand = getHandItem(player);
 		
-		//TODO add custom item
 		if (itemInHand == null || itemInHand.getType() != Material.BLAZE_ROD) {
 			return;
 		}
@@ -52,9 +62,8 @@ public class PlayerClickListener implements Listener {
 			}
 			
 			selection.setPos1(clickedPos);
-			player.sendMessage("pos 1");
-//                       MessageUtils.sendInfo(player, Message.SET_FIRST_CUBOID_POSITION, clickedPos.toString());
-		
+			MessageUtils.sendInfo(player, Message.SET_FIRST_CUBOID_POSITION, clickedPos.toString());
+			
 		} else {
 			
 			if (clickedPos.equals(selection.getPos2())) {
@@ -62,15 +71,8 @@ public class PlayerClickListener implements Listener {
 			}
 			
 			selection.setPos2(clickedPos);
-			player.sendMessage("pos 2");
-//                       MessageUtils.sendInfo(player, Message.SET_SECOND_CUBOID_POSITION, clickedPos.toString());
+			MessageUtils.sendInfo(player, Message.SET_SECOND_CUBOID_POSITION, clickedPos.toString());
 		}
-
-//             if (selection.bothPositionsAreSet()) {
-//                     Cuboid cuboid = new Cuboid(selection.getPos1(), selection.getPos2());
-//                     String cuboidSize = cuboid.getWidthX() + "x" + cuboid.getHeight() + "x" + cuboid.getWidthZ();
-//                     MessageUtils.sendInfo(player, Message.SELECTION_SIZE_INFO, cuboidSize);
-//             }
 	}
 	
 	private boolean isOffHandClick(PlayerInteractEvent event) {

@@ -5,14 +5,15 @@ import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.message.MessageException;
+import me.gorgeousone.netherview.utils.VersionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,6 +26,7 @@ public class PortalSerializer {
 	public PortalSerializer(JavaPlugin plugin,
 	                        ConfigSettings configSettings,
 	                        PortalHandler portalHandler) {
+		
 		this.configSettings = configSettings;
 		this.portalHandler = portalHandler;
 		this.plugin = plugin;
@@ -33,11 +35,9 @@ public class PortalSerializer {
 	public void savePortals(FileConfiguration portalConfig) {
 		
 		portalConfig.set("plugin-version", plugin.getDescription().getVersion());
-		portalConfig.set("portal-locations", null);
-		portalConfig.set("portal-data", null);
+		portalConfig.set("portals", null);
 		
-		ConfigurationSection portalLocations = portalConfig.createSection("portal-locations");
-		ConfigurationSection portalData = portalConfig.createSection("portal-data");
+		ConfigurationSection portalSection = portalConfig.createSection("portals");
 		
 		for (World world : Bukkit.getWorlds()) {
 			
@@ -46,7 +46,8 @@ public class PortalSerializer {
 			}
 			
 			Set<Portal> portalsInWorld = portalHandler.getPortals(world);
-			List<String> portalStrings = new ArrayList<>();
+			String worldId = world.getUID().toString();
+			ConfigurationSection worldSection = null;
 			
 			for (Portal portal : portalsInWorld) {
 				
@@ -54,95 +55,102 @@ public class PortalSerializer {
 					continue;
 				}
 				
-				int portalHash = portal.hashCode();
+				if (worldSection == null) {
+					worldSection = portalSection.createSection(worldId);
+				}
 				
-				portalStrings.add(new BlockVec(portal.getLocation()).serialize());
-				portalData.set(portalHash + ".is-flipped", portal.isViewFlipped());
+				int portalHash = portal.hashCode();
+				ConfigurationSection portalData = worldSection.createSection(Integer.toString(portalHash));
+				
+				portalData.set("location", new BlockVec(portal.getLocation()).serialize());
+				portalData.set("isFlipped", portal.isViewFlipped());
 				
 				if (portal.isLinked()) {
-					portalData.set(portalHash + ".link", portal.getCounterPortal().hashCode());
+					portalData.set("link", portal.getCounterPortal().hashCode());
 				}
 			}
-			
-			portalLocations.set(world.getUID().toString(), portalStrings);
 		}
 	}
 	
 	public void loadPortals(FileConfiguration portalConfig) {
 		
-		loadPortalLocations(portalConfig);
-		loadPortalData(portalConfig);
-	}
-	
-	private void loadPortalLocations(FileConfiguration portalConfig) {
-		
-		if (!portalConfig.contains("portal-locations")) {
+		if (!portalConfig.contains("plugin-version") || VersionUtils.versionIsLowerThan(portalConfig.getString("plugin-version"), "3")) {
+			new PortalSerializer2_1_0(plugin, configSettings, portalHandler).loadPortals(portalConfig);
 			return;
 		}
 		
-		ConfigurationSection portalLocations = portalConfig.getConfigurationSection("portal-locations");
+		if (!portalConfig.contains("portals")) {
+			return;
+		}
 		
-		for (String worldID : portalLocations.getKeys(false)) {
+		ConfigurationSection portalsSection = portalConfig.getConfigurationSection("portals");
+		Map<Integer, Integer> portalLinks = new HashMap<>();
+		
+		for (String worldId : portalsSection.getKeys(false)) {
 			
-			World worldWithPortals = Bukkit.getWorld(UUID.fromString(worldID));
+			World world = Bukkit.getWorld(UUID.fromString(worldId));
 			
-			if (worldWithPortals == null) {
-				plugin.getLogger().warning("Could not find world with ID: '" + worldID + "'. Portals saved for this world will not be loaded.");
+			if (world == null) {
+				plugin.getLogger().warning("Could not find world with ID: '" + worldId + "'. Portals saved for this world will not be loaded.");
 				continue;
 			}
 			
-			if (configSettings.canCreatePortalViews(worldWithPortals)) {
-				deserializePortals(worldWithPortals, portalLocations.getStringList(worldID));
+			if (configSettings.canCreatePortalViews(world)) {
+				
+				ConfigurationSection worldSection = portalsSection.getConfigurationSection(worldId);
+				
+				for (String portalHashString : worldSection.getKeys(false)) {
+					deserializePortal(world, portalHashString, worldSection.getConfigurationSection(portalHashString), portalLinks);
+				}
 			}
+		}
+		
+		linkPortals(portalLinks);
+	}
+	
+	private void deserializePortal(World world,
+	                               String portalHashString,
+	                               ConfigurationSection portalData,
+	                               Map<Integer, Integer> portalLinks) {
+		
+		try {
+			
+			int portalHash = Integer.parseInt(portalHashString);
+			
+			BlockVec portalLoc = BlockVec.fromString(portalData.getString("location"));
+			Portal portal = PortalLocator.locatePortalStructure(portalLoc.toBlock(world));
+			portalHandler.addPortal(portal);
+			portal.setViewFlipped(portalData.getBoolean("is-flipped"));
+			
+			if (portalData.contains("link")) {
+				portalLinks.put(portalHash, portalData.getInt("link"));
+			}
+			
+		} catch (IllegalArgumentException | IllegalStateException | MessageException e) {
+			plugin.getLogger().warning("Unable to load portal '" + portalHashString + "' in world " + world.getName() + "': " + e.getMessage());
 		}
 	}
 	
-	private void deserializePortals(World world, List<String> portalLocs) {
+	private void linkPortals(Map<Integer, Integer> portalLinks) {
 		
-		for (String serializedBlockVec : portalLocs) {
+		for (Map.Entry<Integer, Integer> entry : portalLinks.entrySet()) {
+			
+			Integer fromPortalHash = entry.getKey();
+			Integer toPortalHash = entry.getValue();
+			
+			Portal fromPortal = portalHandler.getPortalByHash(fromPortalHash);
+			Portal toPortal = portalHandler.getPortalByHash(toPortalHash);
+			
+			if (toPortal == null) {
+				plugin.getLogger().warning("Could not find custom portal with name'" + toPortalHash + "' for linking with portal '" + fromPortalHash + "'.");
+				continue;
+			}
 			
 			try {
-				BlockVec portalLoc = BlockVec.fromString(serializedBlockVec);
-				portalHandler.addPortalStructure(world.getBlockAt(portalLoc.getX(), portalLoc.getY(), portalLoc.getZ()));
+				portalHandler.linkPortalTo(fromPortal, toPortal, null);
 				
-			} catch (IllegalArgumentException | IllegalStateException | MessageException e) {
-				throw new IllegalArgumentException("Unable to load portal at [" + world.getName() + "," + serializedBlockVec + "]: " + e.getMessage());
-			}
-		}
-	}
-	
-	private void loadPortalData(FileConfiguration portalConfig) {
-		
-		if (!portalConfig.contains("portal-data")) {
-			return;
-		}
-		
-		ConfigurationSection portalData = portalConfig.getConfigurationSection("portal-data");
-		
-		for (String portalHashString : portalData.getKeys(false)) {
-			
-			Portal portal = portalHandler.getPortalByHash(Integer.parseInt(portalHashString));
-			
-			if (portal == null) {
-				continue;
-			}
-			
-			portal.setViewFlipped(portalData.getBoolean(portalHashString + ".is-flipped"));
-			
-			if (!portalData.contains(portalHashString + ".link")) {
-				continue;
-			}
-			
-			int linkedPortalHash = portalData.getInt(portalHashString + ".link");
-			Portal counterPortal = portalHandler.getPortalByHash(linkedPortalHash);
-			
-			if (counterPortal != null) {
-				
-				try {
-					portalHandler.linkPortalTo(portal, counterPortal, null);
-				}catch (MessageException e) {
-					plugin.getLogger().warning("Could not link portal '" + portal.toString() + "' to portal '" + counterPortal.toString() + "': " + e.getMessage());
-				}
+			} catch (MessageException e) {
+				plugin.getLogger().warning("Unable to link custom portal '" + fromPortalHash + "' to portal '" + toPortalHash + "': " + e.getMessage());
 			}
 		}
 	}

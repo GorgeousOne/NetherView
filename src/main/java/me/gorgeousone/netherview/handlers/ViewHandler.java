@@ -245,7 +245,6 @@ public class ViewHandler {
 		PlayerViewSession session = getViewSession(player);
 		
 		if (session == null) {
-			
 			session = createViewSession(player, portal);
 			
 		} else if (!portal.equals(session.getViewedPortal())) {
@@ -256,13 +255,16 @@ public class ViewHandler {
 		
 		session.setViewedPortalSide(projection);
 		
-		if (!displayFrustum && session.getLastViewFrustum() != null) {
+		if (!displayFrustum) {
 			
-			session.setLastViewFrustum(null);
-			packetHandler.showEntities(player, session.getHiddenEntities());
-			packetHandler.hideProjectedEntities(player, session.getProjectedEntities());
-			session.getHiddenEntities().clear();
-			session.getProjectedEntities().clear();
+			if (session.getLastViewFrustum() != null) {
+				
+				session.setLastViewFrustum(null);
+				packetHandler.showEntities(player, session.getHiddenEntities());
+				packetHandler.hideProjectedEntities(player, session.getProjectedEntities());
+				session.getHiddenEntities().clear();
+				session.getProjectedEntities().clear();
+			}
 			
 		} else {
 			session.setLastViewFrustum(playerFrustum);

@@ -4,11 +4,7 @@ import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
-import me.gorgeousone.netherview.customportal.CustomPortalSerializer;
-import me.gorgeousone.netherview.customportal.commands.CreatePortalCommand;
-import me.gorgeousone.netherview.customportal.commands.DeletePortalCommand;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
-import me.gorgeousone.netherview.customportal.commands.LinkPortalCommand;
 import me.gorgeousone.netherview.commmands.ListPortalsCommand;
 import me.gorgeousone.netherview.commmands.PortalInfoCommand;
 import me.gorgeousone.netherview.commmands.ReloadCommand;
@@ -16,8 +12,12 @@ import me.gorgeousone.netherview.commmands.ToggleDebugCommand;
 import me.gorgeousone.netherview.commmands.TogglePortalViewCommand;
 import me.gorgeousone.netherview.commmands.ToggleWarningsCommand;
 import me.gorgeousone.netherview.customportal.CustomPortalHandler;
+import me.gorgeousone.netherview.customportal.CustomPortalSerializer;
 import me.gorgeousone.netherview.customportal.PlayerClickListener;
 import me.gorgeousone.netherview.customportal.PlayerSelectionHandler;
+import me.gorgeousone.netherview.customportal.commands.CreatePortalCommand;
+import me.gorgeousone.netherview.customportal.commands.DeletePortalCommand;
+import me.gorgeousone.netherview.customportal.commands.LinkPortalCommand;
 import me.gorgeousone.netherview.handlers.EntityVisibilityHandler;
 import me.gorgeousone.netherview.handlers.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
@@ -234,7 +234,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		manager.registerEvents(new BlockChangeListener(this, configSettings, portalHandler, viewHandler, packetHandler, portalMaterial), this);
 		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
 		
-		manager.registerEvents(new PlayerClickListener(selectionHandler), this);
+		manager.registerEvents(new PlayerClickListener(selectionHandler, configSettings), this);
 	}
 	
 	private void loadConfigSettings() {

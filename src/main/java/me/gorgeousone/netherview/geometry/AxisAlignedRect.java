@@ -90,20 +90,6 @@ public class AxisAlignedRect {
 		}
 	}
 	
-	/**
-	 * Returns a normal vector for the plane of the rectangle.
-	 */
-	public Vector getNormal() {
-		return axis.getNormal();
-	}
-	
-	/**
-	 * Returns a vector 90° to the plane normal vector
-	 */
-	public Vector getCrossNormal() {
-		return axis.getCrossNormal();
-	}
-	
 	@Override
 	public AxisAlignedRect clone() {
 		return new AxisAlignedRect(getAxis(), getMin(), getMax());
