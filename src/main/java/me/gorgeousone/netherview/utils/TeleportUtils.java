@@ -1,24 +1,26 @@
 package me.gorgeousone.netherview.utils;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
-public final class InvulnerabilityUtils {
+public final class TeleportUtils {
 	
-	private InvulnerabilityUtils() {}
+	private TeleportUtils() {}
 	
-	private static Field PLAYER_ABILITIES;
-	private static Field IS_INVULNERABLE;
+	private static Field FIELD_PLAYER_ABILITIES;
+	private static Field FIELD_IS_INVULNERABLE;
 	
 	static {
 		
 		try {
-			PLAYER_ABILITIES = NmsUtils.getNmsClass("EntityPlayer").getField("abilities");
-			IS_INVULNERABLE = NmsUtils.getNmsClass("PlayerAbilities").getField("isInvulnerable");
+			FIELD_PLAYER_ABILITIES = NmsUtils.getNmsClass("EntityPlayer").getField("abilities");
+			FIELD_IS_INVULNERABLE = NmsUtils.getNmsClass("PlayerAbilities").getField("isInvulnerable");
 			
 		} catch (ClassNotFoundException | NoSuchFieldException e) {
 			e.printStackTrace();
@@ -29,15 +31,15 @@ public final class InvulnerabilityUtils {
 		
 		try {
 			Object nmsPlayer = NmsUtils.getHandle(player);
-			Object playerAbilities = PLAYER_ABILITIES.get(nmsPlayer);
-			IS_INVULNERABLE.setBoolean(playerAbilities, true);
+			Object playerAbilities = FIELD_PLAYER_ABILITIES.get(nmsPlayer);
+			FIELD_IS_INVULNERABLE.setBoolean(playerAbilities, true);
 			
 			new BukkitRunnable() {
 				@Override
 				public void run() {
 					
 					try {
-						IS_INVULNERABLE.setBoolean(playerAbilities, false);
+						FIELD_IS_INVULNERABLE.setBoolean(playerAbilities, false);
 					} catch (IllegalAccessException e) {
 						e.printStackTrace();
 					}

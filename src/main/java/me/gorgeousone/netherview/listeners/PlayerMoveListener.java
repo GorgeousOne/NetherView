@@ -6,7 +6,7 @@ import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.customportal.CustomPortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
-import me.gorgeousone.netherview.utils.InvulnerabilityUtils;
+import me.gorgeousone.netherview.utils.TeleportUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -67,14 +67,14 @@ public class PlayerMoveListener implements Listener {
 			
 			//sets player temporarily invulnerable so the game will instantly teleport them on entering a portal
 			if (configSettings.isInstantTeleportEnabled() && enteredNewBlock && mortalEnteredPortal(player, from, to)) {
-				InvulnerabilityUtils.setTemporarilyInvulnerable(player, plugin, 2);
+				TeleportUtils.setTemporarilyInvulnerable(player, plugin, 2);
 			}
 			
 			handlePortalViewingOnMove(player, from, to);
 		}
 		
 		if (enteredNewBlock && configSettings.canCreatePortalViews(world)) {
-			handleCustomPortalTp(player, to);
+			handleCustomPortalTp(player, from, to);
 		}
 	}
 	
@@ -93,7 +93,7 @@ public class PlayerMoveListener implements Listener {
 		}
 	}
 	
-	private void handleCustomPortalTp(Player player, Location to) {
+	private void handleCustomPortalTp(Player player, Location from, Location to) {
 		
 		CustomPortal portal = customPortalHandler.getPortal(to);
 		UUID playerId = player.getUniqueId();
@@ -104,7 +104,9 @@ public class PlayerMoveListener implements Listener {
 		} else if (!teleportedPlayers.contains(playerId)) {
 			
 			Transform tpTransform = portal.getTpTransform();
-			Vector transformedVel = tpTransform.rotateVec(player.getVelocity());
+			
+			Vector vel = to.toVector().subtract(from.toVector());
+			Vector transformedVel = tpTransform.rotateVec(vel);
 			Location destination = tpTransform.transformLoc(to.clone());
 			
 			player.teleport(destination);
