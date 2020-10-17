@@ -96,10 +96,13 @@ public class CustomPortalSerializer {
 				continue;
 			}
 			
-			ConfigurationSection worldSection = portalsSection.getConfigurationSection(worldId);
-			
-			for (String portalName : worldSection.getKeys(false)) {
-				deserializeCustomPortal(world, portalName, worldSection.getConfigurationSection(portalName), portalLinks);
+			if (configSettings.canCreateCustomPortals(world)) {
+				
+				ConfigurationSection worldSection = portalsSection.getConfigurationSection(worldId);
+				
+				for (String portalName : worldSection.getKeys(false)) {
+					deserializeCustomPortal(world, portalName, worldSection.getConfigurationSection(portalName), portalLinks);
+				}
 			}
 		}
 		
@@ -122,10 +125,7 @@ public class CustomPortalSerializer {
 			portal.setViewFlipped(portalData.getBoolean("is-flipped"));
 			
 			customPortalHandler.addPortal(portal);
-			
-			if (configSettings.canCreateCustomPortals(world)) {
-				portalHandler.addPortal(portal);
-			}
+			portalHandler.addPortal(portal);
 			
 			if (portalData.contains("link")) {
 				portalLinks.put(portalName, portalData.getString("link"));

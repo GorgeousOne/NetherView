@@ -2,12 +2,15 @@ package me.gorgeousone.netherview.listeners;
 
 import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
+import me.gorgeousone.netherview.blockcache.Transform;
+import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.customportal.CustomPortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.utils.InvulnerabilityUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,6 +20,10 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * A listener class that informs the view handler to update the portal view for players when they move.
@@ -30,6 +37,8 @@ public class PlayerMoveListener implements Listener {
 	private final CustomPortalHandler customPortalHandler;
 	private final Material portalMaterial;
 	
+	private final Set<UUID> teleportedPlayers;
+	
 	public PlayerMoveListener(NetherViewPlugin plugin,
 	                          ConfigSettings configSettings, ViewHandler viewHandler,
 	                          CustomPortalHandler customPortalHandler,
@@ -40,36 +49,67 @@ public class PlayerMoveListener implements Listener {
 		this.viewHandler = viewHandler;
 		this.customPortalHandler = customPortalHandler;
 		this.portalMaterial = portalMaterial;
+		
+		teleportedPlayers = new HashSet<>();
 	}
 	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
 		
 		Player player = event.getPlayer();
+		World world = player.getWorld();
 		Location from = event.getFrom();
 		Location to = event.getTo();
 		
 		boolean enteredNewBlock = playerEnteredNewBlock(from, to);
 		
-		if (configSettings.canCreatePortalViews(player.getWorld())) {
+		if (configSettings.canCreatePortalViews(world)) {
 			
 			//sets player temporarily invulnerable so the game will instantly teleport them on entering a portal
 			if (configSettings.isInstantTeleportEnabled() && enteredNewBlock && mortalEnteredPortal(player, from, to)) {
 				InvulnerabilityUtils.setTemporarilyInvulnerable(player, plugin, 2);
 			}
 			
-			Vector fromVec = from.toVector();
-			Vector toVec = to.toVector();
+			handlePortalViewingOnMove(player, from, to);
+		}
+		
+		if (enteredNewBlock && configSettings.canCreatePortalViews(world)) {
+			handleCustomPortalTp(player, to);
+		}
+	}
+	
+	private void handlePortalViewingOnMove(Player player, Location from, Location to) {
+		
+		Vector fromVec = from.toVector();
+		Vector toVec = to.toVector();
+		
+		if (!fromVec.equals(toVec) &&
+		    player.getGameMode() != GameMode.SPECTATOR &&
+		    viewHandler.hasPortalViewEnabled(player) &&
+		    player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
 			
-			if (!fromVec.equals(toVec) &&
+			Vector playerMovement = toVec.subtract(fromVec);
+			viewHandler.displayClosestPortalTo(player, player.getEyeLocation().add(playerMovement));
+		}
+	}
+	
+	private void handleCustomPortalTp(Player player, Location to) {
+		
+		CustomPortal portal = customPortalHandler.getPortal(to);
+		UUID playerId = player.getUniqueId();
+		
+		if (portal == null) {
+			teleportedPlayers.remove(playerId);
 			
-			    player.getGameMode() != GameMode.SPECTATOR &&
-			    viewHandler.hasPortalViewEnabled(player) &&
-			    player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
-				
-				Vector playerMovement = toVec.subtract(fromVec);
-				viewHandler.displayClosestPortalTo(player, player.getEyeLocation().add(playerMovement));
-			}
+		} else if (!teleportedPlayers.contains(playerId)) {
+			
+			Transform tpTransform = portal.getTpTransform();
+			Vector transformedVel = tpTransform.rotateVec(player.getVelocity());
+			Location destination = tpTransform.transformLoc(to.clone());
+			
+			player.teleport(destination);
+			player.setVelocity(transformedVel);
+			teleportedPlayers.add(playerId);
 		}
 	}
 	

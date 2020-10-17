@@ -13,6 +13,9 @@ import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.message.MessageUtils;
 import org.bukkit.command.CommandSender;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class DeletePortalCommand extends ArgCommand {
 	
 	private final PortalHandler portalHandler;
@@ -43,5 +46,18 @@ public class DeletePortalCommand extends ArgCommand {
 		customPortalHandler.removePortal(portal);
 		portalHandler.removePortal(portal);
 		MessageUtils.sendInfo(sender, Message.REMOVED_PORTAL, portalName);
+	}
+	
+	@Override
+	public List<String> getTabList(CommandSender sender, String[] arguments) {
+		
+		if (arguments.length <= 1) {
+			
+			return customPortalHandler.getPortalNames().stream().
+					filter(name -> name.startsWith(arguments[arguments.length - 1])).
+					collect(Collectors.toList());
+		}
+		
+		return super.getTabList(sender, arguments);
 	}
 }

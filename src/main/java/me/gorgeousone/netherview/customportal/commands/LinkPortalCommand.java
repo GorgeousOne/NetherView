@@ -64,8 +64,14 @@ public class LinkPortalCommand extends ArgCommand {
 	
 	@Override
 	public List<String> getTabList(CommandSender sender, String[] arguments) {
-		return customPortalHandler.getPortalNames().stream().
-				filter(name -> name.startsWith(arguments[arguments.length - 1])).
-				collect(Collectors.toList());
+		
+		if (arguments.length <= 2) {
+			
+			return customPortalHandler.getPortalNames().stream().
+					filter(name -> name.startsWith(arguments[arguments.length - 1])).
+					collect(Collectors.toList());
+		}
+		
+		return super.getTabList(sender, arguments);
 	}
 }

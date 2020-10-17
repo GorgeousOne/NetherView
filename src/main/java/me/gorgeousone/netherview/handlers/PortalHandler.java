@@ -342,6 +342,7 @@ public class PortalHandler {
 		} else {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, frontCache, backCache, linkTransform));
 		}
+		
 		addPortalToExpirationTimer(portal);
 	}
 	

@@ -16,6 +16,7 @@ import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.ProjectionEntity;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.utils.NmsUtils;
+import me.gorgeousone.netherview.utils.ObjectData;
 import me.gorgeousone.netherview.utils.TimeUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
@@ -58,17 +59,18 @@ public class PacketHandler {
 	private final ProtocolManager protocolManager;
 	private final Set<Integer> markedPacketIds;
 	
-	private PacketConstructor entityMetadataPacket,
-			entityHeadRotationPacket,
-			namedEntitySpawnPacket,
-			spawnEntityPacket,
-			spawnEntityLiving,
-			spawnEntityPainting;
+	private PacketConstructor entityMetadataPacket;
+	private PacketConstructor entityHeadRotationPacket;
+	private PacketConstructor namedEntitySpawnPacket;
+	private PacketConstructor spawnEntityPacket;
+	private PacketConstructor spawnEntityLivingPacket;
+	private PacketConstructor spawnEntityPaintingPacket;
 	
 	public PacketHandler() {
 		
 		protocolManager = ProtocolLibrary.getProtocolManager();
 		markedPacketIds = new HashSet<>();
+		
 		try {
 			createPacketsConstructors();
 		} catch (ClassNotFoundException e) {
@@ -80,9 +82,15 @@ public class PacketHandler {
 		
 		entityHeadRotationPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.ENTITY_HEAD_ROTATION, NmsUtils.getNmsClass("Entity"), byte.class);
 		namedEntitySpawnPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.NAMED_ENTITY_SPAWN, NmsUtils.getNmsClass("EntityHuman"));
-		spawnEntityPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"));
-		spawnEntityLiving = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_LIVING, NmsUtils.getNmsClass("EntityLiving"));
-		spawnEntityPainting = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_PAINTING, NmsUtils.getNmsClass("EntityPainting"));
+		
+		if (useMovementPacket1_14) {
+			spawnEntityPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"));
+		} else {
+			spawnEntityPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"), int.class);
+		}
+		
+		spawnEntityLivingPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_LIVING, NmsUtils.getNmsClass("EntityLiving"));
+		spawnEntityPaintingPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_PAINTING, NmsUtils.getNmsClass("EntityPainting"));
 		entityMetadataPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.ENTITY_METADATA, int.class, NmsUtils.getNmsClass("DataWatcher"), boolean.class);
 	}
 	
@@ -407,7 +415,15 @@ public class PacketHandler {
 	                                           Location entityLoc,
 	                                           int entityId) throws InvocationTargetException, IllegalAccessException {
 		
-		PacketContainer spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity));
+		
+		PacketContainer spawnPacket;
+		
+		if (useMovementPacket1_14) {
+			spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity));
+		} else {
+			spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity), ObjectData.getObjectData(entity));
+		}
+		
 		spawnPacket.getIntegers().write(0, entityId);
 		writeEntityPos(spawnPacket, entityLoc, false, false);
 		return spawnPacket;
@@ -417,7 +433,7 @@ public class PacketHandler {
 	                                                 Location entityLoc,
 	                                                 int entityId) throws InvocationTargetException, IllegalAccessException {
 		
-		PacketContainer spawnPacket = spawnEntityLiving.createPacket(NmsUtils.getHandle(entity));
+		PacketContainer spawnPacket = spawnEntityLivingPacket.createPacket(NmsUtils.getHandle(entity));
 		spawnPacket.getIntegers().write(0, entityId);
 		writeEntityPos(spawnPacket, entityLoc, true, true);
 		return spawnPacket;
@@ -428,7 +444,7 @@ public class PacketHandler {
 	                                             int entityId,
 	                                             Transform transform) throws InvocationTargetException, IllegalAccessException {
 		
-		PacketContainer spawnPacket = spawnEntityPainting.createPacket(NmsUtils.getHandle(painting));
+		PacketContainer spawnPacket = spawnEntityPaintingPacket.createPacket(NmsUtils.getHandle(painting));
 		spawnPacket.getIntegers().write(0, entityId);
 		
 		int halfHeight = (int) (WrappedBoundingBox.of(painting).getHeight() / 2);
@@ -493,12 +509,18 @@ public class PacketHandler {
 					.write(1, (short) (relMove.getY() * 4096))
 					.write(2, (short) (relMove.getZ() * 4096));
 			
-		} else {
+		} else if (usePositionPacket1_9) {
 			
 			moveLookPacket.getIntegers()
 					.write(1, (int) (relMove.getX() * 4096))
 					.write(2, (int) (relMove.getY() * 4096))
 					.write(3, (int) (relMove.getZ() * 4096));
+		} else {
+			
+			moveLookPacket.getBytes()
+					.write(1, (byte) (relMove.getX() * 4096))
+					.write(2, (byte) (relMove.getY() * 4096))
+					.write(3, (byte) (relMove.getZ() * 4096));
 		}
 		
 		moveLookPacket.getBytes()
