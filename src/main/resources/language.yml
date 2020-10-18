@@ -11,10 +11,8 @@ no-world-found: '&7No world found with name &r%world%&7.'
 no-portals-found: '&7There are no nether portals listed for world &r%world%&7.'
 no-portal-found-nearby: '&7You need to look at a nether portal with NetherView enabled for this command to work.'
 portal-info: |-
-    &7Info about portal at &r%location%:
-    &7  is flipped: &r%is-flipped%
-    &7  is linked to: &r%counter-portal%
-    &7  portals linked to portal: &r%linked-portals%
+    &7Info about portal at &r%location%: %info%
+
 world-info: '%count% &7portal(s) listed for world &r%world%&7: %portals%'
 flipped-portal: '&7Flipped view of portal &r%portal%&7.'
 portal-viewing-on: '&7Enabled portal viewing for you.'
@@ -31,3 +29,4 @@ created-portal: '&7Created portal &r%name%&7 (%size% blocks).'
 no-portal-found-with-name: '&7No portal found with name &r%name%&7.'
 deleted-portal: '&7Removed portal &r%name%&7.'
 linked-portal: '&7Linked portal &r%from-portal%&7 to portal &r%to-portal%&7.'
+unlinked-portal: '&7Removed link of portal &r%from-portal%&7.'

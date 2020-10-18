@@ -15,7 +15,7 @@ public enum Message {
 	NO_WORLD_FOUND("no-world-found", "world"),
 	NO_PORTALS_FOUND("no-portals-found", "world"),
 	NO_PORTAL_FOUND_NEARBY("no-portal-found-nearby"),
-	PORTAL_INFO("portal-info", "location", "is-flipped", "counter-portal", "linked-portals"),
+	PORTAL_INFO("portal-info", "location", "info"),
 	WORLD_INFO("world-info", "count", "world", "portals"),
 	FLIPPED_PORTAL("flipped-portal", "portal"),
 	PORTAL_VIEWING_ON("portal-viewing-on"),
@@ -31,7 +31,8 @@ public enum Message {
 	PORTAL_NAME_NOT_UNIQUE("portal-name-not-unique", "name"),
 	CREATED_PORTAL("created-portal", "name", "size"),
 	REMOVED_PORTAL("deleted-portal", "name"),
-	LINKED_PORTALS("linked-portal", "from-portal", "to-portal");
+	LINKED_PORTAL("linked-portal", "from-portal", "to-portal"),
+	UNLINKED_PORTAL("unlinked-portal", "portal");
 	
 	private final String configKey;
 	private String configValue;

@@ -112,7 +112,6 @@ public class PlayerMoveListener implements Listener {
 		}
 		
 		Transform tpTransform = portal.getTpTransform();
-		player.sendMessage(ChatColor.GRAY + portal.getName() + " " + portal.isViewFlipped() + " " + (tpTransform.getQuarterTurns()*90) + "°");
 		
 		Vector vel = to.toVector().subtract(from.toVector());
 		Vector transformedVel = tpTransform.rotateVec(vel);

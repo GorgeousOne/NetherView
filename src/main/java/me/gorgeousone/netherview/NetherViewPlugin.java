@@ -19,7 +19,6 @@ import me.gorgeousone.netherview.customportal.commands.CreatePortalCommand;
 import me.gorgeousone.netherview.customportal.commands.DeletePortalCommand;
 import me.gorgeousone.netherview.customportal.commands.LinkPortalCommand;
 import me.gorgeousone.netherview.handlers.EntityVisibilityHandler;
-import me.gorgeousone.netherview.packet.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockChangeListener;
@@ -28,6 +27,7 @@ import me.gorgeousone.netherview.listeners.PlayerQuitListener;
 import me.gorgeousone.netherview.listeners.PlayerTeleportListener;
 import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.message.MessageUtils;
+import me.gorgeousone.netherview.packet.PacketHandler;
 import me.gorgeousone.netherview.portal.PortalLocator;
 import me.gorgeousone.netherview.portal.PortalSerializer;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
@@ -148,7 +148,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		backupPortals();
 		loadConfigSettings();
 		loadLangConfigData();
-
+		
 		viewHandler.reload();
 		portalHandler.reload();
 		customPortalHandler.reload();
@@ -220,7 +220,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new DeletePortalCommand(netherViewCommand, portalHandler, customPortalHandler));
-		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, portalHandler, customPortalHandler));
+		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, viewHandler, portalHandler, customPortalHandler));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);

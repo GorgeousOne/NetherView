@@ -192,7 +192,6 @@ public class PortalHandler {
 	public void removePortal(Portal portal) {
 		
 		Set<Portal> linkedToPortals = getPortalsLinkedTo(portal);
-		
 		MessageUtils.printDebug("Removing portal at " + portal.toString());
 		MessageUtils.printDebug("Un-linking " + linkedToPortals.size() + " portal projections");
 		
@@ -330,10 +329,6 @@ public class PortalHandler {
 		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, linkTransformIsFlipped);
 		portal.setTpTransform(linkTransform.clone().invert());
 		
-		if (portal.isLinked()) {
-			Bukkit.broadcastMessage(((CustomPortal)portal).getName() + " " + linkTransformIsFlipped + " " + (portal.getTpTransform().getQuarterTurns() * 90) + "°");
-		}
-		
 		if (!counterPortal.blockCachesAreLoaded()) {
 			loadBlockCachesOf(counterPortal);
 		}
@@ -384,6 +379,7 @@ public class PortalHandler {
 			}
 		}
 		
+		portal.removeLink();
 		portal.setLinkedTo(counterPortal);
 		
 		MessageUtils.printDebug("Linked" + (portal instanceof CustomPortal ? " custom " : " ") + "portal "

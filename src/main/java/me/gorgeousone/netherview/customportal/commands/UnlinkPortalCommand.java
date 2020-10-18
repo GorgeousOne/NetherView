@@ -10,29 +10,26 @@ import me.gorgeousone.netherview.customportal.CustomPortalHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.message.Message;
-import me.gorgeousone.netherview.message.MessageException;
 import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class LinkPortalCommand extends ArgCommand {
+public class UnlinkPortalCommand extends ArgCommand {
 	
 	private final ViewHandler viewHandler;
 	private final PortalHandler portalHandler;
 	private final CustomPortalHandler customPortalHandler;
 	
-	public LinkPortalCommand(ParentCommand parent,
-	                         ViewHandler viewHandler, PortalHandler portalHandler,
-	                         CustomPortalHandler customPortalHandler) {
+	public UnlinkPortalCommand(ParentCommand parent,
+	                           ViewHandler viewHandler, PortalHandler portalHandler,
+	                           CustomPortalHandler customPortalHandler) {
 		
-		super("link", NetherViewPlugin.CUSTOM_PORTAL_PERM, true, parent);
+		super("unlink", NetherViewPlugin.CUSTOM_PORTAL_PERM, true, parent);
 		this.viewHandler = viewHandler;
-		addArg(new Argument("from portal", ArgType.STRING));
-		addArg(new Argument("to portal", ArgType.STRING));
+		addArg(new Argument("portal", ArgType.STRING));
 		
 		this.portalHandler = portalHandler;
 		this.customPortalHandler = customPortalHandler;
@@ -41,33 +38,19 @@ public class LinkPortalCommand extends ArgCommand {
 	@Override
 	protected void onCommand(CommandSender sender, ArgValue[] arguments) {
 		
-		String portalName1 = arguments[0].getString();
-		String portalName2 = arguments[1].getString();
+		String portalName = arguments[0].getString();
 		
-		Portal portal1 = customPortalHandler.getPortal(portalName1);
-		Portal portal2 = customPortalHandler.getPortal(portalName2);
+		Portal portal = customPortalHandler.getPortal(portalName);
 		
-		if (portal1 == null) {
-			MessageUtils.sendInfo(sender, Message.NO_PORTAL_FOUND_WITH_NAME, portalName1);
+		if (portal == null) {
+			MessageUtils.sendInfo(sender, Message.NO_PORTAL_FOUND_WITH_NAME, portalName);
 			return;
 		}
 		
-		if (portal2 == null) {
-			MessageUtils.sendInfo(sender, Message.NO_PORTAL_FOUND_WITH_NAME, portalName2);
-			return;
-		}
+		viewHandler.removePortal(portal);
+		portal.removeLink();
 		
-		Player player = (Player) sender;
-		
-		try {
-			viewHandler.removePortal(portal1);
-			portalHandler.linkPortalTo(portal1, portal2, player);
-			viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
-			MessageUtils.sendInfo(sender, Message.LINKED_PORTAL, portalName1, portalName2);
-			
-		} catch (MessageException e) {
-			MessageUtils.sendInfo(sender, e.getPlayerMessage(), e.getPlaceholderValues());
-		}
+		MessageUtils.sendInfo(sender, Message.UNLINKED_PORTAL, portalName);
 	}
 	
 	@Override

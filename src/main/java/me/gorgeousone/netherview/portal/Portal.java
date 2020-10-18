@@ -150,6 +150,7 @@ public class Portal {
 	
 	/**
 	 * Sets the front and back projection caches for this portal.
+	 *
 	 * @param projectionCaches where the key is referred to as front projection and value as back projection
 	 */
 	public void setProjectionCaches(Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {

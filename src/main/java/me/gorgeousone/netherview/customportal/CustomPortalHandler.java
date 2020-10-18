@@ -27,7 +27,7 @@ public class CustomPortalHandler {
 		worldsWithCustomPortals.clear();
 	}
 	
-	public CustomPortal getPortalAt(String portalName) {
+	public CustomPortal getPortal(String portalName) {
 		return customPortals.get(portalName);
 	}
 	

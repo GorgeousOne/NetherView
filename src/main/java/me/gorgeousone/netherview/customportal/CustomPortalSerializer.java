@@ -143,8 +143,8 @@ public class CustomPortalSerializer {
 			String fromName = entry.getKey();
 			String toName = entry.getValue();
 			
-			CustomPortal fromPortal = customPortalHandler.getPortalAt(entry.getKey());
-			CustomPortal toPortal = customPortalHandler.getPortalAt(entry.getValue());
+			CustomPortal fromPortal = customPortalHandler.getPortal(entry.getKey());
+			CustomPortal toPortal = customPortalHandler.getPortal(entry.getValue());
 			
 			if (toPortal == null) {
 				plugin.getLogger().warning("Could not find custom portal with name'" + toName + "' for linking with portal '" + fromName + "'.");

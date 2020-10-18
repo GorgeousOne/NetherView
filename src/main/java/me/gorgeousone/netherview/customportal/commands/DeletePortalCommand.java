@@ -36,7 +36,7 @@ public class DeletePortalCommand extends ArgCommand {
 	protected void onCommand(CommandSender sender, ArgValue[] arguments) {
 		
 		String portalName = arguments[0].getString();
-		CustomPortal portal = customPortalHandler.getPortalAt(portalName);
+		CustomPortal portal = customPortalHandler.getPortal(portalName);
 		
 		if (portal == null) {
 			MessageUtils.sendInfo(sender, Message.NO_PORTAL_FOUND_WITH_NAME, portalName);
