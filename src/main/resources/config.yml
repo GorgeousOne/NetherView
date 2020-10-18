@@ -1,9 +1,11 @@
-portal-display-range: 32
+portal-display-range: 16
 portal-projection-distance: 4
 max-portal-size: 5
 
 hide-entities-behind-portals: true
 show-entities-inside-portals: true
+entity-update-ticks: 3
+
 warning-messages: true
 debug-messages: false
 

@@ -18,6 +18,7 @@ import me.gorgeousone.netherview.customportal.PlayerSelectionHandler;
 import me.gorgeousone.netherview.customportal.commands.CreatePortalCommand;
 import me.gorgeousone.netherview.customportal.commands.DeletePortalCommand;
 import me.gorgeousone.netherview.customportal.commands.LinkPortalCommand;
+import me.gorgeousone.netherview.customportal.commands.UnlinkPortalCommand;
 import me.gorgeousone.netherview.handlers.EntityVisibilityHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
@@ -221,6 +222,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new DeletePortalCommand(netherViewCommand, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, viewHandler, portalHandler, customPortalHandler));
+		netherViewCommand.addChild(new UnlinkPortalCommand(netherViewCommand, viewHandler, customPortalHandler));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);

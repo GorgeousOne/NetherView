@@ -21,28 +21,30 @@ public class ConfigSettings {
 	
 	private final JavaPlugin plugin;
 	
-	private boolean allWorldsCanCreatePortalViews = false;
-	private Set<UUID> portalViewWhiteList;
-	private Set<UUID> portalViewBlackList;
+	private int portalProjectionDist;
+	private int portalDisplayRangeSquared;
+	private int maxPortalSize;
+	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
+	
+	private boolean entityHidingEnabled;
+	private boolean entityViewingEnabled;
+	private int entityUpdateTicks;
+	
+	private boolean warningMessagesEnabled;
+	private boolean debugMessagesEnabled;
 	
 	private boolean allWorldsCanCreateCustomPortals = false;
 	private Set<UUID> customPortalWhiteList;
 	private Set<UUID> customPortalBlackList;
 	
-	private int portalProjectionDist;
-	private int portalDisplayRangeSquared;
-	private int maxPortalSize;
+	private boolean allWorldsCanCreatePortalViews = false;
+	private Set<UUID> portalViewWhiteList;
+	private Set<UUID> portalViewBlackList;
 	
-	private boolean portalsAreFlippedByDefault;
+	private boolean netherPortalsAreFlippedByDefault;
 	private boolean hidePortalBlocks;
 	private boolean cancelTeleportWhenLinking;
 	private boolean instantTeleportEnabled;
-	private boolean warningMessagesEnabled;
-	private boolean debugMessagesEnabled;
-	private boolean entityHidingEnabled;
-	private boolean entityViewingEnabled;
-	
-	private HashMap<World.Environment, BlockType> worldBorderBlockTypes;
 	
 	public ConfigSettings(JavaPlugin plugin, FileConfiguration config) {
 		this.plugin = plugin;
@@ -67,21 +69,6 @@ public class ConfigSettings {
 		return maxPortalSize;
 	}
 	
-	/**
-	 * Returns true if hiding the purple portal blocks when seeing a portal view is enabled in the config.
-	 */
-	public boolean hidePortalBlocksEnabled() {
-		return hidePortalBlocks;
-	}
-	
-	public boolean cancelTeleportWhenLinkingPortalsEnabled() {
-		return cancelTeleportWhenLinking;
-	}
-	
-	public boolean isInstantTeleportEnabled() {
-		return instantTeleportEnabled;
-	}
-	
 	public boolean isEntityHidingEnabled() {
 		return entityHidingEnabled;
 	}
@@ -90,14 +77,12 @@ public class ConfigSettings {
 		return entityViewingEnabled;
 	}
 	
-	public boolean portalsAreFlippedByDefault() {
-		return portalsAreFlippedByDefault;
+	public int getEntityUpdateTicks() {
+		return entityUpdateTicks;
 	}
 	
-	public boolean canCreatePortalViews(World world) {
-		
-		UUID worldId = world.getUID();
-		return !portalViewBlackList.contains(worldId) && (allWorldsCanCreatePortalViews || portalViewWhiteList.contains(worldId));
+	public BlockType getWorldBorderBlockType(World.Environment environment) {
+		return worldBorderBlockTypes.get(environment);
 	}
 	
 	public boolean canCreateCustomPortals(World world) {
@@ -106,10 +91,30 @@ public class ConfigSettings {
 		return !customPortalBlackList.contains(worldId) && (allWorldsCanCreateCustomPortals || customPortalWhiteList.contains(worldId));
 	}
 	
-	public BlockType getWorldBorderBlockType(World.Environment environment) {
-		return worldBorderBlockTypes.get(environment);
+	public boolean canCreatePortalViews(World world) {
+		
+		UUID worldId = world.getUID();
+		return !portalViewBlackList.contains(worldId) && (allWorldsCanCreatePortalViews || portalViewWhiteList.contains(worldId));
 	}
 	
+	public boolean portalsAreFlippedByDefault() {
+		return netherPortalsAreFlippedByDefault;
+	}
+	
+	/**
+	 * Returns true if hiding the purple portal blocks when seeing a portal view is enabled in the config.
+	 */
+	public boolean hidePortalBlocksEnabled() {
+		return hidePortalBlocks;
+	}
+	
+	public boolean isInstantTeleportEnabled() {
+		return instantTeleportEnabled;
+	}
+	
+	public boolean cancelTeleportWhenLinkingPortalsEnabled() {
+		return cancelTeleportWhenLinking;
+	}
 	
 	public boolean areWarningMessagesEnabled() {
 		return warningMessagesEnabled;
@@ -150,6 +155,7 @@ public class ConfigSettings {
 		
 		entityHidingEnabled = config.getBoolean("hide-entities-behind-portals");
 		entityViewingEnabled = config.getBoolean("show-entities-inside-portals");
+		entityUpdateTicks = clamp(config.getInt("entity-update-ticks"), 1, 3);
 		
 		warningMessagesEnabled = config.getBoolean("warning-messages");
 		debugMessagesEnabled = config.getBoolean("debug-messages");
@@ -164,7 +170,7 @@ public class ConfigSettings {
 		
 		ConfigurationSection configSection = config.getConfigurationSection("nether-portal-viewing");
 		
-		portalsAreFlippedByDefault = configSection.getBoolean("flip-portals-by-default");
+		netherPortalsAreFlippedByDefault = configSection.getBoolean("flip-portals-by-default");
 		hidePortalBlocks = configSection.getBoolean("hide-portal-blocks");
 		cancelTeleportWhenLinking = configSection.getBoolean("cancel-teleport-when-linking-portals");
 		instantTeleportEnabled = configSection.getBoolean("instant-teleport");

@@ -20,18 +20,16 @@ import java.util.stream.Collectors;
 public class UnlinkPortalCommand extends ArgCommand {
 	
 	private final ViewHandler viewHandler;
-	private final PortalHandler portalHandler;
 	private final CustomPortalHandler customPortalHandler;
 	
 	public UnlinkPortalCommand(ParentCommand parent,
-	                           ViewHandler viewHandler, PortalHandler portalHandler,
+	                           ViewHandler viewHandler,
 	                           CustomPortalHandler customPortalHandler) {
 		
 		super("unlink", NetherViewPlugin.CUSTOM_PORTAL_PERM, true, parent);
 		this.viewHandler = viewHandler;
 		addArg(new Argument("portal", ArgType.STRING));
 		
-		this.portalHandler = portalHandler;
 		this.customPortalHandler = customPortalHandler;
 	}
 	
@@ -47,16 +45,19 @@ public class UnlinkPortalCommand extends ArgCommand {
 			return;
 		}
 		
+		if (!portal.isLinked()) {
+			return;
+		}
+		
 		viewHandler.removePortal(portal);
 		portal.removeLink();
-		
 		MessageUtils.sendInfo(sender, Message.UNLINKED_PORTAL, portalName);
 	}
 	
 	@Override
 	public List<String> getTabList(CommandSender sender, String[] arguments) {
 		
-		if (arguments.length <= 2) {
+		if (arguments.length <= 1) {
 			
 			return customPortalHandler.getPortalNames().stream().
 					filter(name -> name.startsWith(arguments[arguments.length - 1])).

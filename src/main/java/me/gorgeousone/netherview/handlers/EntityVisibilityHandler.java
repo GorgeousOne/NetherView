@@ -90,7 +90,7 @@ public class EntityVisibilityHandler {
 			}
 		};
 		
-		entityMotionChecker.runTaskTimer(plugin, 0, 1);
+		entityMotionChecker.runTaskTimer(plugin, 0, configSettings.getEntityUpdateTicks());
 	}
 	
 	private void handleRealEntitiesVisibility(Map<ProjectionCache, Set<PlayerViewSession>> portalSideViewers) {
