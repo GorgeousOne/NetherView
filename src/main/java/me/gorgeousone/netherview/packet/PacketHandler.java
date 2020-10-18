@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.handlers;
+package me.gorgeousone.netherview.packet;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -16,7 +16,7 @@ import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.ProjectionEntity;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.utils.NmsUtils;
-import me.gorgeousone.netherview.utils.ObjectData;
+import me.gorgeousone.netherview.packet.EntitySpawnPacketFactory1_13;
 import me.gorgeousone.netherview.utils.TimeUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
@@ -86,7 +86,6 @@ public class PacketHandler {
 		if (useMovementPacket1_14) {
 			spawnEntityPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"));
 		} else {
-			spawnEntityPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"), int.class);
 		}
 		
 		spawnEntityLivingPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_LIVING, NmsUtils.getNmsClass("EntityLiving"));
@@ -421,7 +420,7 @@ public class PacketHandler {
 		if (useMovementPacket1_14) {
 			spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity));
 		} else {
-			spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity), ObjectData.getObjectData(entity));
+			spawnPacket = EntitySpawnPacketFactory1_13.createPacket(entity);
 		}
 		
 		spawnPacket.getIntegers().write(0, entityId);

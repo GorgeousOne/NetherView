@@ -102,8 +102,8 @@ public class PlayerTeleportListener implements Listener {
 		}
 		
 		try {
-			Portal portal = portalHandler.getPortalByBlock(portalBlock);
-			Portal counterPortal = portalHandler.getPortalByBlock(counterPortalBlock);
+			Portal portal = portalHandler.getPortalAt(portalBlock);
+			Portal counterPortal = portalHandler.getPortalAt(counterPortalBlock);
 			
 			if (counterPortal.equals(portal.getCounterPortal())) {
 				return false;

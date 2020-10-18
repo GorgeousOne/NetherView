@@ -13,6 +13,7 @@ import me.gorgeousone.netherview.message.MessageException;
 import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +27,7 @@ public class LinkPortalCommand extends ArgCommand {
 	                         PortalHandler portalHandler,
 	                         CustomPortalHandler customPortalHandler) {
 		
-		super("link", NetherViewPlugin.CUSTOM_PORTAL_PERM, false, parent);
+		super("link", NetherViewPlugin.CUSTOM_PORTAL_PERM, true, parent);
 		addArg(new Argument("from portal", ArgType.STRING));
 		addArg(new Argument("to portal", ArgType.STRING));
 		
@@ -40,8 +41,8 @@ public class LinkPortalCommand extends ArgCommand {
 		String portalName1 = arguments[0].getString();
 		String portalName2 = arguments[1].getString();
 		
-		Portal portal1 = customPortalHandler.getPortal(portalName1);
-		Portal portal2 = customPortalHandler.getPortal(portalName2);
+		Portal portal1 = customPortalHandler.getPortalAt(portalName1);
+		Portal portal2 = customPortalHandler.getPortalAt(portalName2);
 		
 		if (portal1 == null) {
 			MessageUtils.sendInfo(sender, Message.NO_PORTAL_FOUND_WITH_NAME, portalName1);
@@ -54,7 +55,7 @@ public class LinkPortalCommand extends ArgCommand {
 		}
 		
 		try {
-			portalHandler.linkPortalTo(portal1, portal2, sender);
+			portalHandler.linkPortalTo(portal1, portal2, (Player) sender);
 			MessageUtils.sendInfo(sender, Message.LINKED_PORTALS, portalName1, portalName2);
 			
 		} catch (MessageException e) {

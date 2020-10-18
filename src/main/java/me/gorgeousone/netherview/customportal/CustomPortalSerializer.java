@@ -69,7 +69,7 @@ public class CustomPortalSerializer {
 				
 				portalData.set("min", portalFrame.getMin().serialize());
 				portalData.set("max", portalFrame.getMax().serialize());
-				portalData.set("isFlipped", portal.isViewFlipped());
+				portalData.set("is-flipped", portal.isViewFlipped());
 				
 				if (customPortal.isLinked()) {
 					portalData.set("link", ((CustomPortal) customPortal.getCounterPortal()).getName());
@@ -143,8 +143,8 @@ public class CustomPortalSerializer {
 			String fromName = entry.getKey();
 			String toName = entry.getValue();
 			
-			CustomPortal fromPortal = customPortalHandler.getPortal(entry.getKey());
-			CustomPortal toPortal = customPortalHandler.getPortal(entry.getValue());
+			CustomPortal fromPortal = customPortalHandler.getPortalAt(entry.getKey());
+			CustomPortal toPortal = customPortalHandler.getPortalAt(entry.getValue());
 			
 			if (toPortal == null) {
 				plugin.getLogger().warning("Could not find custom portal with name'" + toName + "' for linking with portal '" + fromName + "'.");

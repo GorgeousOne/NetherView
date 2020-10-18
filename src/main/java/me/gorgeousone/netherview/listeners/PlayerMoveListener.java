@@ -7,6 +7,7 @@ import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.customportal.CustomPortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.utils.TeleportUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -93,26 +94,33 @@ public class PlayerMoveListener implements Listener {
 		}
 	}
 	
+	/**
+	 * Teleports player if they entered a block of custom portal and it's not already their destination portal
+	 */
 	private void handleCustomPortalTp(Player player, Location from, Location to) {
 		
-		CustomPortal portal = customPortalHandler.getPortal(to);
+		CustomPortal portal = customPortalHandler.getPortalAt(to);
 		UUID playerId = player.getUniqueId();
 		
 		if (portal == null) {
 			teleportedPlayers.remove(playerId);
-			
-		} else if (!teleportedPlayers.contains(playerId)) {
-			
-			Transform tpTransform = portal.getTpTransform();
-			
-			Vector vel = to.toVector().subtract(from.toVector());
-			Vector transformedVel = tpTransform.rotateVec(vel);
-			Location destination = tpTransform.transformLoc(to.clone());
-			
-			player.teleport(destination);
-			player.setVelocity(transformedVel);
-			teleportedPlayers.add(playerId);
+			return;
 		}
+		
+		if (teleportedPlayers.contains(playerId) || !portal.isLinked()) {
+			return;
+		}
+		
+		Transform tpTransform = portal.getTpTransform();
+		player.sendMessage(ChatColor.GRAY + portal.getName() + " " + portal.isViewFlipped() + " " + (tpTransform.getQuarterTurns()*90) + "°");
+		
+		Vector vel = to.toVector().subtract(from.toVector());
+		Vector transformedVel = tpTransform.rotateVec(vel);
+		Location destination = tpTransform.transformLoc(to.clone());
+		
+		player.teleport(destination);
+		player.setVelocity(transformedVel);
+		teleportedPlayers.add(playerId);
 	}
 	
 	/**

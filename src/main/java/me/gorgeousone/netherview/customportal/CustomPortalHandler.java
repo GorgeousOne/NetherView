@@ -21,11 +21,22 @@ public class CustomPortalHandler {
 		this.customPortals = new HashMap<>();
 	}
 	
-	public CustomPortal getPortal(String portalName) {
+	public void reload() {
+		
+		customPortals.clear();
+		worldsWithCustomPortals.clear();
+	}
+	
+	public CustomPortal getPortalAt(String portalName) {
 		return customPortals.get(portalName);
 	}
 	
 	public void addPortal(CustomPortal portal) {
+		
+		if (customPortals.containsKey(portal.getName())) {
+			throw new IllegalArgumentException("Custom portal with this name already exists.");
+		}
+		
 		customPortals.put(portal.getName(), portal);
 		
 		UUID worldId = portal.getWorld().getUID();
@@ -34,6 +45,7 @@ public class CustomPortalHandler {
 	}
 	
 	public void removePortal(CustomPortal portal) {
+		
 		customPortals.remove(portal.getName());
 		worldsWithCustomPortals.get(portal.getWorld().getUID()).remove(portal);
 	}
@@ -46,7 +58,7 @@ public class CustomPortalHandler {
 		return worldsWithCustomPortals.getOrDefault(world.getUID(), new HashSet<>());
 	}
 	
-	public CustomPortal getPortal(Location location) {
+	public CustomPortal getPortalAt(Location location) {
 		
 		for (CustomPortal portal : getCustomPortals(location.getWorld())) {
 			

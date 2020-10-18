@@ -21,7 +21,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -104,7 +104,7 @@ public class PortalHandler {
 	 * Returns the first portal that contains the passed block as part of the portal surface.
 	 * If none was found it will be tried to add the portal related to this block.
 	 */
-	public Portal getPortalByBlock(Block portalBlock) throws MessageException {
+	public Portal getPortalAt(Block portalBlock) throws MessageException {
 		
 		for (Portal portal : getPortals(portalBlock.getWorld())) {
 			if (portal.getPortalBlocks().contains(portalBlock)) {
@@ -330,6 +330,10 @@ public class PortalHandler {
 		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, linkTransformIsFlipped);
 		portal.setTpTransform(linkTransform.clone().invert());
 		
+		if (portal.isLinked()) {
+			Bukkit.broadcastMessage(((CustomPortal)portal).getName() + " " + linkTransformIsFlipped + " " + (portal.getTpTransform().getQuarterTurns() * 90) + "°");
+		}
+		
 		if (!counterPortal.blockCachesAreLoaded()) {
 			loadBlockCachesOf(counterPortal);
 		}
@@ -359,7 +363,7 @@ public class PortalHandler {
 	 *
 	 * @param triggerPlayer - player who triggered the portal linking. set to null if no player involved
 	 */
-	public void linkPortalTo(Portal portal, Portal counterPortal, CommandSender triggerPlayer) throws MessageException {
+	public void linkPortalTo(Portal portal, Portal counterPortal, Player triggerPlayer) throws MessageException {
 		
 		if (!counterPortal.equalsInSize(portal)) {
 			

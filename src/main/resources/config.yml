@@ -8,7 +8,7 @@ warning-messages: true
 debug-messages: false
 
 nether-portal-viewing:
-    flip-portals-by-default: false
+    flip-portals-by-default: true
     hide-portal-blocks: true
     cancel-teleport-when-linking-portals: true
     instant-teleport: true

@@ -1,7 +1,7 @@
 package me.gorgeousone.netherview.event;
 
 import me.gorgeousone.netherview.portal.Portal;
-import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -11,18 +11,18 @@ public class PortalLinkEvent extends Event implements Cancellable {
 	private static final HandlerList HANDLER_LIST = new HandlerList();
 	private boolean isCancelled;
 	
-	private final CommandSender player;
+	private final Player player;
 	private final Portal fromPortal;
 	private final Portal toPortal;
 	
-	public PortalLinkEvent(Portal fromPortal, Portal toPortal, CommandSender player) {
+	public PortalLinkEvent(Portal fromPortal, Portal toPortal, Player player) {
 		
 		this.player = player;
 		this.fromPortal = fromPortal;
 		this.toPortal = toPortal;
 	}
 	
-	public CommandSender getCommandSender() {
+	public Player getPlayer() {
 		return player;
 	}
 	

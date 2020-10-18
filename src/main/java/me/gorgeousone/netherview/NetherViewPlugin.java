@@ -19,7 +19,7 @@ import me.gorgeousone.netherview.customportal.commands.CreatePortalCommand;
 import me.gorgeousone.netherview.customportal.commands.DeletePortalCommand;
 import me.gorgeousone.netherview.customportal.commands.LinkPortalCommand;
 import me.gorgeousone.netherview.handlers.EntityVisibilityHandler;
-import me.gorgeousone.netherview.handlers.PacketHandler;
+import me.gorgeousone.netherview.packet.PacketHandler;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.listeners.BlockChangeListener;
@@ -148,9 +148,10 @@ public final class NetherViewPlugin extends JavaPlugin {
 		backupPortals();
 		loadConfigSettings();
 		loadLangConfigData();
-		
+
 		viewHandler.reload();
 		portalHandler.reload();
+		customPortalHandler.reload();
 		entityHandler.reload();
 		
 		loadSavedPortals();

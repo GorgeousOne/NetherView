@@ -9,6 +9,7 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
+import me.gorgeousone.netherview.packet.PacketHandler;
 import me.gorgeousone.netherview.portal.Portal;
 import me.gorgeousone.netherview.portal.ProjectionEntity;
 import me.gorgeousone.netherview.wrapper.Axis;

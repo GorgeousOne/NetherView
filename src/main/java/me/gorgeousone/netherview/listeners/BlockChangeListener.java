@@ -19,7 +19,7 @@ import me.gorgeousone.netherview.blockcache.BlockCacheFactory;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.geometry.BlockVec;
-import me.gorgeousone.netherview.handlers.PacketHandler;
+import me.gorgeousone.netherview.packet.PacketHandler;
 import me.gorgeousone.netherview.handlers.PlayerViewSession;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;

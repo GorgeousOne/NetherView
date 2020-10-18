@@ -117,8 +117,8 @@ public class BlockCacheFactory {
 	                                                                                 Transform portalLinkTransform) {
 		
 		return new AbstractMap.SimpleEntry<>(
-				createProjection(projectingPortal, backCache, portalLinkTransform),
-				createProjection(projectingPortal, frontCache, portalLinkTransform));
+				createProjection(projectingPortal, frontCache, portalLinkTransform),
+				createProjection(projectingPortal, backCache, portalLinkTransform));
 	}
 	
 	/**

@@ -42,18 +42,18 @@ public class FlipPortalCommand extends BasicCommand {
 			return;
 		}
 		
-		Portal viewedPortal = viewHandler.getViewSession(player).getViewedPortal();
-		
-		if (viewedPortal == null) {
+		if (!viewHandler.hasViewSession(player)) {
 			MessageUtils.sendInfo(player, Message.NO_PORTAL_FOUND_NEARBY);
 			return;
 		}
 		
+		Portal viewedPortal = viewHandler.getViewSession(player).getViewedPortal();
 		viewedPortal.flipView();
-		portalHandler.loadProjectionCachesOf(viewedPortal);
 		
+		portalHandler.loadProjectionCachesOf(viewedPortal);
 		viewHandler.hidePortalProjection(player);
 		viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
+		
 		MessageUtils.sendInfo(player, Message.FLIPPED_PORTAL, viewedPortal.toString());
 	}
 }
