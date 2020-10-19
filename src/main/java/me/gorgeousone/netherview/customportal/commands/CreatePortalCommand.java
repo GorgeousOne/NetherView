@@ -47,14 +47,14 @@ public class CreatePortalCommand extends ArgCommand {
 		Player player = (Player) sender;
 		
 		if (!selectionHandler.hasCuboidSelection(player)) {
-			player.sendMessage("pls select");
+			MessageUtils.sendInfo(player, Message.SELECTION_INCOMPLETE);
 			return;
 		}
 		
 		PlayerCuboidSelection selection = selectionHandler.getSelection(player);
 		
 		if (!selection.bothPositionsAreSet()) {
-			player.sendMessage("pls select 2 points");
+			MessageUtils.sendInfo(player, Message.SELECTION_INCOMPLETE);
 			return;
 		}
 		

@@ -48,7 +48,7 @@ public class FlipPortalCommand extends BasicCommand {
 		}
 		
 		Portal viewedPortal = viewHandler.getViewSession(player).getViewedPortal();
-
+		
 		viewHandler.removePortal(viewedPortal);
 		viewedPortal.flipView();
 		portalHandler.loadProjectionCachesOf(viewedPortal);

@@ -23,3 +23,7 @@ permissions:
         default: op
     netherview.flipportal:
         default: op
+    netherview.portalwand:
+        default: op
+    netherview.customportals:
+        defult: op

@@ -21,6 +21,8 @@ public enum Message {
 	PORTAL_VIEWING_ON("portal-viewing-on"),
 	PORTAL_VIEWING_OFF("portal-viewing-off"),
 	
+	WAND_INFO("wand-info"),
+	SELECTION_INCOMPLETE("selection-incomplete"),
 	SET_FIRST_CUBOID_POSITION("set-first-position", "position"),
 	SET_SECOND_CUBOID_POSITION("set-second-position", "position"),
 	SELECTION_TOO_SMALL("selection-too-small"),

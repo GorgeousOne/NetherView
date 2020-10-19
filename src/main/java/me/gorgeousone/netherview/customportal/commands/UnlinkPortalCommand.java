@@ -7,7 +7,6 @@ import me.gorgeousone.netherview.cmdframework.argument.Argument;
 import me.gorgeousone.netherview.cmdframework.command.ArgCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.customportal.CustomPortalHandler;
-import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.message.Message;
 import me.gorgeousone.netherview.message.MessageUtils;

@@ -17,6 +17,7 @@ import me.gorgeousone.netherview.customportal.PlayerClickListener;
 import me.gorgeousone.netherview.customportal.PlayerSelectionHandler;
 import me.gorgeousone.netherview.customportal.commands.CreatePortalCommand;
 import me.gorgeousone.netherview.customportal.commands.DeletePortalCommand;
+import me.gorgeousone.netherview.customportal.commands.GetWandCommand;
 import me.gorgeousone.netherview.customportal.commands.LinkPortalCommand;
 import me.gorgeousone.netherview.customportal.commands.UnlinkPortalCommand;
 import me.gorgeousone.netherview.handlers.EntityVisibilityHandler;
@@ -58,6 +59,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 	public final static String INFO_PERM = "netherview.info";
 	public final static String PORTAL_FLIP_PERM = "netherview.flipportal";
 	public final static String CUSTOM_PORTAL_PERM = "netherview.customportals";
+	public final static String PORTAL_WAND_PERM = "netherview.portalwand";
 	
 	public final static String CHAT_PREFIX =
 			ChatColor.DARK_RED + "[" +
@@ -219,6 +221,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new TogglePortalViewCommand(viewHandler));
 		netherViewCommand.addChild(new FlipPortalCommand(netherViewCommand, configSettings, portalHandler, viewHandler));
 		
+		netherViewCommand.addChild(new GetWandCommand(netherViewCommand));
 		netherViewCommand.addChild(new CreatePortalCommand(netherViewCommand, selectionHandler, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new DeletePortalCommand(netherViewCommand, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, viewHandler, portalHandler, customPortalHandler));

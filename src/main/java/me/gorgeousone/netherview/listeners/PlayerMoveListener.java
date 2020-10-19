@@ -7,7 +7,6 @@ import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.customportal.CustomPortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.utils.TeleportUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
