@@ -56,73 +56,77 @@ public class PlayerMoveListener implements Listener {
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
 		
-		Player player = event.getPlayer();
-		World world = player.getWorld();
 		Location from = event.getFrom();
 		Location to = event.getTo();
-		
-		boolean enteredNewBlock = playerEnteredNewBlock(from, to);
-		
-		if (configSettings.canCreatePortalViews(world)) {
-			
-			//sets player temporarily invulnerable so the game will instantly teleport them on entering a portal
-			if (configSettings.isInstantTeleportEnabled() && enteredNewBlock && mortalEnteredPortal(player, from, to)) {
-				TeleportUtils.setTemporarilyInvulnerable(player, plugin, 2);
-			}
-			
-			handlePortalViewingOnMove(player, from, to);
-		}
-		
-		if (enteredNewBlock && configSettings.canCreatePortalViews(world)) {
-			handleCustomPortalTp(player, from, to);
-		}
-	}
-	
-	private void handlePortalViewingOnMove(Player player, Location from, Location to) {
 		
 		Vector fromVec = from.toVector();
 		Vector toVec = to.toVector();
 		
-		if (!fromVec.equals(toVec) &&
-		    player.getGameMode() != GameMode.SPECTATOR &&
-		    viewHandler.hasPortalViewEnabled(player) &&
-		    player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
+		if (fromVec.equals(toVec)) {
+			return;
+		}
+		
+		Player player = event.getPlayer();
+		World world = player.getWorld();
+		boolean enteredNewBlock = playerEnteredNewBlock(from, to);
+		
+		if (enteredNewBlock && configSettings.canCreatePortalViews(world)) {
 			
-			Vector playerMovement = toVec.subtract(fromVec);
-			viewHandler.displayClosestPortalTo(player, player.getEyeLocation().add(playerMovement));
+			if (handleCustomPortalTp(player, from, to)) {
+				return;
+			}
+		}
+		
+		if (configSettings.canCreatePortalViews(world)) {
+			
+			//sets player temporarily invulnerable so the game will instantly teleport them on entering a portal
+			if (enteredNewBlock && configSettings.isInstantTeleportEnabled() && mortalEnteredPortal(player, from, to)) {
+				TeleportUtils.setTemporarilyInvulnerable(player, plugin, 2);
+			}
+			
+			handlePortalViewingOnMove(player, fromVec, toVec);
 		}
 	}
 	
 	/**
 	 * Teleports player if they entered a block of custom portal and it's not already their destination portal
 	 */
-	private void handleCustomPortalTp(Player player, Location from, Location to) {
+	private boolean handleCustomPortalTp(Player player, Location from, Location to) {
 		
 		CustomPortal portal = customPortalHandler.getPortalAt(to);
 		UUID playerId = player.getUniqueId();
 		
 		if (portal == null) {
 			teleportedPlayers.remove(playerId);
-			return;
+			return false;
 		}
 		
 		if (teleportedPlayers.contains(playerId) || !portal.isLinked()) {
-			return;
+			return false;
 		}
 		
-		Transform tpTransform = portal.getTpTransform();
+		viewHandler.hidePortalProjection(player);
 		
+		Transform tpTransform = portal.getTpTransform();
 		Vector vel = to.toVector().subtract(from.toVector());
 		Vector transformedVel = tpTransform.rotateVec(vel);
 		Location destination = tpTransform.transformLoc(to.clone());
 		
 		player.teleport(destination);
-		player.setVelocity(transformedVel);
 		teleportedPlayers.add(playerId);
+		
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				player.setVelocity(transformedVel);
+			}
+		}.runTask(plugin);
+		
+		return true;
 	}
 	
 	/**
-	 * Checks if the player in a mortal game mode (so they would usually not be teleported instantly by a nether portal) and if they are entering a nether portal.
+	 * Checks if the player in a vulnerable game mode (so they would usually not be teleported instantly by a nether portal) and if they are entering a nether portal.
 	 */
 	private boolean mortalEnteredPortal(Player player, Location from, Location to) {
 		
@@ -133,11 +137,23 @@ public class PlayerMoveListener implements Listener {
 		       from.getBlock().getType() != portalMaterial;
 	}
 	
+	private void handlePortalViewingOnMove(Player player, Vector fromVec, Vector toVec) {
+		
+		if (!teleportedPlayers.contains(player.getUniqueId()) &&
+		    player.getGameMode() != GameMode.SPECTATOR &&
+		    viewHandler.hasPortalViewEnabled(player) &&
+		    player.hasPermission(NetherViewPlugin.VIEW_PERM)) {
+			
+			Vector playerMovement = fromVec.clone().subtract(toVec);
+			viewHandler.displayClosestPortalTo(player, player.getEyeLocation().add(playerMovement));
+		}
+	}
+	
 	private boolean playerEnteredNewBlock(Location from, Location to) {
-		return
-				(int) from.getX() != (int) to.getX() ||
-				(int) from.getY() != (int) to.getY() ||
-				(int) from.getZ() != (int) to.getZ();
+		
+		return (int) from.getX() != (int) to.getX() ||
+		       (int) from.getY() != (int) to.getY() ||
+		       (int) from.getZ() != (int) to.getZ();
 	}
 	
 	@EventHandler

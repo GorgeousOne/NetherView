@@ -145,11 +145,19 @@ public class ViewHandler {
 	
 	public void showEntity(Player player, Entity entity) {
 		
+		if (player.equals(entity)) {
+			return;
+		}
+		
 		getViewSession(player).getHiddenEntities().remove(entity);
 		packetHandler.showEntity(player, entity, entity.getEntityId(), new Transform(), false);
 	}
 	
 	public void hideEntity(Player player, Entity entity) {
+		
+		if (player.equals(entity)) {
+			return;
+		}
 		
 		getViewSession(player).getHiddenEntities().add(entity);
 		packetHandler.hideEntities(player, Collections.singleton(entity));

@@ -50,9 +50,9 @@ public class PacketHandler {
 	
 	private final boolean useBlockPacket1_16_2 = VersionUtils.serverIsAtOrAbove("1.16.2");
 	private final boolean useEquipmentPacket1_16 = VersionUtils.serverIsAtOrAbove("1.16");
+	private final boolean useMovementPacket1_14 = VersionUtils.serverIsAtOrAbove("1.14");
 	private final boolean useEquipmentPacket1_9 = VersionUtils.serverIsAtOrAbove("1.9");
 	private final boolean usePositionPacket1_9 = useEquipmentPacket1_9;
-	private final boolean useMovementPacket1_14 = VersionUtils.serverIsAtOrAbove("1.14");
 	
 	private final ItemStack pumpkin = new ItemStack(VersionUtils.IS_LEGACY_SERVER ? Material.valueOf("PUMPKIN") : Material.valueOf("CARVED_PUMPKIN"));
 	private final ProtocolManager protocolManager;

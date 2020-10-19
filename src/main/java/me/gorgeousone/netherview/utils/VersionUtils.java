@@ -23,7 +23,11 @@ public final class VersionUtils {
 		
 		for (int i = 0; i < Math.min(currentVersionInts.length, requestedVersionInts.length); i++) {
 			
-			if (currentVersionInts[i] < requestedVersionInts[i]) {
+			int versionDiff = currentVersionInts[i] - requestedVersionInts[i];
+			
+			if (versionDiff > 0) {
+				return false;
+			}else if (versionDiff < 0) {
 				return true;
 			}
 		}
@@ -31,14 +35,18 @@ public final class VersionUtils {
 		return requestedVersionInts.length > currentVersionInts.length;
 	}
 	
-	public static boolean serverIsAtOrAbove(String versionString) {
+	public static boolean serverIsAtOrAbove(String requestedVersion) {
 		
-		int[] readVersionInts = getVersionAsIntArray(versionString, "\\.");
+		int[] requestedVersionInts = getVersionAsIntArray(requestedVersion, "\\.");
 		
-		for (int i = 0; i < readVersionInts.length; i++) {
+		for (int i = 0; i < requestedVersionInts.length; i++) {
 			
-			if (CURRENT_VERSION_INTS[i] < readVersionInts[i]) {
+			int versionDiff = requestedVersionInts[i] - CURRENT_VERSION_INTS[i];
+			
+			if (versionDiff > 0) {  
 				return false;
+			}else if (versionDiff < 0){
+				return true;
 			}
 		}
 		

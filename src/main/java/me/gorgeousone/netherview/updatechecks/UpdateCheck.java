@@ -1,13 +1,13 @@
 package me.gorgeousone.netherview.updatechecks;
 
-import me.gorgeousone.netherview.utils.MessageUtils;
+import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPlugin;   
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,30 +34,30 @@ public class UpdateCheck {
 		this.updateInfoPasteUrl = updateInfoPasteUrl;
 	}
 	
-	public void run() {
+	public void run(int maxDisplayedMessages) {
 		
 		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 			
 			try {
-				List<UpdateInfo> newUpdates = readNewUpdates(4);
+				List<UpdateInfo> newUpdates = readNewUpdates();
 				
 				if (newUpdates.isEmpty()) {
 					plugin.getLogger().info("Plugin is up to date :)");
 					return;
 				}
 				
-				if (newUpdates.size() > 1) {
-					MessageUtils.sendStaffInfo("New updates for Nether View are available:");
+				if (newUpdates.size() < 2) {
+					MessageUtils.sendStaffInfo("A new version of Nether View is available!");
 				}else {
-					MessageUtils.sendStaffInfo("A new version of Nether View is available:");
+					MessageUtils.sendStaffInfo("New updates for Nether View are available!");
 				}
 				
 				for (int i = 0; i < newUpdates.size(); ++i) {
 					
-					if (i > 2) {
-						ComponentBuilder message = new ComponentBuilder((newUpdates.size() - 3) + " more...").color(ChatColor.LIGHT_PURPLE);
+					if (i > maxDisplayedMessages - 1) {
+						ComponentBuilder message = new ComponentBuilder((newUpdates.size() - maxDisplayedMessages) + " more...").color(ChatColor.LIGHT_PURPLE);
 						message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/" + resourceName + "." + resourceId + "/updates"));
-						message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("read about all updates").create()));
+						message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("see all updates").create()));
 						MessageUtils.sendStaffInfo(message.create());
 						break;
 					}
@@ -67,7 +67,7 @@ public class UpdateCheck {
 				
 				ComponentBuilder builder = new ComponentBuilder("download").color(ChatColor.YELLOW).underlined(true);
 				builder.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/" + resourceName + "." + resourceId));
-				builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("visit download page").color(ChatColor.YELLOW).create()));
+				builder.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("visit ").append("download page").color(ChatColor.LIGHT_PURPLE).create()));
 				MessageUtils.sendStaffInfo(builder.create());
 				
 			} catch (IOException exception) {
@@ -76,7 +76,7 @@ public class UpdateCheck {
 		});
 	}
 	
-	private List<UpdateInfo> readNewUpdates(int maxCount) throws IOException {
+	private List<UpdateInfo> readNewUpdates() throws IOException {
 		
 		InputStream inputStream = new URL(updateInfoPasteUrl).openStream();
 		Scanner scanner = new Scanner(inputStream);
@@ -84,9 +84,10 @@ public class UpdateCheck {
 		
 		while (scanner.hasNext()) {
 			
-			UpdateInfo updateInfo = new UpdateInfo(scanner.nextLine(), "nether-view", resourceId);
+			UpdateInfo updateInfo = new UpdateInfo(scanner.nextLine(), resourceName, resourceId);
 			
-			if (updates.size() < maxCount && VersionUtils.isVersionLowerThan(currentVersion, updateInfo.getVersion())) {
+			if (VersionUtils.isVersionLowerThan(currentVersion, updateInfo.getVersion())) {
+				System.out.println(currentVersion + " is lower than " + updateInfo.getVersion());
 				updates.add(updateInfo);
 			}else {
 				break;

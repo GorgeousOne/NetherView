@@ -228,6 +228,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		netherViewCommand.addChild(new DeletePortalCommand(netherViewCommand, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new LinkPortalCommand(netherViewCommand, viewHandler, portalHandler, customPortalHandler));
 		netherViewCommand.addChild(new UnlinkPortalCommand(netherViewCommand, viewHandler, customPortalHandler));
+		netherViewCommand.addChild(new GetWandCommand(netherViewCommand));
 		
 		CommandHandler cmdHandler = new CommandHandler(this);
 		cmdHandler.registerCommand(netherViewCommand);
@@ -317,6 +318,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	private void checkForUpdates() {
-		new UpdateCheck(this, resourceId, resourceName, updateInfoUrl).run();
+		new UpdateCheck(this, resourceId, resourceName, updateInfoUrl).run(3);
 	}
 }

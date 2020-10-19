@@ -74,7 +74,7 @@ public class PortalSerializer {
 	
 	public void loadPortals(FileConfiguration portalConfig) {
 		
-		if (!portalConfig.contains("plugin-version") || VersionUtils.versionIsLowerThan(portalConfig.getString("plugin-version"), "3")) {
+		if (!portalConfig.contains("plugin-version") || VersionUtils.isVersionLowerThan(portalConfig.getString("plugin-version"), "3")) {
 			new PortalSerializer2_1_0(plugin, configSettings, portalHandler).loadPortals(portalConfig);
 			return;
 		}
