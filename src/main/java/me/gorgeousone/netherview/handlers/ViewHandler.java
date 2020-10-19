@@ -301,7 +301,6 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * -
 	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what players see.
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {

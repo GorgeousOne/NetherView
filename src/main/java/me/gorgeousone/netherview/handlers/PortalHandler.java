@@ -291,14 +291,12 @@ public class PortalHandler {
 		Set<ProjectionCache> linkedToProjections = new HashSet<>();
 		Portal portal = cache.getPortal();
 		
-		boolean isBlockCacheFront = portal.getFrontCache().equals(cache);
-		
 		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
-			
-			boolean isLinkedProjectionBack = isBlockCacheFront ^ linkedPortal.isViewFlipped() ^ configSettings.portalsAreFlippedByDefault();
-			
+		
 			if (linkedPortal.projectionsAreLoaded()) {
-				linkedToProjections.add(isLinkedProjectionBack ? linkedPortal.getBackProjection() : linkedPortal.getFrontProjection());
+		
+				ProjectionCache frontProjection = linkedPortal.getFrontProjection();
+				linkedToProjections.add(frontProjection.getSourceCache() == cache ? frontProjection : linkedPortal.getBackProjection());
 			}
 		}
 		
@@ -324,9 +322,9 @@ public class PortalHandler {
 		}
 		
 		Portal counterPortal = portal.getCounterPortal();
-		boolean linkTransformIsFlipped = portal.isViewFlipped() ^ (configSettings.portalsAreFlippedByDefault() && !(portal instanceof CustomPortal));
+		boolean isLinkTransformFlipped = isLinkTransformFlipped(portal);
 		
-		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, linkTransformIsFlipped);
+		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, isLinkTransformFlipped);
 		portal.setTpTransform(linkTransform.clone().invert());
 		
 		if (!counterPortal.blockCachesAreLoaded()) {
@@ -336,13 +334,17 @@ public class PortalHandler {
 		BlockCache frontCache = counterPortal.getFrontCache();
 		BlockCache backCache = counterPortal.getBackCache();
 		
-		if (linkTransformIsFlipped) {
+		if (isLinkTransformFlipped) {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, backCache, frontCache, linkTransform));
 		} else {
 			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, frontCache, backCache, linkTransform));
 		}
 		
 		addPortalToExpirationTimer(portal);
+	}
+	
+	public boolean isLinkTransformFlipped(Portal portal) {
+		return portal.isViewFlipped() ^ (configSettings.portalsAreFlippedByDefault() && !(portal instanceof CustomPortal));
 	}
 	
 	private void addPortalToExpirationTimer(Portal portal) {

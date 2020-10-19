@@ -63,7 +63,7 @@ public class PortalSerializer {
 				ConfigurationSection portalData = worldSection.createSection(Integer.toString(portalHash));
 				
 				portalData.set("location", new BlockVec(portal.getLocation()).serialize());
-				portalData.set("isFlipped", portal.isViewFlipped());
+				portalData.set("is-flipped", portal.isViewFlipped());
 				
 				if (portal.isLinked()) {
 					portalData.set("link", portal.getCounterPortal().hashCode());
