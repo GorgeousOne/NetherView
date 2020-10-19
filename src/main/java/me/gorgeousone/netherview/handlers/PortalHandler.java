@@ -251,10 +251,6 @@ public class PortalHandler {
 		for (UUID worldId : portalInWorlds.keySet()) {
 			for (Portal secondPortal : portalInWorlds.get(worldId)) {
 				
-				if (secondPortal.equals(portal)) {
-					continue;
-				}
-				
 				if (secondPortal.isLinked() && secondPortal.getCounterPortal() == portal) {
 					linkedToPortals.add(secondPortal);
 				}
