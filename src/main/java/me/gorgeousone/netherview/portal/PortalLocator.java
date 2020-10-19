@@ -1,11 +1,12 @@
 package me.gorgeousone.netherview.portal;
 
-import me.gorgeousone.netherview.Message;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.Cuboid;
+import me.gorgeousone.netherview.message.Message;
+import me.gorgeousone.netherview.message.MessageException;
+import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.utils.FacingUtils;
-import me.gorgeousone.netherview.utils.MessageException;
-import me.gorgeousone.netherview.utils.MessageUtils;
 import me.gorgeousone.netherview.wrapper.Axis;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -58,27 +59,26 @@ public class PortalLocator {
 		//this only happens when some data read from the portal config is wrong
 		//that's why it is not a gray message
 		if (portalBlock.getType() != PORTAL_MATERIAL) {
-			throw new IllegalStateException("No portal block found at " + new BlockVec(portalBlock).toString());
+			throw new IllegalStateException("No portal found at " + BlockVec.toSimpleString(portalBlock.getLocation()));
 		}
 		
 		World world = portalBlock.getWorld();
 		AxisAlignedRect portalRect = getPortalRect(portalBlock);
+		Axis portalAxis = portalRect.getAxis();
 		
 		BlockVec portalMin = new BlockVec(portalRect.getMin());
 		BlockVec portalMax = new BlockVec(portalRect.getMax());
-		portalMax.add(new BlockVec(portalRect.getPlane().getNormal()));
+		portalMax.add(new BlockVec(portalAxis.getNormal()));
 		
-		Set<Block> innerBlocks = getInnerPortalBlocks(world, portalMin, portalMax);
+		Cuboid innerShape = new Cuboid(portalMin, portalMax);
+		Set<Block> innerBlocks = getInnerPortalBlocks(world, innerShape);
+		checkInnerBlocksConsistency(innerBlocks);
 		
-		BlockVec frameExtent = new BlockVec(portalRect.getCrossNormal());
-		frameExtent.setY(1);
+		BlockVec frameExtent = new BlockVec(portalAxis.getCrossNormal()).setY(1);
+		Cuboid frameShape = new Cuboid(portalMin.subtract(frameExtent), portalMax.add(frameExtent));
+		checkFrameBlocksOcclusion(world, frameShape, portalRect.getAxis());
 		
-		portalMin.subtract(frameExtent);
-		portalMax.add(frameExtent);
-		
-		Set<Block> frameBlocks = getPortalFrameBlocks(world, portalMin, portalMax, portalRect.getAxis());
-		
-		return new Portal(world, portalRect, innerBlocks, frameBlocks, portalMin, portalMax);
+		return new Portal(world, portalRect, frameShape, innerShape, innerBlocks);
 	}
 	
 	/**
@@ -134,7 +134,7 @@ public class PortalLocator {
 			blockIterator = nextBlock;
 		}
 		
-		MessageUtils.printDebug("Detection stopped after exceeding " + MAX_PORTAL_SIZE + " portal blocks towards " + facing.name() + " at " + new BlockVec(blockIterator).toString());
+		MessageUtils.printDebug("Detection stopped after exceeding " + MAX_PORTAL_SIZE + " portal blocks towards " + facing.name() + " at " + BlockVec.toSimpleString(blockIterator.getLocation()));
 		throw new MessageException(Message.PORTAL_TOO_BIG, String.valueOf(MAX_PORTAL_SIZE));
 	}
 	
@@ -142,9 +142,10 @@ public class PortalLocator {
 	 * Returns a set of blocks of all portal blocks of a portal according to the passed rectangle.
 	 */
 	private static Set<Block> getInnerPortalBlocks(World world,
-	                                               BlockVec portalMin,
-	                                               BlockVec portalMax) throws MessageException {
+	                                               Cuboid portalInner) throws MessageException {
 		
+		BlockVec portalMin = portalInner.getMin();
+		BlockVec portalMax = portalInner.getMax();
 		Set<Block> portalBlocks = new HashSet<>();
 		
 		for (int x = portalMin.getX(); x < portalMax.getX(); x++) {
@@ -158,7 +159,7 @@ public class PortalLocator {
 						
 					} else {
 						
-						MessageUtils.printDebug("Expected portal block at " + new BlockVec(x, y, z).toString());
+						MessageUtils.printDebug("Expected portal block at " + BlockVec.toSimpleString(portalBlock.getLocation()));
 						String worldType = world.getEnvironment().name().toLowerCase().replaceAll("_", " ");
 						throw new MessageException(Message.PORTAL_NOT_INTACT, worldType);
 					}
@@ -169,15 +170,28 @@ public class PortalLocator {
 		return portalBlocks;
 	}
 	
+	private static void checkInnerBlocksConsistency(Set<Block> portalBlocks) throws MessageException {
+		
+		for (Block portalBlock : portalBlocks) {
+			
+			if (portalBlock.getType() != PORTAL_MATERIAL) {
+				
+				MessageUtils.printDebug("Expected portal block at " + BlockVec.toSimpleString(portalBlock.getLocation()));
+				String worldType = portalBlock.getWorld().getEnvironment().name().toLowerCase().replaceAll("_", " ");
+				throw new MessageException(Message.PORTAL_NOT_INTACT, worldType);
+			}
+		}
+	}
+	
 	/**
 	 * Returns a set of blocks where obsidian needs to be placed for a portal frame according to the given portal bounds.
 	 */
-	private static Set<Block> getPortalFrameBlocks(World world,
-	                                               BlockVec portalMin,
-	                                               BlockVec portalMax,
-	                                               Axis portalAxis) throws MessageException {
+	private static void checkFrameBlocksOcclusion(World world,
+	                                              Cuboid portalFrame,
+	                                              Axis portalAxis) throws MessageException {
 		
-		Set<Block> frameBlocks = new HashSet<>();
+		BlockVec portalMin = portalFrame.getMin();
+		BlockVec portalMax = portalFrame.getMax();
 		
 		for (int x = portalMin.getX(); x < portalMax.getX(); x++) {
 			for (int y = portalMin.getY(); y < portalMax.getY(); y++) {
@@ -195,13 +209,10 @@ public class PortalLocator {
 					Material portalBlockType = portalBlock.getType();
 					
 					if (portalBlockType.isOccluding()) {
-						frameBlocks.add(portalBlock);
 						continue;
 					}
 					
-					MessageUtils.printDebug("Expected obsidian/occluding block at portal corner block "
-					                        + portalBlock.getWorld().getName() + ", "
-					                        + new BlockVec(portalBlock).toString());
+					MessageUtils.printDebug("Expected obsidian/occluding block at portal corner block " + BlockVec.toSimpleString(portalBlock.getLocation()));
 					
 					String worldType = world.getEnvironment().name().toLowerCase().replaceAll("_", " ");
 					
@@ -214,8 +225,6 @@ public class PortalLocator {
 				}
 			}
 		}
-		
-		return frameBlocks;
 	}
 	
 	private static boolean isPortalCorner(int x,

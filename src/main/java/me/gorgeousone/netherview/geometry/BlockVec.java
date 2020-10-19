@@ -56,24 +56,27 @@ public class BlockVec {
 		return x;
 	}
 	
-	public void setX(int x) {
+	public BlockVec setX(int x) {
 		this.x = x;
+		return this;
 	}
 	
 	public int getZ() {
 		return z;
 	}
 	
-	public void setZ(int z) {
+	public BlockVec setZ(int z) {
 		this.z = z;
+		return this;
 	}
 	
 	public int getY() {
 		return y;
 	}
 	
-	public void setY(int y) {
+	public BlockVec setY(int y) {
 		this.y = y;
+		return this;
 	}
 	
 	public BlockVec add(BlockVec other) {
@@ -155,8 +158,16 @@ public class BlockVec {
 		return Objects.hash(x, y, z);
 	}
 	
+	public static String toSimpleString(Location loc) {
+		return "[" + loc.getWorld().getName() + ", " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "]";
+	}
+	
 	@Override
 	public String toString() {
+		return "[" + x + ", " + y + ", " + z + "]";
+	}
+	
+	public String serialize() {
 		return "x=" + x + ",y=" + y + ",z=" + z;
 	}
 	

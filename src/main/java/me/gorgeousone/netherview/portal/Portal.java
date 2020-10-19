@@ -5,12 +5,11 @@ import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.geometry.Cuboid;
 import me.gorgeousone.netherview.wrapper.Axis;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -26,11 +25,6 @@ public class Portal {
 	private final AxisAlignedRect portalRect;
 	
 	private final Set<Block> portalBlocks;
-	private final Set<Block> frameBlocks;
-	
-	//bounds containing the whole portal structure
-	private final BlockVec min;
-	private final BlockVec max;
 	
 	private Portal counterPortal;
 	private Transform tpTransform;
@@ -38,23 +32,22 @@ public class Portal {
 	private Map.Entry<BlockCache, BlockCache> blockCaches;
 	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
 	
+	private final Cuboid frameShape;
+	private final Cuboid innerShape;
+	
 	private boolean isViewFlipped;
 	
 	public Portal(World world,
 	              AxisAlignedRect portalRect,
-	              Set<Block> portalBlocks,
-	              Set<Block> frameBlocks,
-	              BlockVec min,
-	              BlockVec max) {
+	              Cuboid frameShape,
+	              Cuboid innerShape,
+	              Set<Block> portalBlocks) {
 		
 		this.world = world;
-		this.portalRect = portalRect;
-		
+		this.portalRect = portalRect.clone();
+		this.frameShape = frameShape.clone();
+		this.innerShape = innerShape.clone();
 		this.portalBlocks = portalBlocks;
-		this.frameBlocks = frameBlocks;
-		
-		this.min = min;
-		this.max = max;
 	}
 	
 	public World getWorld() {
@@ -65,19 +58,27 @@ public class Portal {
 		return portalRect.getMin().toLocation(world);
 	}
 	
-	public BlockVec getMin() {
-		return min.clone();
-	}
-	
-	public BlockVec getMax() {
-		return max.clone();
-	}
-	
 	public BlockVec getMaxBlockAtFloor() {
 		
-		BlockVec maxBlock = max.clone().add(-1, 0, -1);
-		maxBlock.setY(min.getY());
+		BlockVec maxBlock = frameShape.getMax().clone().add(-1, 0, -1);
+		maxBlock.setY(frameShape.getMin().getY());
 		return maxBlock;
+	}
+	
+	public Cuboid getFrame() {
+		return frameShape;
+	}
+	
+	public Cuboid getInner() {
+		return innerShape;
+	}
+	
+	public int width() {
+		return getAxis() == Axis.X ? frameShape.getWidthX() : frameShape.getWidthZ();
+	}
+	
+	public int height() {
+		return frameShape.getHeight();
 	}
 	
 	public AxisAlignedRect getPortalRect() {
@@ -90,25 +91,6 @@ public class Portal {
 	
 	public Set<Block> getPortalBlocks() {
 		return new HashSet<>(portalBlocks);
-	}
-	
-	public Set<Block> getFrameBlocks() {
-		return frameBlocks;
-	}
-	
-	/**
-	 * Returns true if the given BlockVec is inside portal structure including the frame.
-	 */
-	public boolean contains(BlockVec loc) {
-		return loc.getX() >= min.getX() && loc.getX() < max.getX() &&
-		       loc.getY() >= min.getY() && loc.getY() < max.getY() &&
-		       loc.getZ() >= min.getZ() && loc.getZ() < max.getZ();
-	}
-	
-	public boolean contains(Block block) {
-		return block.getX() >= min.getX() && block.getX() < max.getX() &&
-		       block.getY() >= min.getY() && block.getY() < max.getY() &&
-		       block.getZ() >= min.getZ() && block.getZ() < max.getZ();
 	}
 	
 	public boolean equalsInSize(Portal other) {
@@ -166,6 +148,11 @@ public class Portal {
 		return blockCaches.getValue();
 	}
 	
+	/**
+	 * Sets the front and back projection caches for this portal.
+	 *
+	 * @param projectionCaches where the key is referred to as front projection and value as back projection
+	 */
 	public void setProjectionCaches(Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
 		this.projectionCaches = projectionCaches;
 	}
@@ -207,11 +194,7 @@ public class Portal {
 	
 	@Override
 	public String toString() {
-		return '[' + world.getName() + "," + new BlockVec(getLocation()).toString() + ']';
-	}
-	
-	public String toWhiteString() {
-		return ChatColor.RESET + toString();
+		return BlockVec.toSimpleString(getLocation());
 	}
 	
 	@Override

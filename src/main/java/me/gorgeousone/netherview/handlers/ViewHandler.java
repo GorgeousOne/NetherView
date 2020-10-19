@@ -1,5 +1,6 @@
 package me.gorgeousone.netherview.handlers;
 
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
@@ -8,7 +9,9 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustum;
 import me.gorgeousone.netherview.geometry.viewfrustum.ViewFrustumFactory;
+import me.gorgeousone.netherview.packet.PacketHandler;
 import me.gorgeousone.netherview.portal.Portal;
+import me.gorgeousone.netherview.portal.ProjectionEntity;
 import me.gorgeousone.netherview.wrapper.Axis;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
@@ -33,18 +36,17 @@ import java.util.UUID;
  */
 public class ViewHandler {
 	
-	private final NetherViewPlugin main;
+	private final ConfigSettings configSettings;
 	private final PortalHandler portalHandler;
 	private final PacketHandler packetHandler;
 	
 	private final Map<UUID, Boolean> portalViewEnabled;
 	private final Map<UUID, PlayerViewSession> viewSessions;
 	
-	public ViewHandler(NetherViewPlugin main,
-	                   PortalHandler portalHandler,
+	public ViewHandler(ConfigSettings configSettings, PortalHandler portalHandler,
 	                   PacketHandler packetHandler) {
 		
-		this.main = main;
+		this.configSettings = configSettings;
 		this.portalHandler = portalHandler;
 		this.packetHandler = packetHandler;
 		
@@ -124,27 +126,27 @@ public class ViewHandler {
 		
 		packetHandler.removeFakeBlocks(player, session.getProjectedBlocks());
 		packetHandler.showEntities(player, session.getHiddenEntities());
-		packetHandler.hideEntities(player, session.getProjectedEntities().keySet());
+		packetHandler.hideProjectedEntities(player, session.getProjectedEntities());
 		
 		unregisterPortalProjection(player);
 	}
 	
-	public void projectEntity(Player player, Entity entity, Transform transform) {
+	public void projectEntity(Player player, ProjectionEntity projectionEntity, Transform transform) {
 		
-		getViewSession(player).getProjectedEntities().put(entity, entity.getLocation());
-		packetHandler.showEntity(player, entity, transform);
+		getViewSession(player).getProjectedEntities().add(projectionEntity);
+		packetHandler.showEntity(player, projectionEntity.getEntity(), projectionEntity.getFakeId(), transform, true);
 	}
 	
-	public void destroyProjectedEntity(Player player, Entity entity) {
+	public void destroyProjectedEntity(Player player, ProjectionEntity entity) {
 		
 		getViewSession(player).getProjectedEntities().remove(entity);
-		packetHandler.hideEntities(player, Collections.singleton(entity));
+		packetHandler.hideProjectedEntity(player, entity);
 	}
 	
 	public void showEntity(Player player, Entity entity) {
 		
 		getViewSession(player).getHiddenEntities().remove(entity);
-		packetHandler.showEntity(player, entity, new Transform());
+		packetHandler.showEntity(player, entity, entity.getEntityId(), new Transform(), false);
 	}
 	
 	public void hideEntity(Player player, Entity entity) {
@@ -183,7 +185,7 @@ public class ViewHandler {
 		
 		Vector portalDistance = closestPortal.getLocation().subtract(playerEyeLoc).toVector();
 		
-		if (portalDistance.lengthSquared() > main.getPortalDisplayRangeSquared()) {
+		if (portalDistance.lengthSquared() > configSettings.getPortalDisplayRangeSquared()) {
 			
 			hidePortalProjection(player);
 			return;
@@ -193,11 +195,11 @@ public class ViewHandler {
 		
 		//display the portal totally normal if the player is not standing next to or in the portal
 		if (getDistanceToPortal(playerEyeLoc, portalRect) > 0.5) {
-			displayPortalTo(player, playerEyeLoc, closestPortal, true, main.hidePortalBlocksEnabled());
+			displayPortalTo(player, playerEyeLoc, closestPortal, true, configSettings.hidePortalBlocksEnabled());
 			
 			//keep portal blocks hidden (if ever hidden before) if the player is standing next to the portal to avoid light flickering when moving around the portal
 		} else if (!portalRect.contains(playerEyeLoc.toVector())) {
-			displayPortalTo(player, playerEyeLoc, closestPortal, false, main.hidePortalBlocksEnabled());
+			displayPortalTo(player, playerEyeLoc, closestPortal, false, configSettings.hidePortalBlocksEnabled());
 			
 			//if the player is standing inside the portal projecting should be dropped
 		} else {
@@ -244,7 +246,6 @@ public class ViewHandler {
 		PlayerViewSession session = getViewSession(player);
 		
 		if (session == null) {
-			
 			session = createViewSession(player, portal);
 			
 		} else if (!portal.equals(session.getViewedPortal())) {
@@ -255,13 +256,16 @@ public class ViewHandler {
 		
 		session.setViewedPortalSide(projection);
 		
-		if (!displayFrustum && session.getLastViewFrustum() != null) {
+		if (!displayFrustum) {
 			
-			session.setLastViewFrustum(null);
-			packetHandler.showEntities(player, session.getHiddenEntities());
-			packetHandler.hideEntities(player, session.getProjectedEntities().keySet());
-			session.getHiddenEntities().clear();
-			session.getProjectedEntities().clear();
+			if (session.getLastViewFrustum() != null) {
+				
+				session.setLastViewFrustum(null);
+				packetHandler.showEntities(player, session.getHiddenEntities());
+				packetHandler.hideProjectedEntities(player, session.getProjectedEntities());
+				session.getHiddenEntities().clear();
+				session.getProjectedEntities().clear();
+			}
 			
 		} else {
 			session.setLastViewFrustum(playerFrustum);
@@ -297,7 +301,6 @@ public class ViewHandler {
 	}
 	
 	/**
-	 * -
 	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what players see.
 	 */
 	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {

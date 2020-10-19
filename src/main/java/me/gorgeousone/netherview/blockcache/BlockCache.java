@@ -215,7 +215,7 @@ public class BlockCache {
 	private final Map<Chunk, Set<Entity>> unloadedChunks = new HashMap<>();
 	
 	/**
-	 * Returns a set of all entities that are contained by this cache
+	 * Returns a set of all entities that are intersecting this BlockCache
 	 */
 	public Set<Entity> getEntities() {
 		
@@ -227,8 +227,8 @@ public class BlockCache {
 				
 				unloadedChunks.computeIfAbsent(chunk, set -> addContainedEntities(chunk, new HashSet<>()));
 				containedEntities.addAll(unloadedChunks.get(chunk));
-			
-			}else {
+				
+			} else {
 				
 				addContainedEntities(chunk, containedEntities);
 				unloadedChunks.remove(chunk);

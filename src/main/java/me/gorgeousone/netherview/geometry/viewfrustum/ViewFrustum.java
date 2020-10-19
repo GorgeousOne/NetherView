@@ -81,7 +81,7 @@ public class ViewFrustum {
 	private Vector createFrustumFacing() {
 		
 		//take the near plane's normal as the facing of the frustum
-		Vector frustumFacing = nearPlaneRect.getNormal();
+		Vector frustumFacing = nearPlaneRect.getAxis().getNormal();
 		
 		//but make it face in the opposite direction of where the view point
 		Vector relViewPoint = viewPoint.clone().subtract(nearPlaneRect.getMin());
@@ -93,7 +93,7 @@ public class ViewFrustum {
 	private AxisAlignedRect createFarPlaneRect() {
 		
 		Vector nearPlaneOrigin = nearPlaneRect.getMin();
-		Vector nearPlaneNormal = nearPlaneRect.getNormal();
+		Vector nearPlaneNormal = nearPlaneRect.getAxis().getNormal();
 		
 		//calculate a vector representing the distance between near plane and far plane
 		Vector farPlaneOffset = frustumFacing.clone().multiply(frustumLength);

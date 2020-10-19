@@ -25,8 +25,8 @@ public class BlockCacheFactory {
 		viewDist += 1;
 		
 		AxisAlignedRect portalRect = portal.getPortalRect();
-		Vector portalFacing = portalRect.getNormal();
-		Vector widthFacing = portalRect.getCrossNormal();
+		Vector portalFacing = portalRect.getAxis().getNormal();
+		Vector widthFacing = portalRect.getAxis().getCrossNormal();
 		
 		Vector cacheCorner1 = portalRect.getMin();
 		cacheCorner1.subtract(new Vector(0, viewDist, 0));
@@ -117,8 +117,8 @@ public class BlockCacheFactory {
 	                                                                                 Transform portalLinkTransform) {
 		
 		return new AbstractMap.SimpleEntry<>(
-				createProjection(projectingPortal, backCache, portalLinkTransform),
-				createProjection(projectingPortal, frontCache, portalLinkTransform));
+				createProjection(projectingPortal, frontCache, portalLinkTransform),
+				createProjection(projectingPortal, backCache, portalLinkTransform));
 	}
 	
 	/**

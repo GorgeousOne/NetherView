@@ -20,18 +20,22 @@ public class AxisAlignedRect {
 		this.min = min.clone();
 		this.max = max.clone();
 		
-		if (height() < 0) {
-			throw new IllegalArgumentException("Rectangle maximum y must be greater than minimum y");
-		}
-		
 		if (axis == Axis.X) {
 			plane = new Plane(min, new Vector(0, 0, 1));
+			
+			if (min.getZ() != max.getZ()) {
+				throw new IllegalArgumentException("Z coordinates of x aligned portal must be equal");
+			}
 		} else {
 			plane = new Plane(min, new Vector(1, 0, 0));
+			
+			if (min.getX() != max.getX()) {
+				throw new IllegalArgumentException("Z coordinates of x aligned portal must be equal");
+			}
 		}
 		
-		if (width() < 0) {
-			throw new IllegalArgumentException("Rectangle maximum must be greater than minimum");
+		if (height() < 0 || width() < 0) {
+			throw new IllegalArgumentException("Rectangle maximum coordinates must be greater than minimum coordinates");
 		}
 	}
 	
@@ -84,20 +88,6 @@ public class AxisAlignedRect {
 			double pointZ = pointInPlane.getZ();
 			return pointZ >= min.getZ() && pointZ <= max.getZ();
 		}
-	}
-	
-	/**
-	 * Returns a normal vector for the plane of the rectangle.
-	 */
-	public Vector getNormal() {
-		return axis.getNormal();
-	}
-	
-	/**
-	 * Returns a vector 90° to the plane normal vector
-	 */
-	public Vector getCrossNormal() {
-		return axis.getCrossNormal();
 	}
 	
 	@Override

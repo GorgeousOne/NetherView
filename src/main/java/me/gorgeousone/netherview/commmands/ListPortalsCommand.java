@@ -1,6 +1,6 @@
 package me.gorgeousone.netherview.commmands;
 
-import me.gorgeousone.netherview.Message;
+import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
 import me.gorgeousone.netherview.cmdframework.argument.ArgType;
 import me.gorgeousone.netherview.cmdframework.argument.ArgValue;
@@ -8,8 +8,9 @@ import me.gorgeousone.netherview.cmdframework.argument.Argument;
 import me.gorgeousone.netherview.cmdframework.command.ArgCommand;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.handlers.PortalHandler;
+import me.gorgeousone.netherview.message.Message;
+import me.gorgeousone.netherview.message.MessageUtils;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -21,15 +22,15 @@ import java.util.Set;
 
 public class ListPortalsCommand extends ArgCommand {
 	
-	private final NetherViewPlugin main;
+	private final ConfigSettings configSettings;
 	private final PortalHandler portalHandler;
 	
-	public ListPortalsCommand(ParentCommand parent, NetherViewPlugin main, PortalHandler portalHandler) {
+	public ListPortalsCommand(ParentCommand parent, ConfigSettings configSettings, PortalHandler portalHandler) {
 		
 		super("listportals", NetherViewPlugin.INFO_PERM, false, parent);
 		addArg(new Argument("world", ArgType.STRING));
 		
-		this.main = main;
+		this.configSettings = configSettings;
 		this.portalHandler = portalHandler;
 	}
 	
@@ -44,7 +45,7 @@ public class ListPortalsCommand extends ArgCommand {
 			return;
 		}
 		
-		if (!main.canCreatePortalViews(world)) {
+		if (!configSettings.canCreatePortalViews(world)) {
 			MessageUtils.sendInfo(sender, Message.WORLD_NOT_WHITE_LISTED, worldName);
 			return;
 		}
@@ -58,7 +59,7 @@ public class ListPortalsCommand extends ArgCommand {
 		StringBuilder portals = new StringBuilder();
 		
 		for (Portal portal : portalSet) {
-			portals.append("\\n").append(ChatColor.GRAY + "- ").append(portal.toWhiteString());
+			portals.append("\\n").append(ChatColor.GRAY + "- ").append(ChatColor.RESET).append(portal.toString());
 		}
 		
 		MessageUtils.sendInfo(sender, Message.WORLD_INFO, String.valueOf(portalSet.size()), worldName, portals.toString());

@@ -9,12 +9,11 @@ import org.bukkit.event.HandlerList;
 public class PortalLinkEvent extends Event implements Cancellable {
 	
 	private static final HandlerList HANDLER_LIST = new HandlerList();
+	private boolean isCancelled;
 	
 	private final Player player;
 	private final Portal fromPortal;
 	private final Portal toPortal;
-	
-	private boolean isCancelled;
 	
 	public PortalLinkEvent(Portal fromPortal, Portal toPortal, Player player) {
 		

@@ -19,11 +19,17 @@ public enum Axis {
 		this.crossNormal = crossNormal;
 	}
 	
+	/**
+	 * Returns the normal vector for the plane aligned to this axis.
+	 */
 	public Vector getNormal() {
 		return normal.clone();
 	}
 	
-	
+	/**
+	 * Returns a vector that is inside the plane aligned to this axis.
+	 * It like the cross product of the plane normal with the vector (0|1|0) but it's never negative.
+	 */
 	public Vector getCrossNormal() {
 		return crossNormal.clone();
 	}

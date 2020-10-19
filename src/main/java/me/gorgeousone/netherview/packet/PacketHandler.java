@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview.handlers;
+package me.gorgeousone.netherview.packet;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -13,8 +13,10 @@ import com.comphenix.protocol.wrappers.Pair;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.BlockVec;
+import me.gorgeousone.netherview.portal.ProjectionEntity;
 import me.gorgeousone.netherview.utils.FacingUtils;
 import me.gorgeousone.netherview.utils.NmsUtils;
+import me.gorgeousone.netherview.utils.TimeUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
@@ -45,40 +47,48 @@ import java.util.Set;
  * Handler class for creating and managing multi block change packets via ProtocolLib
  */
 public class PacketHandler {
-
+	
 	private final boolean useBlockPacket1_16_2 = VersionUtils.serverIsAtOrAbove("1.16.2");
 	private final boolean useEquipmentPacket1_16 = VersionUtils.serverIsAtOrAbove("1.16");
 	private final boolean useEquipmentPacket1_9 = VersionUtils.serverIsAtOrAbove("1.9");
 	private final boolean usePositionPacket1_9 = useEquipmentPacket1_9;
 	private final boolean useMovementPacket1_14 = VersionUtils.serverIsAtOrAbove("1.14");
 	
+	private final ItemStack pumpkin = new ItemStack(VersionUtils.IS_LEGACY_SERVER ? Material.valueOf("PUMPKIN") : Material.valueOf("CARVED_PUMPKIN"));
 	private final ProtocolManager protocolManager;
 	private final Set<Integer> markedPacketIds;
-	private PacketConstructor entityMetadataPacket,
-			entityHeadRotationPacket,
-			namedEntitySpawnPacket,
-			spawnEntityPacket,
-			spawnEntityLiving,
-			spawnEntityPainting;
+	
+	private PacketConstructor entityMetadataPacket;
+	private PacketConstructor entityHeadRotationPacket;
+	private PacketConstructor namedEntitySpawnPacket;
+	private PacketConstructor spawnEntityPacket;
+	private PacketConstructor spawnEntityLivingPacket;
+	private PacketConstructor spawnEntityPaintingPacket;
 	
 	public PacketHandler() {
 		
 		protocolManager = ProtocolLibrary.getProtocolManager();
 		markedPacketIds = new HashSet<>();
+		
 		try {
 			createPacketsConstructors();
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException("Failed to create packets constructors", e);
 		}
 	}
-
+	
 	private void createPacketsConstructors() throws ClassNotFoundException {
-
+		
 		entityHeadRotationPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.ENTITY_HEAD_ROTATION, NmsUtils.getNmsClass("Entity"), byte.class);
 		namedEntitySpawnPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.NAMED_ENTITY_SPAWN, NmsUtils.getNmsClass("EntityHuman"));
-		spawnEntityPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"));
-		spawnEntityLiving = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_LIVING, NmsUtils.getNmsClass("EntityLiving"));
-		spawnEntityPainting = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_PAINTING, NmsUtils.getNmsClass("EntityPainting"));
+		
+		if (useMovementPacket1_14) {
+			spawnEntityPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY, NmsUtils.getNmsClass("Entity"));
+		} else {
+		}
+		
+		spawnEntityLivingPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_LIVING, NmsUtils.getNmsClass("EntityLiving"));
+		spawnEntityPaintingPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.SPAWN_ENTITY_PAINTING, NmsUtils.getNmsClass("EntityPainting"));
 		entityMetadataPacket = protocolManager.createPacketConstructor(PacketType.Play.Server.ENTITY_METADATA, int.class, NmsUtils.getNmsClass("DataWatcher"), boolean.class);
 	}
 	
@@ -103,6 +113,10 @@ public class PacketHandler {
 	}
 	
 	private void sendPacket(Player player, PacketContainer packet) {
+		
+		if (packet == null) {
+			return;
+		}
 		
 		try {
 			protocolManager.sendServerPacket(player, packet);
@@ -273,6 +287,34 @@ public class PacketHandler {
 		return chunkLocs;
 	}
 	
+	public void hideProjectedEntities(Player player, Set<ProjectionEntity> entities) {
+		
+		if (entities.isEmpty()) {
+			return;
+		}
+		
+		int[] entityIds = new int[entities.size()];
+		int i = 0;
+		
+		for (ProjectionEntity entity : entities) {
+			entityIds[i] = entity.getFakeId();
+			++i;
+		}
+		
+		PacketContainer destroyPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+		destroyPacket.getIntegerArrays().write(0, entityIds);
+		sendPacket(player, destroyPacket);
+	}
+	
+	public void hideProjectedEntity(Player player, ProjectionEntity entity) {
+		
+		int[] entityIds = new int[]{entity.getFakeId()};
+		
+		PacketContainer destroyPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+		destroyPacket.getIntegerArrays().write(0, entityIds);
+		sendPacket(player, destroyPacket);
+	}
+	
 	public void hideEntities(Player player, Set<Entity> entities) {
 		
 		if (entities.isEmpty()) {
@@ -295,13 +337,15 @@ public class PacketHandler {
 	public void showEntities(Player player, Set<Entity> visibleEntities) {
 		
 		for (Entity entity : visibleEntities) {
-			showEntity(player, entity, new Transform());
+			showEntity(player, entity, entity.getEntityId(), new Transform(), false);
 		}
 	}
 	
 	public void showEntity(Player player,
 	                       Entity entity,
-	                       Transform transform) {
+	                       int entityId,
+	                       Transform transform,
+	                       boolean isProjection) {
 		
 		if (entity == null || entity.isDead()) {
 			return;
@@ -318,26 +362,26 @@ public class PacketHandler {
 					return;
 				
 				case PAINTING:
-					sendPacket(player, createPaintingPacket((Painting) entity, entityLoc, transform));
+					sendPacket(player, createPaintingPacket((Painting) entity, entityLoc, entityId, transform));
 					break;
 				
 				case PLAYER:
 					
-					sendPacket(player, createPlayerPacket((HumanEntity) entity, entityLoc));
+					sendPacket(player, createPlayerPacket((HumanEntity) entity, entityLoc, entityId));
 					sendPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
-					showEquipment(player, (LivingEntity) entity);
+					showEquipment(player, (LivingEntity) entity, entityId, isProjection);
 					break;
 				
 				default:
 					
 					if (entity instanceof LivingEntity) {
 						
-						sendPacket(player, createEntityLivingPacket((LivingEntity) entity, entityLoc));
+						sendPacket(player, createEntityLivingPacket((LivingEntity) entity, entityLoc, entityId));
 						sendPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
-						showEquipment(player, (LivingEntity) entity);
+						showEquipment(player, (LivingEntity) entity, entityId, isProjection);
 						
 					} else {
-						sendPacket(player, createEntityPacket(entity, entityLoc));
+						sendPacket(player, createEntityPacket(entity, entityLoc, entityId));
 					}
 			}
 			
@@ -348,36 +392,58 @@ public class PacketHandler {
 		}
 	}
 	
-	private PacketContainer createHeadRotation(Entity entity, float yaw) throws InvocationTargetException, IllegalAccessException {
-
-		byte byteYaw = (byte) (int) (yaw * 265 / 360);
+	private PacketContainer createHeadRotation(Entity entity,
+	                                           float yaw) throws InvocationTargetException, IllegalAccessException {
+		
+		byte byteYaw = (byte) (yaw * 265 / 360);
 		return entityHeadRotationPacket.createPacket(NmsUtils.getHandle(entity), byteYaw);
 	}
 	
-	private PacketContainer createPlayerPacket(HumanEntity player, Location entityLoc) throws InvocationTargetException, IllegalAccessException {
-
+	private PacketContainer createPlayerPacket(HumanEntity player,
+	                                           Location entityLoc,
+	                                           int entityId) throws InvocationTargetException, IllegalAccessException {
+		
 		PacketContainer spawnPacket = namedEntitySpawnPacket.createPacket(NmsUtils.getHandle(player));
+		spawnPacket.getIntegers().write(0, entityId);
 		writeEntityPos(spawnPacket, entityLoc, true, false);
 		return spawnPacket;
 	}
 	
-	private PacketContainer createEntityPacket(Entity entity, Location entityLoc) throws InvocationTargetException, IllegalAccessException {
-
-		PacketContainer spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity));
+	private PacketContainer createEntityPacket(Entity entity,
+	                                           Location entityLoc,
+	                                           int entityId) throws InvocationTargetException, IllegalAccessException {
+		
+		
+		PacketContainer spawnPacket;
+		
+		if (useMovementPacket1_14) {
+			spawnPacket = spawnEntityPacket.createPacket(NmsUtils.getHandle(entity));
+		} else {
+			spawnPacket = EntitySpawnPacketFactory1_13.createPacket(entity);
+		}
+		
+		spawnPacket.getIntegers().write(0, entityId);
 		writeEntityPos(spawnPacket, entityLoc, false, false);
 		return spawnPacket;
 	}
 	
-	private PacketContainer createEntityLivingPacket(LivingEntity entity, Location entityLoc) throws InvocationTargetException, IllegalAccessException {
-
-		PacketContainer spawnPacket = spawnEntityLiving.createPacket(NmsUtils.getHandle(entity));
+	private PacketContainer createEntityLivingPacket(LivingEntity entity,
+	                                                 Location entityLoc,
+	                                                 int entityId) throws InvocationTargetException, IllegalAccessException {
+		
+		PacketContainer spawnPacket = spawnEntityLivingPacket.createPacket(NmsUtils.getHandle(entity));
+		spawnPacket.getIntegers().write(0, entityId);
 		writeEntityPos(spawnPacket, entityLoc, true, true);
 		return spawnPacket;
 	}
 	
-	private PacketContainer createPaintingPacket(Painting painting, Location location, Transform transform) throws InvocationTargetException, IllegalAccessException {
-
-		PacketContainer spawnPacket = spawnEntityPainting.createPacket(NmsUtils.getHandle(painting));
+	private PacketContainer createPaintingPacket(Painting painting,
+	                                             Location location,
+	                                             int entityId,
+	                                             Transform transform) throws InvocationTargetException, IllegalAccessException {
+		
+		PacketContainer spawnPacket = spawnEntityPaintingPacket.createPacket(NmsUtils.getHandle(painting));
+		spawnPacket.getIntegers().write(0, entityId);
 		
 		int halfHeight = (int) (WrappedBoundingBox.of(painting).getHeight() / 2);
 		BlockPosition blockPosition = new BlockPosition(location.toVector()).subtract(new BlockPosition(0, halfHeight, 0));
@@ -424,7 +490,7 @@ public class PacketHandler {
 	}
 	
 	public void sendEntityMoveLook(Player player,
-	                               Entity entity,
+	                               ProjectionEntity entity,
 	                               Vector relMove,
 	                               double newYaw,
 	                               double newPitch,
@@ -432,8 +498,7 @@ public class PacketHandler {
 		
 		PacketContainer moveLookPacket = protocolManager.createPacket(PacketType.Play.Server.REL_ENTITY_MOVE_LOOK);
 		
-		moveLookPacket.getIntegers()
-				.write(0, entity.getEntityId());
+		moveLookPacket.getIntegers().write(0, entity.getFakeId());
 		
 		if (useMovementPacket1_14) {
 			
@@ -442,17 +507,23 @@ public class PacketHandler {
 					.write(1, (short) (relMove.getY() * 4096))
 					.write(2, (short) (relMove.getZ() * 4096));
 			
-		} else {
+		} else if (usePositionPacket1_9) {
 			
 			moveLookPacket.getIntegers()
 					.write(1, (int) (relMove.getX() * 4096))
 					.write(2, (int) (relMove.getY() * 4096))
 					.write(3, (int) (relMove.getZ() * 4096));
+		} else {
+			
+			moveLookPacket.getBytes()
+					.write(1, (byte) (relMove.getX() * 4096))
+					.write(2, (byte) (relMove.getY() * 4096))
+					.write(3, (byte) (relMove.getZ() * 4096));
 		}
 		
 		moveLookPacket.getBytes()
-				.write(0, (byte) (newYaw * 256 / 260))
-				.write(1, (byte) (newPitch * 256 / 260));
+				.write(0, (byte) (newYaw * 256 / 360))
+				.write(1, (byte) (newPitch * 256 / 360));
 		
 		//no idea what field 1 does, seems to be always true
 		moveLookPacket.getBooleans()
@@ -460,7 +531,7 @@ public class PacketHandler {
 				.write(1, true);
 		
 		PacketContainer headRotPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
-		headRotPacket.getIntegers().write(0, entity.getEntityId());
+		headRotPacket.getIntegers().write(0, entity.getFakeId());
 		headRotPacket.getBytes().write(0, (byte) (int) (newYaw * 265 / 360));
 		
 		sendPacket(player, moveLookPacket);
@@ -468,28 +539,27 @@ public class PacketHandler {
 	}
 	
 	private PacketContainer createMetadataPacket(Entity entity) throws InvocationTargetException, IllegalAccessException {
-
 		return entityMetadataPacket.createPacket(entity.getEntityId(), NmsUtils.getDataWatcher(entity), true);
 	}
 	
-	private void showEquipment(Player player, LivingEntity entity) {
+	private void showEquipment(Player player, LivingEntity entity, int entityId, boolean isProjection) {
 		
-		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = getEquipmentList(entity);
+		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = getEquipmentList(entity, isProjection);
 		
 		if (useEquipmentPacket1_16) {
-			sendEquipment1_16(player, entity, equipmentMap);
+			sendEquipment1_16(player, entityId, equipmentMap);
 			
 		} else if (useEquipmentPacket1_9) {
-			sendEquipment(player, entity, equipmentMap);
+			sendEquipment1_9(player, entityId, equipmentMap);
 			
 		} else {
-			sendEquipment1_8(player, entity, equipmentMap);
+			sendEquipment(player, entityId, equipmentMap);
 		}
 	}
 	
-	private void sendEquipment1_8(Player player,
-	                              Entity entity,
-	                              Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+	private void sendEquipment(Player player,
+	                           int entityId,
+	                           Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
 		
 		List<EnumWrappers.ItemSlot> itemSlots = new ArrayList<>(Arrays.asList(EnumWrappers.ItemSlot.values()));
 		
@@ -503,7 +573,7 @@ public class PacketHandler {
 			
 			PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
 			equipmentPacket.getIntegers()
-					.write(0, entity.getEntityId())
+					.write(0, entityId)
 					.write(1, itemSlots.indexOf(slot) - 1);
 			
 			equipmentPacket.getItemModifier().write(0, item);
@@ -511,9 +581,9 @@ public class PacketHandler {
 		}
 	}
 	
-	private void sendEquipment(Player player,
-	                           Entity entity,
-	                           Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
+	private void sendEquipment1_9(Player player,
+	                              int entityId,
+	                              Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
 		
 		for (EnumWrappers.ItemSlot slot : equipmentMap.keySet()) {
 			
@@ -524,7 +594,7 @@ public class PacketHandler {
 			}
 			
 			PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
-			equipmentPacket.getIntegers().write(0, entity.getEntityId());
+			equipmentPacket.getIntegers().write(0, entityId);
 			equipmentPacket.getItemSlots().write(0, slot);
 			equipmentPacket.getItemModifier().write(0, item);
 			sendPacket(player, equipmentPacket);
@@ -532,7 +602,7 @@ public class PacketHandler {
 	}
 	
 	private void sendEquipment1_16(Player player,
-	                               Entity entity,
+	                               int entityId,
 	                               Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap) {
 		
 		List<Pair<EnumWrappers.ItemSlot, ItemStack>> equipmentList = new ArrayList<>();
@@ -553,12 +623,12 @@ public class PacketHandler {
 		}
 		
 		PacketContainer equipmentPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT);
-		equipmentPacket.getIntegers().write(0, entity.getEntityId());
+		equipmentPacket.getIntegers().write(0, entityId);
 		equipmentPacket.getSlotStackPairLists().write(0, equipmentList);
 		sendPacket(player, equipmentPacket);
 	}
 	
-	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity) {
+	public Map<EnumWrappers.ItemSlot, ItemStack> getEquipmentList(LivingEntity entity, boolean isProjection) {
 		
 		EntityEquipment equipment = entity.getEquipment();
 		Map<EnumWrappers.ItemSlot, ItemStack> equipmentMap = new HashMap<>();
@@ -574,7 +644,13 @@ public class PacketHandler {
 		equipmentMap.put(EnumWrappers.ItemSlot.FEET, equipment.getBoots());
 		equipmentMap.put(EnumWrappers.ItemSlot.LEGS, equipment.getLeggings());
 		equipmentMap.put(EnumWrappers.ItemSlot.CHEST, equipment.getChestplate());
-		equipmentMap.put(EnumWrappers.ItemSlot.HEAD, equipment.getHelmet());
+		
+		if (isProjection && TimeUtils.isSpooktober()) {
+			equipmentMap.put(EnumWrappers.ItemSlot.HEAD, pumpkin);
+		} else {
+			equipmentMap.put(EnumWrappers.ItemSlot.HEAD, equipment.getHelmet());
+		}
+		
 		return equipmentMap;
 	}
 }

@@ -4,8 +4,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -85,7 +85,7 @@ public abstract class BasicCommand {
 	protected abstract void onCommand(CommandSender sender, String[] arguments);
 	
 	public List<String> getTabList(CommandSender sender, String[] arguments) {
-		return new LinkedList<>();
+		return new ArrayList<>();
 	}
 	
 	public String getUsage() {

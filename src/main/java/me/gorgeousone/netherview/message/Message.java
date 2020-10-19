@@ -1,4 +1,4 @@
-package me.gorgeousone.netherview;
+package me.gorgeousone.netherview.message;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -6,7 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 public enum Message {
 	
 	SUCCESSFUL_PORTAL_LINKING("successful-portal-linking"),
-	UNEQUAL_PORTALS("unequal-portals"),
+	UNEQUAL_PORTALS("unequal-portal-sizes"),
 	PORTAL_FRAME_INCOMPLETE("portal-frame-incomplete", "world-type"),
 	PORTAL_CORNERS_INCOMPLETE("portal-corners-incomplete", "world-type"),
 	PORTAL_TOO_BIG("portal-too-big", "size"),
@@ -15,11 +15,26 @@ public enum Message {
 	NO_WORLD_FOUND("no-world-found", "world"),
 	NO_PORTALS_FOUND("no-portals-found", "world"),
 	NO_PORTAL_FOUND_NEARBY("no-portal-found-nearby"),
-	PORTAL_INFO("portal-info", "location", "is-flipped", "counter-portal", "linked-portals"),
+	PORTAL_INFO("portal-info", "location", "info"),
 	WORLD_INFO("world-info", "count", "world", "portals"),
 	FLIPPED_PORTAL("flipped-portal", "portal"),
 	PORTAL_VIEWING_ON("portal-viewing-on"),
-	PORTAL_VIEWING_OFF("portal-viewing-off");
+	PORTAL_VIEWING_OFF("portal-viewing-off"),
+	
+	WAND_INFO("wand-info"),
+	SELECTION_INCOMPLETE("selection-incomplete"),
+	SET_FIRST_CUBOID_POSITION("set-first-position", "position"),
+	SET_SECOND_CUBOID_POSITION("set-second-position", "position"),
+	SELECTION_TOO_SMALL("selection-too-small"),
+	SELECTION_NOT_FLAT("selection-not-flat"),
+	NO_PORTAL_FOUND_WITH_NAME("no-portal-found-with-name", "name"),
+	PORTALS_INTERSECT("portals-intersect"),
+	PORTAL_NAME_NOT_VALID("portal-name-not-valid"),
+	PORTAL_NAME_NOT_UNIQUE("portal-name-not-unique", "name"),
+	CREATED_PORTAL("created-portal", "name", "size"),
+	REMOVED_PORTAL("deleted-portal", "name"),
+	LINKED_PORTAL("linked-portal", "from-portal", "to-portal"),
+	UNLINKED_PORTAL("unlinked-portal", "portal");
 	
 	private final String configKey;
 	private String configValue;
