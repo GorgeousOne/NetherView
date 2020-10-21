@@ -43,7 +43,7 @@ public final class VersionUtils {
 			
 			int versionDiff = requestedVersionInts[i] - CURRENT_VERSION_INTS[i];
 			
-			if (versionDiff > 0) {  
+			if (versionDiff > 0) {
 				return false;
 			}else if (versionDiff < 0){
 				return true;

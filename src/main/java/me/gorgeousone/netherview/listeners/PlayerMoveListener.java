@@ -106,14 +106,15 @@ public class PlayerMoveListener implements Listener {
 		}
 		
 		viewHandler.hidePortalProjection(player);
-		
 		Transform tpTransform = portal.getTpTransform();
-		Vector vel = to.toVector().subtract(from.toVector());
-		Vector transformedVel = tpTransform.rotateVec(vel);
-		Location destination = tpTransform.transformLoc(to.clone());
 		
+		Location destination = tpTransform.transformLoc(to.clone());
+		destination.setWorld(portal.getCounterPortal().getWorld());
 		player.teleport(destination);
 		teleportedPlayers.add(playerId);
+		
+		Vector vel = to.toVector().subtract(from.toVector());
+		Vector transformedVel = tpTransform.rotateVec(vel);
 		
 		new BukkitRunnable() {
 			@Override
@@ -121,7 +122,6 @@ public class PlayerMoveListener implements Listener {
 				player.setVelocity(transformedVel);
 			}
 		}.runTask(plugin);
-		
 		return true;
 	}
 	

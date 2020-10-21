@@ -34,4 +34,8 @@ public class PlayerSelectionHandler {
 		
 		return selection;
 	}
+	
+	public void removeSelection(Player player) {
+		cuboidSelections.remove(player.getUniqueId());
+	}
 }

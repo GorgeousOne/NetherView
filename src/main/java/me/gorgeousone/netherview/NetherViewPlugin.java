@@ -241,7 +241,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		manager.registerEvents(new PlayerTeleportListener(configSettings, portalHandler, viewHandler), this);
 		manager.registerEvents(new PlayerMoveListener(this, configSettings, viewHandler, customPortalHandler, portalMaterial), this);
 		manager.registerEvents(new BlockChangeListener(this, configSettings, portalHandler, viewHandler, packetHandler, portalMaterial), this);
-		manager.registerEvents(new PlayerQuitListener(viewHandler), this);
+		manager.registerEvents(new PlayerQuitListener(viewHandler, selectionHandler), this);
 		
 		manager.registerEvents(new PlayerClickListener(selectionHandler, configSettings), this);
 	}
