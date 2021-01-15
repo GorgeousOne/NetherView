@@ -1,21 +1,23 @@
 package me.gorgeousone.netherview.portal;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.customportal.CustomPortal;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.message.MessageException;
 import me.gorgeousone.netherview.utils.VersionUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 public class PortalSerializer {
 	
@@ -65,8 +67,8 @@ public class PortalSerializer {
 				portalData.set("location", new BlockVec(portal.getLocation()).serialize());
 				portalData.set("is-flipped", portal.isViewFlipped());
 				
-				if (portal.isLinked()) {
-					portalData.set("link", portal.getCounterPortal().hashCode());
+				for (Player player : portal.getCounterPortals().keySet()) {
+					portalData.set("link."+((player==null)?"null":player.getUniqueId().toString()), portal.getCounterPortal(player).hashCode());
 				}
 			}
 		}
@@ -123,7 +125,9 @@ public class PortalSerializer {
 			portal.setViewFlipped(portalData.getBoolean("is-flipped"));
 			
 			if (portalData.contains("link")) {
-				portalLinks.put(portalHash, portalData.getInt("link"));
+				for (String key : portalData.getConfigurationSection("link").getKeys(false)) {
+					portalLinks.put(portalHash, portalData.getInt("link."+key));
+				}
 			}
 			
 		} catch (IllegalArgumentException | IllegalStateException | MessageException e) {

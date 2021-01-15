@@ -101,15 +101,15 @@ public class PlayerMoveListener implements Listener {
 			return false;
 		}
 		
-		if (teleportedPlayers.contains(playerId) || !portal.isLinked()) {
+		if (teleportedPlayers.contains(playerId) || !portal.isLinked(player)) {
 			return false;
 		}
 		
 		viewHandler.hidePortalProjection(player);
-		Transform tpTransform = portal.getTpTransform();
+		Transform tpTransform = portal.getTpTransform(player);
 		
 		Location destination = tpTransform.transformLoc(to.clone());
-		destination.setWorld(portal.getCounterPortal().getWorld());
+		destination.setWorld(portal.getCounterPortal(player).getWorld());
 		player.teleport(destination);
 		teleportedPlayers.add(playerId);
 		

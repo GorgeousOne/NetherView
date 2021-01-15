@@ -51,7 +51,7 @@ public class FlipPortalCommand extends BasicCommand {
 		
 		viewHandler.removePortal(viewedPortal);
 		viewedPortal.flipView();
-		portalHandler.loadProjectionCachesOf(viewedPortal);
+		portalHandler.loadProjectionCachesOf(player, viewedPortal);
 		viewHandler.displayClosestPortalTo(player, player.getEyeLocation());
 		
 		MessageUtils.sendInfo(player, Message.FLIPPED_PORTAL, viewedPortal.toString());

@@ -1,0 +1,33 @@
+successful-portal-linking: '&7&oThe veil between the two worlds has lifted a little bit!'
+unequal-portal-sizes: '&7These two portals are not the same size.'
+portal-frame-incomplete: '&7All frame blocks of this %world-type%-world portal need to be occluding blocks.'
+portal-corners-incomplete: '&7All four corners corners of this %world-type%-world portal need to be occluding blocks.'
+portal-too-big: '&7Cannot make portal views bigger than %size% blocks!'
+portal-not-intact: '&7Some portal blocks of this %world-type%-world portal seem to be broken.'
+world-not-white-listed: |-
+    &7NetherView is not enabled in world &r%world%&7.
+    &7You can enable it by adding the world's name to 'worlds-with-portal-viewing' in the config.
+no-world-found: '&7No world found with name &r%world%&7.'
+no-portals-found: '&7There are no nether portals listed for world &r%world%&7.'
+no-portal-found-nearby: '&7You need to look at a nether portal with NetherView enabled for this command to work.'
+portal-info: '&7Info about portal at &r%location%: %info%'
+
+world-info: '%count% &7portal(s) listed for world &r%world%&7: %portals%'
+flipped-portal: '&7Flipped view of portal &r%portal%&7.'
+portal-viewing-on: '&7Enabled portal viewing for you.'
+portal-viewing-off: '&7Disabled portal viewing for you.'
+
+wand-info: '&7Left click to set first portal corner. Right click to set the second one. Use &r/nv createportal&7 to create the portal.'
+selection-incomplete: '&7Please select two blocks with a portal wand first.'
+set-first-position: '&7First position set %position%.'
+set-second-position: '&7Second position set %position%.'
+selection-too-small: '&7Your selection is too small to create a portal.'
+selection-not-flat: '&7A selection must be 1 block wide in either X or Z direction.'
+portals-intersect: '&7This portal would overlap with another portal that is already here.'
+portal-name-not-valid: '&7A portal name can be max. 32 characters long and may only contain alphanumeric letters and dashes/underscores.'
+portal-name-not-unique: '&7There is already a portal named &r%name%&7.'
+created-portal: '&7Created portal &r%name%&7 (%size% blocks).'
+no-portal-found-with-name: '&7No portal found with name &r%name%&7.'
+deleted-portal: '&7Removed portal &r%name%&7.'
+linked-portal: '&7Linked portal &r%from-portal%&7 to portal &r%to-portal%&7.'
+unlinked-portal: '&7Removed link of portal &r%portal%&7.'

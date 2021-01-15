@@ -1,11 +1,13 @@
 package me.gorgeousone.netherview.customportal;
 
+import java.util.HashSet;
+
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+
 import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.Cuboid;
 import me.gorgeousone.netherview.portal.Portal;
-import org.bukkit.World;
-
-import java.util.HashSet;
 
 public class CustomPortal extends Portal {
 	
@@ -27,10 +29,10 @@ public class CustomPortal extends Portal {
 	}
 	
 	@Override
-	public void setLinkedTo(Portal counterPortal) {
+	public void setLinkedTo(Player player, Portal counterPortal) {
 		
 		if (counterPortal instanceof CustomPortal) {
-			super.setLinkedTo(counterPortal);
+			super.setLinkedTo(player, counterPortal);
 		} else {
 			throw new IllegalArgumentException("Cannot link custom portal to not custom portal");
 		}

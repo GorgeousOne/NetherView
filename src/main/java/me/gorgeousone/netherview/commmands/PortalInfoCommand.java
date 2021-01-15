@@ -58,7 +58,7 @@ public class PortalInfoCommand extends BasicCommand {
 		}
 		
 		infoText.append("\\n" + ChatColor.GRAY + "is flipped: " + ChatColor.RESET + portal.isViewFlipped());
-		infoText.append("\\n" + ChatColor.GRAY + "is linked: " + ChatColor.RESET + (portal.isLinked() ? portal.getCounterPortal().toString() : "-no portal-"));
+		infoText.append("\\n" + ChatColor.GRAY + "is linked: " + ChatColor.RESET + (portal.isLinked(null) ? portal.getCounterPortal(null).toString() : "-no portal-"));
 		infoText.append("\\n" + ChatColor.GRAY + "is linked: " + ChatColor.RESET);
 		
 		Set<Portal> connectedPortals = portalHandler.getPortalsLinkedTo(portal);
