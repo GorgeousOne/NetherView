@@ -55,6 +55,7 @@ public class UpdateCheck {
 				for (int i = 0; i < newUpdates.size(); ++i) {
 					
 					if (i > maxDisplayedMessages - 1) {
+						
 						ComponentBuilder message = new ComponentBuilder((newUpdates.size() - maxDisplayedMessages) + " more...").color(ChatColor.LIGHT_PURPLE);
 						message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/" + resourceName + "." + resourceId + "/updates"));
 						message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("see all updates").create()));
@@ -87,7 +88,6 @@ public class UpdateCheck {
 			UpdateInfo updateInfo = new UpdateInfo(scanner.nextLine(), resourceName, resourceId);
 			
 			if (VersionUtils.isVersionLowerThan(currentVersion, updateInfo.getVersion())) {
-				System.out.println(currentVersion + " is lower than " + updateInfo.getVersion());
 				updates.add(updateInfo);
 			}else {
 				break;

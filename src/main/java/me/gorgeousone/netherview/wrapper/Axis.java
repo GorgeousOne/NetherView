@@ -9,7 +9,8 @@ import org.bukkit.util.Vector;
 public enum Axis {
 	
 	X(new Vector(0, 0, 1), new Vector(1, 0, 0)),
-	Z(new Vector(1, 0, 0), new Vector(0, 0, 1));
+	Z(new Vector(1, 0, 0), new Vector(0, 0, 1)),
+	Y(new Vector(0, 0, 0), new Vector(1, 0, 0));
 	
 	private final Vector normal;
 	private final Vector crossNormal;

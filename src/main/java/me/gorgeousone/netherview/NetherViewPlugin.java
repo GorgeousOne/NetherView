@@ -77,7 +77,6 @@ public final class NetherViewPlugin extends JavaPlugin {
 	private PlayerSelectionHandler selectionHandler;
 	private CustomPortalHandler customPortalHandler;
 	
-	
 	private Plugin protocolLib = null;
 	
 	@Override

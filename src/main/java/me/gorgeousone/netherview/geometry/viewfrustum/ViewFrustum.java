@@ -250,6 +250,58 @@ public class ViewFrustum {
 		return blocksInFrustum;
 	}
 	
+	private Map<BlockVec, BlockType> getBlocksInYAlignedFrustum(BlockCache blockCache,
+	                                                            AxisAlignedRect startLayer,
+	                                                            AxisAlignedRect endLayer) {
+		
+		Vector layerMinPoint = startLayer.getMin();
+		Vector layerMaxPoint = startLayer.getMax();
+		
+		Vector layerMinPointStep = endLayer.getMin().subtract(startLayer.getMin()).multiply(1d / frustumLength);
+		Vector layerMaxPointStep = endLayer.getMax().subtract(startLayer.getMax()).multiply(1d / frustumLength);
+		
+		int[] minZs = new int[frustumLength + 1];
+		int[] minXs = new int[frustumLength + 1];
+		int[] maxZs = new int[frustumLength + 1];
+		int[] maxXs = new int[frustumLength + 1];
+		
+		for (int i = 0; i <= frustumLength; i++) {
+			
+			minZs[i] = layerMinPoint.getBlockZ();
+			minXs[i] = layerMinPoint.getBlockY();
+			maxZs[i] = layerMaxPoint.getBlockZ();
+			maxXs[i] = layerMaxPoint.getBlockY();
+			
+			layerMinPoint.add(layerMinPointStep);
+			layerMaxPoint.add(layerMaxPointStep);
+		}
+		
+		int offMinZ = (int) Math.signum(layerMinPointStep.getZ()) == -1 ? 1 : 0;
+		int offMinX = (int) Math.signum(layerMinPointStep.getX()) == -1 ? 1 : 0;
+		int offMaxZ = (int) Math.signum(layerMaxPointStep.getZ()) == 1 ? 1 : 0;
+		int offMaxX = (int) Math.signum(layerMaxPointStep.getX()) == 1 ? 1 : 0;
+		
+		Map<BlockVec, BlockType> blocksInFrustum = new HashMap<>();
+		int startY = (int) Math.round(startLayer.getMin().getX());
+		
+		for (int i = 0; i < frustumLength; i++) {
+			
+			int layerY = startY + i;
+			int startZ = minZs[i + offMinZ];
+			int startX = minXs[i + offMinX];
+			int endZ = maxZs[i + offMaxZ];
+			int endX = maxXs[i + offMaxX];
+			
+			for (int rowX = startZ; rowX <= endZ; rowX++) {
+				for (int columnZ = startX; columnZ <= endX; columnZ++) {
+					addBlock(rowX, layerY, columnZ, blockCache, blocksInFrustum);
+				}
+			}
+		}
+		
+		return blocksInFrustum;
+	}
+	
 	
 	/**
 	 * Adds a blocks from the projection cache to the visible blocks in the frustum.
