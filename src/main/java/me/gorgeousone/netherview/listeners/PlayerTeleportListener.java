@@ -105,14 +105,14 @@ public class PlayerTeleportListener implements Listener {
 			Portal portal = portalHandler.getPortalAt(portalBlock);
 			Portal counterPortal = portalHandler.getPortalAt(counterPortalBlock);
 			
-			if (counterPortal.equals(portal.getCounterPortal())) {
+			if (counterPortal.equals(portal.getCounterPortal(player))) {
 				return false;
 			}
 			
-			if (portal.isLinked()) {
+			if (portal.isLinked(player)) {
 				
-				Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(), UnlinkReason.SWITCHED_TARGET_PORTAL));
-				portal.removeLink();
+				Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(player), UnlinkReason.SWITCHED_TARGET_PORTAL));
+				portal.removeLink(player);
 				
 				portalHandler.linkPortalTo(portal, counterPortal, player);
 				return false;

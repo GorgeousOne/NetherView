@@ -1,5 +1,17 @@
 package me.gorgeousone.netherview.portal;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+
 import me.gorgeousone.netherview.blockcache.BlockCache;
 import me.gorgeousone.netherview.blockcache.ProjectionCache;
 import me.gorgeousone.netherview.blockcache.Transform;
@@ -7,14 +19,6 @@ import me.gorgeousone.netherview.geometry.AxisAlignedRect;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.geometry.Cuboid;
 import me.gorgeousone.netherview.wrapper.Axis;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * A class containing information about a located portal structure in a world.
@@ -26,11 +30,11 @@ public class Portal {
 	
 	private final Set<Block> portalBlocks;
 	
-	private Portal counterPortal;
-	private Transform tpTransform;
-	
-	private Map.Entry<BlockCache, BlockCache> blockCaches;
-	private Map.Entry<ProjectionCache, ProjectionCache> projectionCaches;
+	private HashMap<Player, Portal> counterPortals;
+	private HashMap<Player, Transform> tpTransforms;
+
+	private HashMap<Player, Map.Entry<BlockCache, BlockCache>> blockCaches;
+	private HashMap<Player, Map.Entry<ProjectionCache, ProjectionCache>> projectionCaches;
 	
 	private final Cuboid frameShape;
 	private final Cuboid innerShape;
@@ -48,6 +52,12 @@ public class Portal {
 		this.frameShape = frameShape.clone();
 		this.innerShape = innerShape.clone();
 		this.portalBlocks = portalBlocks;
+
+		counterPortals = new HashMap<Player, Portal>();
+		tpTransforms = new HashMap<Player, Transform>();
+
+		blockCaches = new HashMap<Player, Map.Entry<BlockCache, BlockCache>>();
+		projectionCaches = new HashMap<Player, Map.Entry<ProjectionCache, ProjectionCache>>();
 	}
 	
 	public World getWorld() {
@@ -101,51 +111,74 @@ public class Portal {
 		       portalRect.height() == otherRect.height();
 	}
 	
-	public Portal getCounterPortal() {
-		return counterPortal;
+	public Portal getCounterPortal(Player player) {
+		if (counterPortals.containsKey(player)) return counterPortals.get(player);
+		return counterPortals.get(null);
 	}
 	
-	public void setTpTransform(Transform tpTransform) {
-		this.tpTransform = tpTransform;
+	public HashMap<Player, Portal> getCounterPortals() {
+		return counterPortals;
 	}
 	
-	public Transform getTpTransform() {
-		return tpTransform;
+	public void setTpTransform(Player player, Transform tpTransform) {
+		tpTransforms.put(player, tpTransform);
 	}
 	
-	public void setLinkedTo(Portal counterPortal) {
-		this.counterPortal = counterPortal;
+	public Transform getTpTransform(Player player) {
+		if (tpTransforms.containsKey(player)) return tpTransforms.get(player);
+		return tpTransforms.get(null);
 	}
 	
-	public void removeLink() {
-		
-		this.counterPortal = null;
-		this.tpTransform = null;
-		removeProjectionCaches();
+	public void setLinkedTo(Player player, Portal counterPortal) {
+		counterPortals.put(player, counterPortal);
 	}
 	
-	public boolean isLinked() {
-		return counterPortal != null;
+	public void removeLink(Player player) {
+
+		this.counterPortals.remove(player);
+		this.tpTransforms.remove(player);
+		removeProjectionCaches(player);
 	}
 	
-	public void setBlockCaches(Map.Entry<BlockCache, BlockCache> blockCaches) {
-		this.blockCaches = blockCaches;
+	@SuppressWarnings("unchecked")
+	public void removeLinks() {
+		for (Player player : ((HashMap<Player, Portal>) counterPortals.clone()).keySet()) {
+			this.counterPortals.remove(player);
+		}
+		for (Player player : ((HashMap<Player, Portal>) tpTransforms.clone()).keySet()) {
+			this.tpTransforms.remove(player);
+		}
+		for (Player player : ((HashMap<Player, Portal>) projectionCaches.clone()).keySet()) {
+			removeProjectionCaches(player);
+		}
 	}
 	
-	public void removeBlockCaches() {
-		blockCaches = null;
+	public boolean isLinked(Player player) {
+		return counterPortals.containsKey(player);
 	}
 	
-	public boolean blockCachesAreLoaded() {
-		return blockCaches != null;
+	public boolean hasLinks() {
+		return counterPortals.size()!=0;
 	}
 	
-	public BlockCache getFrontCache() {
-		return blockCaches.getKey();
+	public void setBlockCaches(Player player, Map.Entry<BlockCache, BlockCache> blockCaches) {
+		this.blockCaches.put(player, blockCaches);
 	}
 	
-	public BlockCache getBackCache() {
-		return blockCaches.getValue();
+	public void removeBlockCaches(Player player) {
+		blockCaches.remove(player);
+	}
+	
+	public boolean blockCachesAreLoaded(Player player) {
+		return blockCaches.containsKey(player);
+	}
+	
+	public BlockCache getFrontCache(Player player) {
+		return blockCaches.get(player).getKey();
+	}
+	
+	public BlockCache getBackCache(Player player) {
+		return blockCaches.get(player).getValue();
 	}
 	
 	/**
@@ -153,24 +186,28 @@ public class Portal {
 	 *
 	 * @param projectionCaches where the key is referred to as front projection and value as back projection
 	 */
-	public void setProjectionCaches(Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
-		this.projectionCaches = projectionCaches;
+	public void setProjectionCaches(Player player, Map.Entry<ProjectionCache, ProjectionCache> projectionCaches) {
+		this.projectionCaches.put(player, projectionCaches);
 	}
 	
-	public void removeProjectionCaches() {
-		this.projectionCaches = null;
+	public void removeProjectionCaches(Player player) {
+		this.projectionCaches.remove(player);
 	}
 	
-	public boolean projectionsAreLoaded() {
-		return projectionCaches != null;
+	public boolean projectionsAreLoaded(Player player) {
+		return projectionCaches.containsKey(player);
 	}
 	
-	public ProjectionCache getFrontProjection() {
-		return projectionCaches.getKey();
+	public ProjectionCache getFrontProjection(Player player) {
+		return projectionCaches.get(player).getKey();
 	}
 	
-	public ProjectionCache getBackProjection() {
-		return projectionCaches.getValue();
+	public ProjectionCache getBackProjection(Player player) {
+		return projectionCaches.get(player).getValue();
+	}
+	
+	public HashMap<Player, Entry<ProjectionCache, ProjectionCache>> getProjectionCaches() {
+		return projectionCaches;
 	}
 	
 	/**

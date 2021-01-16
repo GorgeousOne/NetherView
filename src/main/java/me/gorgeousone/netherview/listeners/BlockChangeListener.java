@@ -279,7 +279,7 @@ public class BlockChangeListener implements Listener {
 		}
 	}
 	
-	private void updateBlockCaches(Block block, BlockType newBlockType, boolean blockWasOccluding) {
+	private void updateBlockCaches(Player player, Block block, BlockType newBlockType, boolean blockWasOccluding) {
 		
 		World blockWorld = block.getWorld();
 		
@@ -289,7 +289,7 @@ public class BlockChangeListener implements Listener {
 		
 		BlockVec blockPos = new BlockVec(block);
 		
-		for (BlockCache cache : portalHandler.getBlockCaches(blockWorld)) {
+		for (BlockCache cache : portalHandler.getBlockCaches(player, blockWorld)) {
 			
 			if (!cache.contains(blockPos)) {
 				continue;
@@ -298,7 +298,7 @@ public class BlockChangeListener implements Listener {
 			Map<BlockVec, BlockType> updatedCopies = BlockCacheFactory.updateBlockInCache(cache, block, newBlockType, blockWasOccluding);
 			
 			if (!updatedCopies.isEmpty()) {
-				viewHandler.updateProjections(cache, updatedCopies);
+				viewHandler.updateProjections(player, cache, updatedCopies);
 			}
 		}
 	}
@@ -330,7 +330,7 @@ public class BlockChangeListener implements Listener {
 		Block block = event.getBlock();
 		Material blockType = block.getType();
 		
-		updateBlockCaches(block, BlockType.of(Material.AIR), blockType.isOccluding());
+		updateBlockCaches(null, block, BlockType.of(Material.AIR), blockType.isOccluding());
 		
 		if (blockType == portalMaterial || blockType.isOccluding()) {
 			removeDamagedPortals(block);
@@ -341,14 +341,14 @@ public class BlockChangeListener implements Listener {
 	public void onBlockPlace(BlockPlaceEvent event) {
 		
 		Block block = event.getBlock();
-		updateBlockCaches(block, BlockType.of(block), false);
+		updateBlockCaches(null, block, BlockType.of(block), false);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockExplode(BlockExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
+			updateBlockCaches(null, block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		}
 		
 		if (!configSettings.canCreatePortalViews(event.getBlock().getWorld())) {
@@ -369,7 +369,7 @@ public class BlockChangeListener implements Listener {
 	public void onEntityExplode(EntityExplodeEvent event) {
 		
 		for (Block block : event.blockList()) {
-			updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
+			updateBlockCaches(null, block, BlockType.of(Material.AIR), block.getType().isOccluding());
 		}
 		
 		if (configSettings.canCreatePortalViews(event.getEntity().getWorld())) {
@@ -386,20 +386,20 @@ public class BlockChangeListener implements Listener {
 	public void onBlockSpill(BlockFromToEvent event) {
 		
 		Block block = event.getToBlock();
-		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
+		updateBlockCaches(null, block, BlockType.of(event.getBlock()), false);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBurn(BlockBurnEvent event) {
 		
 		Block block = event.getBlock();
-		updateBlockCaches(block, BlockType.of(Material.AIR), block.getType().isOccluding());
+		updateBlockCaches(null, block, BlockType.of(Material.AIR), block.getType().isOccluding());
 	}
 	
 	private void onAnyGrowEvent(BlockGrowEvent event) {
 		
 		Block block = event.getBlock();
-		updateBlockCaches(block, BlockType.of(event.getNewState()), block.getType().isOccluding());
+		updateBlockCaches(null, block, BlockType.of(event.getNewState()), block.getType().isOccluding());
 	}
 	
 	//pumpkin/melon growing
@@ -425,7 +425,7 @@ public class BlockChangeListener implements Listener {
 	public void onBlockFade(BlockFadeEvent event) {
 		
 		Block block = event.getBlock();
-		updateBlockCaches(block, BlockType.of(event.getNewState()), block.getType().isOccluding());
+		updateBlockCaches(null, block, BlockType.of(event.getNewState()), block.getType().isOccluding());
 	}
 	
 	//falling sand and maybe endermen (actually also sheep but that doesn't work)
@@ -434,14 +434,14 @@ public class BlockChangeListener implements Listener {
 		
 		//TODO check what 1.8 uses instead of event.getBlockData()
 		Block block = event.getBlock();
-		updateBlockCaches(block, BlockType.of(event.getBlock()), false);
+		updateBlockCaches(null, block, BlockType.of(event.getBlock()), false);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlantGrow(StructureGrowEvent event) {
 		
 		for (BlockState state : event.getBlocks()) {
-			updateBlockCaches(state.getBlock(), BlockType.of(state), false);
+			updateBlockCaches(null, state.getBlock(), BlockType.of(state), false);
 		}
 	}
 }

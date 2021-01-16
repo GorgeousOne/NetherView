@@ -1,8 +1,9 @@
 package me.gorgeousone.netherview.event;
 
-import me.gorgeousone.netherview.portal.Portal;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+
+import me.gorgeousone.netherview.portal.Portal;
 
 public class PortalUnlinkEvent extends Event {
 	
@@ -12,10 +13,10 @@ public class PortalUnlinkEvent extends Event {
 	private final Portal toPortal;
 	private final UnlinkReason reason;
 	
-	public PortalUnlinkEvent(Portal portal, Portal linkedPortal, UnlinkReason reason) {
+	public PortalUnlinkEvent(Portal portal, Portal toPortal, UnlinkReason reason) {
 		
 		this.fromPortal = portal;
-		this.toPortal = linkedPortal;
+		this.toPortal = toPortal;
 		this.reason = reason;
 	}
 	

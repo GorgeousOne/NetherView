@@ -44,12 +44,12 @@ public class UnlinkPortalCommand extends ArgCommand {
 			return;
 		}
 		
-		if (!portal.isLinked()) {
+		if (!portal.isLinked(null)) {
 			return;
 		}
 		
 		viewHandler.removePortal(portal);
-		portal.removeLink();
+		portal.removeLink(null);
 		MessageUtils.sendInfo(sender, Message.UNLINKED_PORTAL, portalName);
 	}
 	

@@ -237,18 +237,18 @@ public class ViewHandler {
 	                             boolean displayFrustum,
 	                             boolean hidePortalBlocks) {
 		
-		if (!portal.isLinked()) {
+		if (!portal.isLinked(player)) {
 			return;
 		}
 		
-		if (!portal.projectionsAreLoaded()) {
-			portalHandler.loadProjectionCachesOf(portal);
+		if (!portal.projectionsAreLoaded(player)) {
+			portalHandler.loadProjectionCachesOf(player, portal);
 		}
 		
 		portalHandler.updateExpirationTime(portal);
-		portalHandler.updateExpirationTime(portal.getCounterPortal());
+		portalHandler.updateExpirationTime(portal.getCounterPortal(player));
 		
-		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection() : portal.getBackProjection();
+		ProjectionCache projection = ViewFrustumFactory.isPlayerBehindPortal(player, portal) ? portal.getFrontProjection(player) : portal.getBackProjection(player);
 		ViewFrustum playerFrustum = ViewFrustumFactory.createFrustum(playerEyeLoc.toVector(), portal.getPortalRect(), projection.getCacheLength());
 		
 		PlayerViewSession session = getViewSession(player);
@@ -311,11 +311,11 @@ public class ViewHandler {
 	/**
 	 * Forwards the changes made in a block cache to all the linked projection caches. This also live-updates what players see.
 	 */
-	public void updateProjections(BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
+	public void updateProjections(Player player, BlockCache cache, Map<BlockVec, BlockType> updatedBlocks) {
 		
 		Map<ProjectionCache, Set<PlayerViewSession>> sortedSessions = getSessionsSortedByPortalSides();
 		
-		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(cache)) {
+		for (ProjectionCache projection : portalHandler.getProjectionsLinkedTo(player, cache)) {
 			
 			Map<BlockVec, BlockType> projectionUpdates = updateProjection(projection, updatedBlocks);
 			
@@ -332,10 +332,10 @@ public class ViewHandler {
 				}
 				
 				Map<BlockVec, BlockType> newBlocksInFrustum = getBlocksInFrustum(playerFrustum, projectionUpdates);
-				Player player = session.getPlayer();
+				Player sessionPlayer = session.getPlayer();
 				
-				getViewSession(player).getProjectedBlocks().putAll(newBlocksInFrustum);
-				packetHandler.displayFakeBlocks(player, newBlocksInFrustum);
+				getViewSession(sessionPlayer).getProjectedBlocks().putAll(newBlocksInFrustum);
+				packetHandler.displayFakeBlocks(sessionPlayer, newBlocksInFrustum);
 			}
 		}
 	}

@@ -151,7 +151,7 @@ public class PortalHandler {
 		
 		for (Portal portal : getPortals(playerLoc.getWorld())) {
 			
-			if (mustBeLinked && !portal.isLinked()) {
+			if (mustBeLinked && !portal.hasLinks()) {
 				continue;
 			}
 			
@@ -198,15 +198,17 @@ public class PortalHandler {
 		for (Portal linkedPortal : linkedToPortals) {
 			
 			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(linkedPortal, portal, UnlinkReason.LINKED_PORTAL_DESTROYED));
-			linkedPortal.removeLink();
+			linkedPortal.removeLinks();
 		}
 		
 		loadedPortals.remove(portal);
 		
-		if (portal.isLinked()) {
+		if (portal.hasLinks()) {
 			
-			Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(), UnlinkReason.PORTAL_DESTROYED));
-			portal.removeLink();
+			for (Player player : portal.getCounterPortals().keySet()) {
+				Bukkit.getPluginManager().callEvent(new PortalUnlinkEvent(portal, portal.getCounterPortal(player), UnlinkReason.PORTAL_DESTROYED));
+			}
+			portal.removeLinks();
 		}
 		
 		getPortals(portal.getWorld()).remove(portal);
@@ -244,14 +246,14 @@ public class PortalHandler {
 	/**
 	 * Returns a Set of all portals connected with their projections to the passed portal. Returns an empty set if none was found.
 	 */
-	public Set<Portal> getPortalsLinkedTo(Portal portal) {
+	public Set<Portal> getPortalsLinkedTo(Player player, Portal portal) {
 		
 		Set<Portal> linkedToPortals = new HashSet<>();
 		
 		for (UUID worldId : portalInWorlds.keySet()) {
 			for (Portal secondPortal : portalInWorlds.get(worldId)) {
 				
-				if (secondPortal.isLinked() && secondPortal.getCounterPortal() == portal) {
+				if (secondPortal.isLinked(player) && secondPortal.getCounterPortal(player) == portal) {
 					linkedToPortals.add(secondPortal);
 				}
 			}
@@ -260,18 +262,29 @@ public class PortalHandler {
 		return linkedToPortals;
 	}
 	
+	public Set<Portal> getPortalsLinkedTo(Portal portal) {
+		
+		Set<Portal> linkedToPortals = new HashSet<>();
+		
+		for (Player player : portal.getCounterPortals().keySet()) {
+			linkedToPortals.addAll(getPortalsLinkedTo(player, portal));
+		}
+		
+		return linkedToPortals;
+	}
+	
 	/**
 	 * Returns all block caches (2 for each portal) of all portals in specified world.
 	 */
-	public Set<BlockCache> getBlockCaches(World world) {
+	public Set<BlockCache> getBlockCaches(Player player, World world) {
 		
 		Set<BlockCache> caches = new HashSet<>();
 		
 		for (Portal portal : getPortals(world)) {
 			
-			if (portal.blockCachesAreLoaded()) {
-				caches.add(portal.getFrontCache());
-				caches.add(portal.getBackCache());
+			if (portal.blockCachesAreLoaded(player)) {
+				caches.add(portal.getFrontCache(player));
+				caches.add(portal.getBackCache(player));
 			}
 		}
 		
@@ -282,26 +295,26 @@ public class PortalHandler {
 	 * Returns a Set of projection caches that are not connected to a portal but to a specific block cache (one of two for a portal).
 	 * Returns an empty Set if none were found.
 	 */
-	public Set<ProjectionCache> getProjectionsLinkedTo(BlockCache cache) {
+	public Set<ProjectionCache> getProjectionsLinkedTo(Player player, BlockCache cache) {
 		
 		Set<ProjectionCache> linkedToProjections = new HashSet<>();
 		Portal portal = cache.getPortal();
 		
-		for (Portal linkedPortal : getPortalsLinkedTo(portal)) {
+		for (Portal linkedPortal : getPortalsLinkedTo(player, portal)) {
 		
-			if (linkedPortal.projectionsAreLoaded()) {
+			if (linkedPortal.projectionsAreLoaded(player)) {
 		
-				ProjectionCache frontProjection = linkedPortal.getFrontProjection();
-				linkedToProjections.add(frontProjection.getSourceCache() == cache ? frontProjection : linkedPortal.getBackProjection());
+				ProjectionCache frontProjection = linkedPortal.getFrontProjection(player);
+				linkedToProjections.add(frontProjection.getSourceCache() == cache ? frontProjection : linkedPortal.getBackProjection(player));
 			}
 		}
 		
 		return linkedToProjections;
 	}
 	
-	private void loadBlockCachesOf(Portal portal) {
+	private void loadBlockCachesOf(Player player, Portal portal) {
 		
-		portal.setBlockCaches(BlockCacheFactory.createBlockCaches(
+		portal.setBlockCaches(player, BlockCacheFactory.createBlockCaches(
 				portal,
 				configSettings.getPortalProjectionDist(),
 				configSettings.getWorldBorderBlockType(portal.getWorld().getEnvironment())));
@@ -311,29 +324,29 @@ public class PortalHandler {
 		MessageUtils.printDebug("Loaded block data for portal " + portal.toString());
 	}
 	
-	public void loadProjectionCachesOf(Portal portal) {
+	public void loadProjectionCachesOf(Player player, Portal portal) {
 		
-		if (!portal.isLinked()) {
+		if (!portal.isLinked(player)) {
 			return;
 		}
 		
-		Portal counterPortal = portal.getCounterPortal();
+		Portal counterPortal = portal.getCounterPortal(player);
 		boolean isLinkTransformFlipped = isLinkTransformFlipped(portal);
 		
 		Transform linkTransform = TransformFactory.calculateBlockLinkTransform(portal, counterPortal, isLinkTransformFlipped);
-		portal.setTpTransform(linkTransform.clone().invert());
+		portal.setTpTransform(player, linkTransform.clone().invert());
 		
-		if (!counterPortal.blockCachesAreLoaded()) {
-			loadBlockCachesOf(counterPortal);
+		if (!counterPortal.blockCachesAreLoaded(player)) {
+			loadBlockCachesOf(player, counterPortal);
 		}
 		
-		BlockCache frontCache = counterPortal.getFrontCache();
-		BlockCache backCache = counterPortal.getBackCache();
+		BlockCache frontCache = counterPortal.getFrontCache(player);
+		BlockCache backCache = counterPortal.getBackCache(player);
 		
 		if (isLinkTransformFlipped) {
-			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, backCache, frontCache, linkTransform));
+			portal.setProjectionCaches(player, BlockCacheFactory.createProjectionCaches(portal, backCache, frontCache, linkTransform));
 		} else {
-			portal.setProjectionCaches(BlockCacheFactory.createProjectionCaches(portal, frontCache, backCache, linkTransform));
+			portal.setProjectionCaches(player, BlockCacheFactory.createProjectionCaches(portal, frontCache, backCache, linkTransform));
 		}
 		
 		addPortalToExpirationTimer(portal);
@@ -377,12 +390,13 @@ public class PortalHandler {
 			}
 		}
 		
-		portal.removeLink();
-		portal.setLinkedTo(counterPortal);
+		portal.removeLink(triggerPlayer);
+		portal.setLinkedTo(triggerPlayer, counterPortal);
 		
 		MessageUtils.printDebug("Linked" + (portal instanceof CustomPortal ? " custom " : " ") + "portal "
 		                        + portal.toString() + " to portal "
-		                        + counterPortal.toString());
+		                        + counterPortal.toString()
+		                        + ((triggerPlayer!=null)?" for "+triggerPlayer.getName():""));
 	}
 	
 	/**
@@ -410,10 +424,12 @@ public class PortalHandler {
 					
 					if (timeSinceLastUse > cacheExpirationDuration) {
 						
-						portal.removeProjectionCaches();
-						portal.removeBlockCaches();
-						entries.remove();
-						MessageUtils.printDebug("Removed cached block data of portal " + portal.toString());
+						for (Player player : portal.getProjectionCaches().keySet()) {
+							portal.removeProjectionCaches(player);
+							portal.removeBlockCaches(player);
+							entries.remove();
+							MessageUtils.printDebug("Removed cached block data of portal " + portal.toString()+" for " + player.getName());
+						}
 					}
 				}
 			}
